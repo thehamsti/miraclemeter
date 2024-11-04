@@ -1,0 +1,36 @@
+This is an Expo/React Native mobile application.
+
+Framework information:
+- Built with Expo managed workflow
+- Uses React Native for cross-platform mobile development
+- Follows React Native and Expo best practices and conventions
+
+Key technologies:
+- JavaScript/TypeScript
+- React Native components and APIs
+- Expo SDK and features
+- React Navigation for routing
+- React Native styling and layout with Flexbox
+
+File structure conventions:
+- /src - Main source code directory
+- /assets - Images, fonts, and other static assets
+- /components - Reusable React Native components
+- /screens - Screen components for different app views
+- /navigation - Navigation configuration
+- /services - API calls and business logic
+- /utils - Helper functions and utilities
+- /hooks - Custom React hooks
+- /constants - App-wide constants and theme settings
+
+Build and deployment:
+- Uses Expo CLI for development and building
+- Can be built for iOS and Android platforms
+- Supports Expo Go for development testing
+- Can be published to Expo's servers or built as standalone apps
+
+Development environment:
+- Node.js
+- npm/yarn package manager
+- Expo CLI tools
+- iOS Simulator / Android Emulator for testing

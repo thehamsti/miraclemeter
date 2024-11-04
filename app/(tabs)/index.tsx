@@ -1,70 +1,184 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+import { Link } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { getBirthRecords } from '@/services/storage';
+import { BirthRecord } from '@/types';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { Button } from '@/components/Button';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
+  const [recentRecords, setRecentRecords] = useState<BirthRecord[]>([]);
+  const [todayCount, setTodayCount] = useState(0);
+  const [weekCount, setWeekCount] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadStats = async () => {
+        try {
+          const records = await getBirthRecords();
+          
+          // Get recent records (last 5)
+          const recent = records.slice(-5).reverse();
+          setRecentRecords(recent);
+
+          // Calculate today's count
+          const today = new Date();
+          const todayRecords = records.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            return recordDate.toDateString() === today.toDateString();
+          });
+          setTodayCount(todayRecords.length);
+
+          // Calculate this week's count
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          const weekRecords = records.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            return recordDate >= weekAgo;
+          });
+          setWeekCount(weekRecords.length);
+        } catch (error) {
+          console.error('Error loading stats:', error);
+        }
+      };
+
+      loadStats();
+    }, []) // Empty dependency array since we want to reload on every focus
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ScrollView style={styles.container}>
+      <ThemedView style={styles.header}>
+        <ThemedView style={styles.titleContainer}>
+          <Ionicons name="heart" size={32} color="#FF69B4" />
+          <ThemedText type="title">Birth Tracker</ThemedText>
+        </ThemedView>
+        <ThemedText type="subtitle">Welcome Back! 🌟</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+
+      <ThemedView style={styles.statsContainer}>
+        <ThemedView style={styles.statCard}>
+          <Ionicons name="today" size={24} color="#4A90E2" />
+          <ThemedText type="defaultSemiBold">Today</ThemedText>
+          <ThemedText type="title">{todayCount}</ThemedText>
+          <ThemedText>Deliveries</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.statCard}>
+          <Ionicons name="calendar" size={24} color="#4A90E2" />
+          <ThemedText type="defaultSemiBold">This Week</ThemedText>
+          <ThemedText type="title">{weekCount}</ThemedText>
+          <ThemedText>Deliveries</ThemedText>
+        </ThemedView>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
+
+      <ThemedView style={styles.quickActions}>
+        <Link href="/quick-entry" asChild>
+          <Button 
+            title="New Birth Record"
+            size="large"
+            style={styles.mainButton}
+            icon={<Ionicons name="add-circle" size={24} color="white" />}
+            onPress={() => {
+              console.log('New Birth Record');
+            }}
+          />
+        </Link>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+
+      <ThemedView style={styles.recentSection}>
+        <ThemedView style={styles.sectionHeader}>
+          <Ionicons name="list" size={24} color="#4A90E2" />
+          <ThemedText type="subtitle">Recent Entries</ThemedText>
+        </ThemedView>
+        {recentRecords.length > 0 ? (
+          recentRecords.map((record) => (
+            <ThemedView key={record.id} style={styles.recentCard}>
+              <ThemedText type="defaultSemiBold">
+                <Ionicons name="calendar" size={16} /> {new Date(record.timestamp).toLocaleDateString()}
+              </ThemedText>
+              <ThemedText>
+                <Ionicons name="people" size={16} /> {record.babies.length > 1 ? 'Multiple Birth' : 'Single Birth'}
+              </ThemedText>
+              <ThemedText>
+                <Ionicons name="medical" size={16} /> {record.deliveryType}
+              </ThemedText>
+            </ThemedView>
+          ))
+        ) : (
+          <ThemedView style={styles.recentCard}>
+            <ThemedText style={styles.placeholderText}>
+              No birth records yet. Add your first record using the button above! 🎉
+            </ThemedText>
+          </ThemedView>
+        )}
       </ThemedView>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 20,
+  },
+  header: {
+    padding: 20,
+    gap: 8,
+  },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  statsContainer: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  statCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickActions: {
+    padding: 20,
+    gap: 16,
+  },
+  mainButton: {
+    minHeight: 60,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  secondaryButton: {
+    flex: 1,
+  },
+  recentSection: {
+    padding: 20,
+    gap: 12,
+    paddingBottom: 100,
+    flex: 1,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  recentCard: {
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    gap: 4,
+  },
+  placeholderText: {
+    textAlign: 'center',
+    opacity: 0.6,
   },
 });
