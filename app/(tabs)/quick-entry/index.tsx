@@ -29,6 +29,7 @@ export default function QuickEntryScreen() {
 
   // Add theme color hooks
   const backgroundColor = useThemeColor({}, 'background');
+  const primaryButtonColor = useThemeColor({}, 'primaryButton');
   const textColor = useThemeColor({}, 'text');
   const tintColor = useThemeColor({}, 'tint');
 
@@ -124,11 +125,11 @@ export default function QuickEntryScreen() {
     if (showSuccess) {
       return (
         <ThemedView style={[styles.step, styles.successStep]}>
-          <Ionicons name="checkmark-circle" size={80} color={tintColor} />
-          <ThemedText style={[styles.successTitle, { color: tintColor }]}>
+          <Ionicons name="checkmark-circle" size={80} color={primaryButtonColor} />
+          <ThemedText type="title">
             Birth Record Saved!
           </ThemedText>
-          <ThemedText style={[styles.successText, { color: textColor }]}>
+          <ThemedText type="subtitle" style={styles.successText}>
             The birth record has been successfully saved to your records.
           </ThemedText>
         </ThemedView>
@@ -276,12 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
   successText: {
-    fontSize: 16,
     textAlign: 'center',
     opacity: 0.8,
   },
