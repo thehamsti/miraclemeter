@@ -139,7 +139,7 @@ export default function QuickEntryScreen() {
     if (currentStep === 0) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText style={styles.stepTitle}>When did the birth occur?</ThemedText>
+          <ThemedText type="title" style={styles.stepTitle}>When did the birth occur?</ThemedText>
           <DateTimePicker value={timestamp} onChange={setTimestamp} />
         </ThemedView>
       );
@@ -149,7 +149,7 @@ export default function QuickEntryScreen() {
     if (currentStep === 1) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText style={styles.stepTitle}>How many babies?</ThemedText>
+          <ThemedText type="title" style={styles.stepTitle}>How many babies?</ThemedText>
           <MultipleBirthSelector value={numberOfBabies} onChange={handleNumberOfBabiesChange} />
         </ThemedView>
       );
@@ -175,7 +175,7 @@ export default function QuickEntryScreen() {
     if (currentStep === 2 + numberOfBabies) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText style={styles.stepTitle}>Delivery type?</ThemedText>
+          <ThemedText type="title" style={styles.stepTitle}>Delivery type?</ThemedText>
           <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
         </ThemedView>
       );
@@ -184,7 +184,7 @@ export default function QuickEntryScreen() {
     // Notes (final step)
     return (
       <ThemedView style={styles.step}>
-        <ThemedText style={styles.stepTitle}>Additional Notes</ThemedText>
+        <ThemedText type="title" style={styles.stepTitle}>Additional Notes</ThemedText>
         <TextInput
           placeholder="Optional notes about the birth"
           value={notes}
@@ -257,8 +257,6 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   stepTitle: {
-    fontSize: 24,
-    fontWeight: '600',
     textAlign: 'center',
     marginBottom: 16,
   },

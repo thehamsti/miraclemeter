@@ -37,24 +37,29 @@ const styles = StyleSheet.create({
   default: {
     fontSize: 16,
     lineHeight: 24,
+    fontFamily: 'Avenir',
   },
   defaultSemiBold: {
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 24,
     fontWeight: '600',
+    fontFamily: 'Avenir',
   },
   title: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: 'bold',
     lineHeight: 32,
+    fontFamily: 'Avenir-Heavy',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+    fontFamily: 'Avenir-Medium',
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
     color: '#0a7ea4',
+    fontFamily: 'Avenir-Medium',
   },
 });

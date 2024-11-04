@@ -1,0 +1,27 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "info": {
+      "en-US": {
+        "title": "Birth Tracker",
+        "subtitle": "Track deliveries for L&D nurses",
+        "description": "A privacy-focused mobile app for labor and delivery nurses to anonymously track births they assist with. Features quick data entry, meaningful statistics and analytics, customizable preferences, and an intuitive interface designed for busy healthcare professionals.",
+        "keywords": [
+          "birth tracking",
+          "labor and delivery",
+          "nurse",
+          "medical",
+          "healthcare",
+          "statistics",
+          "delivery records",
+          "birth statistics",
+          "medical tracking",
+          "nurse tools"
+        ],
+        "marketingUrl": "https://birthtracker.app",
+        "supportUrl": "https://birthtracker.app/support", 
+        "privacyPolicyUrl": "https://birthtracker.app/privacy"
+      }
+    }
+  }
+}

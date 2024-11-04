@@ -19,6 +19,8 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
   const tintColor = useThemeColor({}, 'tint');
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
+  const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
+  const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
 
   const handleCustomSubmit = () => {
     const num = parseInt(customNumber);
@@ -37,17 +39,17 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
             title="1 Baby"
             onPress={() => onChange(1)}
             variant={value === 1 ? 'primary' : 'secondary'}
-            icon={<Ionicons name="person" size={20} color={value === 1 ? 'white' : textColor} />}
-            size="large"
-            style={[styles.gridButton, { backgroundColor: value === 1 ? tintColor : backgroundColor }]}
+            icon={<Ionicons name="person" size={20} color={value === 1 ? primaryButtonTextColor : secondaryButtonTextColor} />}
+            size="large" 
+            style={styles.gridButton}
           />
           <Button
             title="2 Babies"
             onPress={() => onChange(2)}
             variant={value === 2 ? 'primary' : 'secondary'}
-            icon={<Ionicons name="people" size={20} color={value === 2 ? 'white' : textColor} />}
+            icon={<Ionicons name="people" size={20} color={value === 2 ? primaryButtonTextColor : secondaryButtonTextColor} />}
             size="large"
-            style={[styles.gridButton, { backgroundColor: value === 2 ? tintColor : backgroundColor }]}
+            style={styles.gridButton}
           />
         </ThemedView>
         <ThemedView style={styles.row}>
@@ -55,26 +57,26 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
             title="3 Babies"
             onPress={() => onChange(3)}
             variant={value === 3 ? 'primary' : 'secondary'}
-            icon={<Ionicons name="people" size={20} color={value === 3 ? 'white' : textColor} />}
+            icon={<Ionicons name="people" size={20} color={value === 3 ? primaryButtonTextColor : secondaryButtonTextColor} />}
             size="large"
-            style={[styles.gridButton, { backgroundColor: value === 3 ? tintColor : backgroundColor }]}
+            style={styles.gridButton}
           />
           <Button
             title="4 Babies"
             onPress={() => onChange(4)}
             variant={value === 4 ? 'primary' : 'secondary'}
-            icon={<Ionicons name="people" size={20} color={value === 4 ? 'white' : textColor} />}
+            icon={<Ionicons name="people" size={20} color={value === 4 ? primaryButtonTextColor : secondaryButtonTextColor} />}
             size="large"
-            style={[styles.gridButton, { backgroundColor: value === 4 ? tintColor : backgroundColor }]}
+            style={styles.gridButton}
           />
         </ThemedView>
         <Button
           title="More than 4!"
           onPress={() => setShowModal(true)}
           variant={value > 4 ? 'primary' : 'secondary'}
-          icon={<Ionicons name="add-circle" size={20} color={value > 4 ? 'white' : textColor} />}
+          icon={<Ionicons name="add-circle" size={20} color={value > 4 ? primaryButtonTextColor : secondaryButtonTextColor} />}
           size="large"
-          style={[styles.moreButton, { backgroundColor }]}
+          style={styles.moreButton}
         />
       </ThemedView>
 

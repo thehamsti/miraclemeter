@@ -2,6 +2,8 @@ import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { View } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface ButtonProps {
   title: string;
@@ -10,12 +12,14 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary';
   size?: 'normal' | 'large';
   icon?: React.ReactNode;
+  loading?: boolean;
 }
 
 export function Button({
   title,
   onPress,
   style,
+  loading = false,
   variant = 'primary',
   size = 'normal',
   icon,
@@ -23,28 +27,45 @@ export function Button({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  const tintColor = useThemeColor({}, 'tint');
+  const primaryButtonColor = useThemeColor({}, 'primaryButton');
+  const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
+  const secondaryButtonColor = useThemeColor({}, 'secondaryButton');
+  const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
+
   return (
     <Pressable
       style={({ pressed }) => [
         styles.button,
         size === 'large' && styles.buttonLarge,
-        variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
-        isDark && variant === 'secondary' && styles.secondaryButtonDark,
+        {
+          backgroundColor: variant === 'primary' ? primaryButtonColor : secondaryButtonColor
+        },
         pressed && styles.buttonPressed,
         style,
       ]}
       onPress={onPress}
+      disabled={loading}
     >
       <View style={styles.content}>
-        {icon}
-        <ThemedText style={[
-          styles.text,
-          size === 'large' && styles.textLarge,
-          variant === 'secondary' ? styles.secondaryText : null,
-          icon ? styles.textWithIcon : null
-        ]}>
-          {title}
-        </ThemedText>
+        {loading ? (
+          <ActivityIndicator 
+            color={tintColor} 
+            size="small"
+          />
+        ) : (
+          <>
+            {icon}
+            <ThemedText style={[
+              styles.text,
+              size === 'large' && styles.textLarge,
+              variant === 'primary' ? { color: primaryButtonTextColor } : { color: secondaryButtonTextColor },
+              icon ? styles.textWithIcon : null
+            ]}>
+              {title}
+            </ThemedText>
+          </>
+        )}
       </View>
     </Pressable>
   );
@@ -67,15 +88,6 @@ const styles = StyleSheet.create({
     padding: 20,
     minHeight: 68,
   },
-  primaryButton: {
-    backgroundColor: '#007AFF',
-  },
-  secondaryButton: {
-    backgroundColor: '#F0F0F0',
-  },
-  secondaryButtonDark: {
-    backgroundColor: '#333333',
-  },
   buttonPressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
@@ -88,16 +100,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   text: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   textLarge: {
     fontSize: 20,
-  },
-  secondaryText: {
-    color: '#007AFF',
   },
   textWithIcon: {
     marginLeft: 4,

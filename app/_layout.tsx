@@ -1,32 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Redirect, Stack } from 'expo-router';
-import { isOnboardingComplete } from '../services/storage';
+import { Stack } from 'expo-router';
+import { isOnboardingComplete } from '@/services/storage';
+import { requestNotificationPermissions, scheduleDailyReminder } from '@/utils/notifications';
+import { ThemeProvider } from '@/hooks/ThemeContext';
 
 export default function RootLayout() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(true);
-
-  useEffect(() => {
-    checkOnboarding();
-  }, []);
-
-  const checkOnboarding = async () => {
-    const completed = await isOnboardingComplete();
-    setShowOnboarding(!completed);
-    setIsLoading(false);
-  };
-
-  if (isLoading) {
-    return null; // Or a loading screen
-  }
+  const showOnboarding = !isOnboardingComplete();
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {showOnboarding ? (
-        <Stack.Screen name="(auth)/onboarding" />
-      ) : (
-        <Stack.Screen name="(tabs)" />
-      )}
-    </Stack>
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        {showOnboarding ? (
+          <Stack.Screen name="(auth)/onboarding" />
+        ) : (
+          <Stack.Screen 
+            name="(tabs)" 
+            options={{
+              headerTitle: 'Home'
+            }}
+          />
+        )}
+      </Stack>
+    </ThemeProvider>
   );
 }

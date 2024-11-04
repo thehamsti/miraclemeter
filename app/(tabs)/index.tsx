@@ -23,6 +23,7 @@ export default function HomeScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const tintColor = useThemeColor({}, 'tint');
+  const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
 
   useFocusEffect(
     useCallback(() => {
@@ -87,14 +88,14 @@ export default function HomeScreen() {
         <ThemedView style={styles.statsContainer}>
           <StatCard
             icon="today"
-            iconColor={tintColor}
+            iconColor={secondaryButtonTextColor}
             label="Today"
             value={todayCount}
             subtitle="Deliveries"
           />
           <StatCard
             icon="calendar"
-            iconColor={tintColor}
+            iconColor={secondaryButtonTextColor}
             label="This Week"
             value={weekCount}
             subtitle="Deliveries"

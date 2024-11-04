@@ -19,6 +19,8 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
 
   const tintColor = useThemeColor({}, 'tint');
   const backgroundColor = useThemeColor({}, 'background');
+  const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
+  const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
 
   const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -60,7 +62,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
       <ThemedView style={styles.content}>
         <ThemedView style={styles.pickerSection}>
           <ThemedView style={[styles.pickerRow, { backgroundColor }]}>
-            <Ionicons name="calendar-outline" size={24} color={tintColor} />
+            <Ionicons name="calendar-outline" size={24} color={secondaryButtonTextColor} />
             <ThemedText style={styles.label}>Date:</ThemedText>
             {Platform.OS === 'ios' ? (
               <DateTimePickerNative
@@ -79,7 +81,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
           </ThemedView>
 
           <ThemedView style={[styles.pickerRow, { backgroundColor }]}>
-            <Ionicons name="time-outline" size={24} color={tintColor} />
+            <Ionicons name="time-outline" size={24} color={secondaryButtonTextColor} />
             <ThemedText style={styles.label}>Time:</ThemedText>
             {Platform.OS === 'ios' ? (
               <DateTimePickerNative

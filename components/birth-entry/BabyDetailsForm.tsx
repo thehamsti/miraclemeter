@@ -14,6 +14,10 @@ interface BabyDetailsFormProps {
 export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
   const tintColor = useThemeColor({}, 'tint');
   const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
+  const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
+
 
   const updateGender = (gender: Baby['gender']) => {
     onUpdate({ ...baby, gender });
@@ -22,36 +26,36 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.headerRow}>
-        <Ionicons name="person" size={24} color={tintColor} />
+        <Ionicons name="person" size={24} color={secondaryButtonTextColor} />
         <ThemedText>Baby {baby.birthOrder}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.buttonContainer}>
         <Button
           title="Boy"
           onPress={() => updateGender('boy')}
-          icon={<Ionicons name="male" size={20} color="white" />}
+          icon={<Ionicons name="male" size={20} color={baby.gender === 'boy' ? primaryButtonTextColor : secondaryButtonTextColor} />}
           style={StyleSheet.flatten([
             styles.button,
-            { backgroundColor: baby.gender === 'boy' ? tintColor : backgroundColor },
           ])}
+          variant={baby.gender === 'boy' ? 'primary' : 'secondary'}
         />
         <Button
           title="Girl"
           onPress={() => updateGender('girl')}
-          icon={<Ionicons name="female" size={20} color="white" />}
+          icon={<Ionicons name="female" size={20} color={baby.gender === 'girl' ? primaryButtonTextColor : secondaryButtonTextColor} />}
           style={StyleSheet.flatten([
             styles.button,
-            { backgroundColor: baby.gender === 'girl' ? tintColor : backgroundColor },
           ])}
+          variant={baby.gender === 'girl' ? 'primary' : 'secondary'}
         />
         <Button
           title="Angel"
           onPress={() => updateGender('angel')}
-          icon={<Ionicons name="star" size={20} color="white" />}
+          icon={<Ionicons name="star" size={20} color={baby.gender === 'angel' ? primaryButtonTextColor : secondaryButtonTextColor} />}
           style={StyleSheet.flatten([
             styles.button,
-            { backgroundColor: baby.gender === 'angel' ? tintColor : backgroundColor },
           ])}
+          variant={baby.gender === 'angel' ? 'primary' : 'secondary'}
         />
       </ThemedView>
     </ThemedView>
