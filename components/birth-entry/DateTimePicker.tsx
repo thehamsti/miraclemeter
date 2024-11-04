@@ -6,6 +6,7 @@ import { ThemedView } from '../ThemedView';
 import { Button } from '../Button';
 import { TouchableRipple } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface DateTimePickerProps {
   value: Date;
@@ -15,6 +16,9 @@ interface DateTimePickerProps {
 export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const tintColor = useThemeColor({}, 'tint');
+  const backgroundColor = useThemeColor({}, 'background');
 
   const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -55,8 +59,8 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
     <ThemedView style={styles.container}>
       <ThemedView style={styles.content}>
         <ThemedView style={styles.pickerSection}>
-          <ThemedView style={styles.pickerRow}>
-            <Ionicons name="calendar-outline" size={24} color="#4A90E2" />
+          <ThemedView style={[styles.pickerRow, { backgroundColor }]}>
+            <Ionicons name="calendar-outline" size={24} color={tintColor} />
             <ThemedText style={styles.label}>Date:</ThemedText>
             {Platform.OS === 'ios' ? (
               <DateTimePickerNative
@@ -66,7 +70,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
                 style={styles.picker}
               />
             ) : (
-              <TouchableRipple onPress={() => setShowDatePicker(true)} style={styles.pickerButton}>
+              <TouchableRipple onPress={() => setShowDatePicker(true)} style={[styles.pickerButton, { backgroundColor }]}>
                 <ThemedText style={styles.pickerButtonText}>
                   {value.toLocaleDateString()}
                 </ThemedText>
@@ -74,8 +78,8 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
             )}
           </ThemedView>
 
-          <ThemedView style={styles.pickerRow}>
-            <Ionicons name="time-outline" size={24} color="#4A90E2" />
+          <ThemedView style={[styles.pickerRow, { backgroundColor }]}>
+            <Ionicons name="time-outline" size={24} color={tintColor} />
             <ThemedText style={styles.label}>Time:</ThemedText>
             {Platform.OS === 'ios' ? (
               <DateTimePickerNative
@@ -85,7 +89,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
                 style={styles.picker}
               />
             ) : (
-              <TouchableRipple onPress={() => setShowTimePicker(true)} style={styles.pickerButton}>
+              <TouchableRipple onPress={() => setShowTimePicker(true)} style={[styles.pickerButton, { backgroundColor }]}>
                 <ThemedText style={styles.pickerButtonText}>
                   {value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </ThemedText>
@@ -159,7 +163,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#f5f5f5',
     padding: 12,
     borderRadius: 12,
   },
@@ -176,7 +179,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 8,
     borderRadius: 8,
-    backgroundColor: 'white',
   },
   pickerButtonText: {
     fontSize: 16,

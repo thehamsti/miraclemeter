@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { getBirthRecords, deleteBirthRecord } from '@/services/storage';
 import { BirthRecord } from '@/types';
@@ -10,8 +10,13 @@ import { TextInput } from '@/components/TextInput';
 import { IconButton } from '@/components/IconButton';
 import { FlatList } from 'react-native';
 import { router, Link } from 'expo-router';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function HistoryScreen() {
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const tintColor = useThemeColor({}, 'tint');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [birthRecords, setBirthRecords] = useState<BirthRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<BirthRecord[]>([]);
@@ -70,7 +75,7 @@ export default function HistoryScreen() {
     const timestamp = item.timestamp instanceof Date ? item.timestamp : new Date(item.timestamp);
 
     return (
-      <ThemedView style={styles.card}>
+      <ThemedView style={[styles.card, { backgroundColor }]}>
         <ThemedView style={styles.cardContent}>
           <ThemedText style={styles.date}>{formatDate(timestamp)}</ThemedText>
 
@@ -80,7 +85,7 @@ export default function HistoryScreen() {
                 {item.babies.length} {item.babies.length > 1 ? 'babies' : 'baby'} • {item.deliveryType}
               </ThemedText>
               {item.notes && (
-                <ThemedText numberOfLines={1} style={styles.notes}>
+                <ThemedText numberOfLines={1} style={[styles.notes, { color: textColor }]}>
                   {item.notes}
                 </ThemedText>
               )}
@@ -91,6 +96,7 @@ export default function HistoryScreen() {
                 name="pencil"
                 size={18}
                 onPress={() => handleEdit(item)}
+                color={tintColor}
               />
               <IconButton
                 name="trash-can"
@@ -109,14 +115,14 @@ export default function HistoryScreen() {
     <ThemedView style={styles.emptyState}>
       <ThemedText style={styles.emptyStateText}>
         No birth records yet! Head over to the{' '}
-        <Link href="/" style={styles.link}>Home tab</Link>
+        <Link href="/" style={[styles.link, { color: tintColor }]}>Home tab</Link>
         {' '}to create your first record.
       </ThemedText>
     </ThemedView>
   );
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <ThemedView style={styles.header}>
         <ThemedText type="title">History</ThemedText>
       </ThemedView>
@@ -127,7 +133,7 @@ export default function HistoryScreen() {
             placeholder="Search records..."
             onChangeText={handleSearch}
             value={searchQuery}
-            style={styles.searchbar}
+            style={[styles.searchbar, { backgroundColor }]}
           />
 
           <FlatList
@@ -138,7 +144,7 @@ export default function HistoryScreen() {
           />
         </>
       ) : renderEmptyState()}
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
@@ -153,7 +159,6 @@ const styles = StyleSheet.create({
   },
   searchbar: {
     margin: 20,
-    backgroundColor: '#F0F0F0',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 12,
@@ -175,7 +180,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 5,
     borderRadius: 12,
-    backgroundColor: '#F0F0F0',
     gap: 4,
   },
   cardContent: {
@@ -218,7 +222,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   link: {
-    color: '#007AFF',
     textDecorationLine: 'underline',
   },
 });

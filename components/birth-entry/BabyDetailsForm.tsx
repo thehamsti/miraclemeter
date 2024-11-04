@@ -4,6 +4,7 @@ import { ThemedText } from '../ThemedText';
 import { Button } from '../Button';
 import type { Baby } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface BabyDetailsFormProps {
   baby: Baby;
@@ -11,6 +12,9 @@ interface BabyDetailsFormProps {
 }
 
 export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
+  const tintColor = useThemeColor({}, 'tint');
+  const backgroundColor = useThemeColor({}, 'background');
+
   const updateGender = (gender: Baby['gender']) => {
     onUpdate({ ...baby, gender });
   };
@@ -18,7 +22,7 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.headerRow}>
-        <Ionicons name="person" size={24} color="#4A90E2" />
+        <Ionicons name="person" size={24} color={tintColor} />
         <ThemedText>Baby {baby.birthOrder}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.buttonContainer}>
@@ -28,7 +32,7 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
           icon={<Ionicons name="male" size={20} color="white" />}
           style={StyleSheet.flatten([
             styles.button,
-            baby.gender === 'boy' ? styles.selectedButton : undefined,
+            { backgroundColor: baby.gender === 'boy' ? tintColor : backgroundColor },
           ])}
         />
         <Button
@@ -37,7 +41,7 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
           icon={<Ionicons name="female" size={20} color="white" />}
           style={StyleSheet.flatten([
             styles.button,
-            baby.gender === 'girl' ? styles.selectedButton : undefined,
+            { backgroundColor: baby.gender === 'girl' ? tintColor : backgroundColor },
           ])}
         />
         <Button
@@ -46,7 +50,7 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
           icon={<Ionicons name="star" size={20} color="white" />}
           style={StyleSheet.flatten([
             styles.button,
-            baby.gender === 'angel' ? styles.selectedButton : undefined,
+            { backgroundColor: baby.gender === 'angel' ? tintColor : backgroundColor },
           ])}
         />
       </ThemedView>
@@ -64,10 +68,6 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#666666',
-  },
-  selectedButton: {
-    backgroundColor: '#007AFF',
   },
   headerRow: {
     flexDirection: 'row',

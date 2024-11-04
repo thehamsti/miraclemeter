@@ -3,6 +3,7 @@ import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { Button } from '../Button';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface DeliveryTypeSelectorProps {
   value: 'vaginal' | 'c-section';
@@ -10,10 +11,13 @@ interface DeliveryTypeSelectorProps {
 }
 
 export function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorProps) {
+  const tintColor = useThemeColor({}, 'tint');
+  const backgroundColor = useThemeColor({}, 'background');
+
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.headerRow}>
-        <Ionicons name="medical" size={24} color="#4A90E2" />
+        <Ionicons name="medical" size={24} color={tintColor} />
         <ThemedText>Delivery Type</ThemedText>
       </ThemedView>
       <ThemedView style={styles.buttonContainer}>
@@ -23,7 +27,7 @@ export function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorPr
           icon={<Ionicons name="woman" size={20} color="white" />}
           style={StyleSheet.flatten([
             styles.button,
-            value === 'vaginal' ? styles.selectedButton : undefined,
+            { backgroundColor: value === 'vaginal' ? tintColor : backgroundColor },
           ])}
         />
         <Button
@@ -32,7 +36,7 @@ export function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorPr
           icon={<Ionicons name="cut" size={20} color="white" />}
           style={StyleSheet.flatten([
             styles.button,
-            value === 'c-section' ? styles.selectedButton : undefined,
+            { backgroundColor: value === 'c-section' ? tintColor : backgroundColor },
           ])}
         />
       </ThemedView>
@@ -50,10 +54,6 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#666666',
-  },
-  selectedButton: {
-    backgroundColor: '#007AFF',
   },
   headerRow: {
     flexDirection: 'row',

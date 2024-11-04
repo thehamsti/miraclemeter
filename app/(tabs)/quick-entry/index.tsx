@@ -15,6 +15,7 @@ import type { Baby, BirthRecord } from '@/types';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function QuickEntryScreen() {
   const navigation = useNavigation();
@@ -25,6 +26,11 @@ export default function QuickEntryScreen() {
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section'>('vaginal');
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Add theme color hooks
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const tintColor = useThemeColor({}, 'tint');
 
   // Calculate total steps based on number of babies
   const totalSteps = useMemo(() => {
@@ -118,9 +124,11 @@ export default function QuickEntryScreen() {
     if (showSuccess) {
       return (
         <ThemedView style={[styles.step, styles.successStep]}>
-          <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
-          <ThemedText style={styles.successTitle}>Birth Record Saved!</ThemedText>
-          <ThemedText style={styles.successText}>
+          <Ionicons name="checkmark-circle" size={80} color={tintColor} />
+          <ThemedText style={[styles.successTitle, { color: tintColor }]}>
+            Birth Record Saved!
+          </ThemedText>
+          <ThemedText style={[styles.successText, { color: textColor }]}>
             The birth record has been successfully saved to your records.
           </ThemedText>
         </ThemedView>
@@ -190,7 +198,7 @@ export default function QuickEntryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       {!showSuccess && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
       
       <ThemedView style={styles.content}>
@@ -273,7 +281,6 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#4CAF50',
   },
   successText: {
     fontSize: 16,
