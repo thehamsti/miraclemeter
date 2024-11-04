@@ -57,9 +57,6 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
 const styles = StyleSheet.create({
   container: {
     gap: 8,
-    padding: 12,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -77,4 +74,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-}); 
+});

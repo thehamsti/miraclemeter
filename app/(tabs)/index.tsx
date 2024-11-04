@@ -13,6 +13,9 @@ export default function HomeScreen() {
   const [recentRecords, setRecentRecords] = useState<BirthRecord[]>([]);
   const [todayCount, setTodayCount] = useState(0);
   const [weekCount, setWeekCount] = useState(0);
+  const [boysCount, setBoysCount] = useState(0);
+  const [girlsCount, setGirlsCount] = useState(0);
+  const [angelsCount, setAngelsCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -40,6 +43,20 @@ export default function HomeScreen() {
             return recordDate >= weekAgo;
           });
           setWeekCount(weekRecords.length);
+
+          // Calculate gender counts
+          let boys = 0, girls = 0, angels = 0;
+          records.forEach(record => {
+            record.babies.forEach(baby => {
+              if (baby.gender === 'boy') boys++;
+              if (baby.gender === 'girl') girls++;
+              if (baby.gender === 'angel') angels++;
+            });
+          });
+          setBoysCount(boys);
+          setGirlsCount(girls);
+          setAngelsCount(angels);
+
         } catch (error) {
           console.error('Error loading stats:', error);
         }
@@ -71,6 +88,27 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">This Week</ThemedText>
           <ThemedText type="title">{weekCount}</ThemedText>
           <ThemedText>Deliveries</ThemedText>
+        </ThemedView>
+      </ThemedView>
+
+      <ThemedView style={styles.statsContainer}>
+        <ThemedView style={styles.statCard}>
+          <Ionicons name="male" size={24} color="#4A90E2" />
+          <ThemedText type="defaultSemiBold">Boys</ThemedText>
+          <ThemedText type="title">{boysCount}</ThemedText>
+          <ThemedText>Total</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.statCard}>
+          <Ionicons name="female" size={24} color="#FF69B4" />
+          <ThemedText type="defaultSemiBold">Girls</ThemedText>
+          <ThemedText type="title">{girlsCount}</ThemedText>
+          <ThemedText>Total</ThemedText>
+        </ThemedView>
+        <ThemedView style={styles.statCard}>
+          <Ionicons name="star" size={24} color="#FFD700" />
+          <ThemedText type="defaultSemiBold">Angels</ThemedText>
+          <ThemedText type="title">{angelsCount}</ThemedText>
+          <ThemedText>Total</ThemedText>
         </ThemedView>
       </ThemedView>
 
