@@ -4,6 +4,7 @@ Framework information:
 - Built with Expo managed workflow
 - Uses React Native for cross-platform mobile development
 - Follows React Native and Expo best practices and conventions
+- Use useThemeColor hook to get colors to use for styling
 
 Key technologies:
 - JavaScript/TypeScript
