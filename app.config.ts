@@ -1,6 +1,6 @@
 module.exports = {
-  name: "laboranddelivery-tracker",
-  slug: "laboranddelivery-tracker",
+  name: "miraclemeter",
+  slug: "miraclemeter",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -13,7 +13,7 @@ module.exports = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.hamstico.laboranddeliverytracker"
+    bundleIdentifier: "com.hamstico.miraclemeter"
   },
   android: {
     adaptiveIcon: {
