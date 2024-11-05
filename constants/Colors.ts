@@ -22,8 +22,12 @@ const segmentedButtonInactiveLight = '#E0E0E0';
 const segmentedButtonInactiveDark = '#555555';
 const switchThumbColorLight = '#f4f3f4';
 const switchThumbColorDark = '#f4f3f4';
-const switchThumbActiveLight = tintColorLight;
-const switchThumbActiveDark = tintColorDark;
+const switchTrackInactiveLight = '#767577';
+const switchTrackInactiveDark = '#767577';
+const switchTrackActiveLight = tintColorLight;
+const switchTrackActiveDark = tintColorDark;
+const switchThumbActiveLight = tintColorDark;
+const switchThumbActiveDark = tintColorLight;
 
 export const Colors = {
   light: {
@@ -39,8 +43,8 @@ export const Colors = {
     secondaryButtonText: secondaryButtonTextColor,
     segmentedButtonActive: segmentedButtonActiveLight,
     segmentedButtonInactive: segmentedButtonInactiveLight,
-    switchTrackActive: tintColorLight,
-    switchTrackInactive: '#767577',
+    switchTrackActive: switchTrackActiveLight,
+    switchTrackInactive: switchTrackInactiveLight,
     switchThumbActive: switchThumbActiveLight,
     switchThumbInactive: switchThumbColorLight,
   },
@@ -57,8 +61,8 @@ export const Colors = {
     secondaryButtonText: secondaryButtonTextColor,
     segmentedButtonActive: segmentedButtonActiveDark,
     segmentedButtonInactive: segmentedButtonInactiveDark,
-    switchTrackActive: tintColorDark,
-    switchTrackInactive: '#767577',
+    switchTrackActive: switchTrackActiveDark,
+    switchTrackInactive: switchTrackInactiveDark,
     switchThumbActive: switchThumbActiveDark,
     switchThumbInactive: switchThumbColorDark,
   },
