@@ -9,6 +9,7 @@ const textColorDark = '#fff';
 const backgroundColorLight = '#fff';
 const backgroundColorDark = '#000';
 const tabIconDefaultColor = '#ccc';
+const tabIconSelectedColor = '#007AFF';
 const borderColorLight = '#E0E0E0';
 const borderColorDark = '#333333';
 const primaryButtonColor = '#007AFF';
@@ -35,7 +36,7 @@ export const Colors = {
     background: backgroundColorLight,
     tint: tintColorLight,
     tabIconDefault: tabIconDefaultColor,
-    tabIconSelected: tintColorLight,
+    tabIconSelected: tabIconSelectedColor,
     border: borderColorLight,
     primaryButton: primaryButtonColor,
     primaryButtonText: primaryButtonTextColor,
@@ -53,7 +54,7 @@ export const Colors = {
     background: backgroundColorDark,
     tint: tintColorDark,
     tabIconDefault: tabIconDefaultColor,
-    tabIconSelected: tintColorDark,
+    tabIconSelected: tabIconSelectedColor,
     border: borderColorDark,
     primaryButton: primaryButtonColor,
     primaryButtonText: primaryButtonTextColor,
