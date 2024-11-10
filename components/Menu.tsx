@@ -45,6 +45,11 @@ export function Menu({ isVisible, onClose }: MenuProps) {
           ]}
         >
           <MenuItem 
+            icon="analytics-outline" 
+            label="Stats" 
+            href="/stats" 
+          />
+          <MenuItem 
             icon="settings-outline" 
             label="Settings" 
             href="/settings" 
