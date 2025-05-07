@@ -1,7 +1,7 @@
 module.exports = {
     name: "miraclemeter",
     slug: "miraclemeter",
-    version: "1.0.0",
+    version: "0.0.1",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -13,13 +13,15 @@ module.exports = {
     },
     ios: {
         supportsTablet: true,
-        bundleIdentifier: "com.hamstico.miraclemeter"
+        bundleIdentifier: "com.hamstico.miraclemeter",
+        deploymentTarget: "15.1"
     },
     android: {
         adaptiveIcon: {
             foregroundImage: "./assets/images/adaptive-icon.png",
             backgroundColor: "#ffffff"
-        }
+        },
+        package: "com.johnhamstico.miraclemeter",
     },
     expo: {
         extra: {

@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, Alert } from 'react-native';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { StyleSheet, SafeAreaView, Alert, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Stepper } from '@/components/Stepper';
 import { DateTimePicker } from '@/components/birth-entry/DateTimePicker';
@@ -14,7 +14,6 @@ import { saveBirthRecord } from '@/services/storage';
 import type { Baby, BirthRecord } from '@/types';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback } from 'react';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function QuickEntryScreen() {
@@ -24,6 +23,7 @@ export default function QuickEntryScreen() {
   const [numberOfBabies, setNumberOfBabies] = useState(1);
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section'>('vaginal');
+  const [eventType, setEventType] = useState<'delivery' | 'transition'>('delivery');
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -35,8 +35,8 @@ export default function QuickEntryScreen() {
 
   // Calculate total steps based on number of babies
   const totalSteps = useMemo(() => {
-    // Steps: DateTime + NumberOfBabies + (1 step per baby) + DeliveryType + Notes
-    return 3 + numberOfBabies + 1;
+    // Steps: DateTime + NumberOfBabies + (1 step per baby) + DeliveryType + EventType + Notes
+    return 3 + numberOfBabies + 1 + 1;
   }, [numberOfBabies]);
 
   const handleBabyUpdate = (index: number, baby: Baby) => {
@@ -59,6 +59,7 @@ export default function QuickEntryScreen() {
       timestamp,
       babies,
       deliveryType,
+      eventType,
       notes: notes.trim() || undefined,
     };
 
@@ -67,31 +68,41 @@ export default function QuickEntryScreen() {
       setShowSuccess(true);
     } catch (error) {
       console.error('Failed to save birth record:', error);
+      Alert.alert("Error", "Failed to save birth record. Please try again.");
     }
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setCurrentStep(0);
     setTimestamp(new Date());
     setNumberOfBabies(1);
     setBabies([{ gender: 'boy', birthOrder: 1 }]);
     setDeliveryType('vaginal');
+    setEventType('delivery');
     setNotes('');
     setShowSuccess(false);
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       resetForm();
-    }, [])
+      return () => {
+        // Optional: any cleanup if needed when screen loses focus
+      };
+    }, [resetForm])
   );
 
-  const handleReset = () => {
-    if (currentStep === 0 && 
-        timestamp.getTime() === new Date().getTime() && 
-        numberOfBabies === 1 && 
-        notes === '') {
-      return; // No need to reset if already at initial state
+  const handleReset = useCallback(() => {
+    const isInitialState = currentStep === 0 &&
+      timestamp.getTime() === new Date().getTime() &&
+      numberOfBabies === 1 &&
+      babies.length === 1 && babies[0].gender === 'boy' && babies[0].birthOrder === 1 &&
+      deliveryType === 'vaginal' &&
+      eventType === 'delivery' &&
+      notes === '';
+
+    if (isInitialState && !showSuccess) {
+        return;
     }
 
     Alert.alert(
@@ -99,14 +110,14 @@ export default function QuickEntryScreen() {
       'Are you sure you want to reset the form? All entered data will be lost.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reset', 
+        {
+          text: 'Reset',
           onPress: resetForm,
           style: 'destructive'
         },
       ]
     );
-  };
+  }, [currentStep, timestamp, numberOfBabies, babies, deliveryType, eventType, notes, resetForm, showSuccess]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -119,7 +130,7 @@ export default function QuickEntryScreen() {
         />
       ),
     });
-  }, [currentStep, timestamp, numberOfBabies, babies, deliveryType, notes]);
+  }, [navigation, handleReset]);
 
   const renderStep = () => {
     if (showSuccess) {
@@ -157,11 +168,12 @@ export default function QuickEntryScreen() {
     }
     
     // Individual baby details (steps 2 to 2+numberOfBabies-1)
-    if (currentStep >= 2 && currentStep < 2 + numberOfBabies) {
+    const babyDetailsEndStep = 1 + numberOfBabies;
+    if (currentStep > 1 && currentStep <= babyDetailsEndStep) {
       const babyIndex = currentStep - 2;
       return (
         <ThemedView style={styles.step}>
-          <ThemedText style={styles.stepTitle}>
+          <ThemedText style={styles.stepTitle} type="title">
             {numberOfBabies > 1 ? `Baby ${babyIndex + 1} Details` : 'Baby Details'}
           </ThemedText>
           <BabyDetailsForm
@@ -173,11 +185,36 @@ export default function QuickEntryScreen() {
     }
     
     // Delivery type
-    if (currentStep === 2 + numberOfBabies) {
+    const deliveryTypeStep = babyDetailsEndStep + 1;
+    if (currentStep === deliveryTypeStep) {
       return (
         <ThemedView style={styles.step}>
           <ThemedText type="title" style={styles.stepTitle}>Delivery type?</ThemedText>
           <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+        </ThemedView>
+      );
+    }
+
+    // Event Type (Delivery or Transition) - New Step
+    const eventTypeStep = deliveryTypeStep + 1;
+    if (currentStep === eventTypeStep) {
+      return (
+        <ThemedView style={styles.step}>
+          <ThemedText type="title" style={styles.stepTitle}>Event Type?</ThemedText>
+          <View style={styles.selectorContainer}>
+            <Button
+              title="Delivery"
+              onPress={() => setEventType('delivery')}
+              variant={eventType === 'delivery' ? 'primary' : 'secondary'}
+              style={styles.selectorButton}
+            />
+            <Button
+              title="Transition"
+              onPress={() => setEventType('transition')}
+              variant={eventType === 'transition' ? 'primary' : 'secondary'}
+              style={styles.selectorButton}
+            />
+          </View>
         </ThemedView>
       );
     }
@@ -272,6 +309,7 @@ const styles = StyleSheet.create({
   },
   notes: {
     height: 120,
+    textAlignVertical: 'top',
   },
   successStep: {
     alignItems: 'center',
@@ -280,5 +318,14 @@ const styles = StyleSheet.create({
   successText: {
     textAlign: 'center',
     opacity: 0.8,
+  },
+  selectorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    gap: 12,
+  },
+  selectorButton: {
+    flex: 1,
   },
 });

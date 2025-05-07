@@ -8,6 +8,7 @@ interface BirthRecord {
   timestamp: Date;
   babies: Baby[];
   deliveryType: 'vaginal' | 'c-section';
+  eventType?: 'delivery' | 'transition';
   notes?: string;
 }
 
@@ -28,4 +29,4 @@ interface UserPreferences {
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'es';
 
-export { Theme, Language, UserPreferences, BirthRecord, Baby };
+export type { Theme, Language, UserPreferences, BirthRecord, Baby };
