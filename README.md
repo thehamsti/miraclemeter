@@ -9,3 +9,10 @@ No ones going to read this besides myself but...
 I decided to use Expo because it was recommended a bunch of places. While it is fairly easy to use, it seems to be very opinionated, and almost over simplified.
 I'm not sure I would choose Expo again for another mobile application. I have enjoyed used Tauri recently for projects, or even just writing in native Swift code would be more enjoyable.
 
+## HOW TO BUILD AND SUBMIT
+
+```
+eas build --platform ios --profile production --local
+
+eas submit --platform ios
+```
