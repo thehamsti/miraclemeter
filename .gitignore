@@ -13,12 +13,6 @@ web-build/
 # Ignore everything with .ipa extension
 *.ipa
 
-# Ignore ios build folder
-ios/
-
-# Ignore android build folder
-android/
-
 # macOS
 .DS_Store
 
