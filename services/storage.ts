@@ -35,6 +35,17 @@ export async function getBirthRecords(): Promise<BirthRecord[]> {
   }
 }
 
+export async function getBirthRecordById(id: string): Promise<BirthRecord | null> {
+  try {
+    const records = await getBirthRecords();
+    const record = records.find(r => r.id === id);
+    return record || null;
+  } catch (error) {
+    console.error('Error loading birth record by ID:', error);
+    return null;
+  }
+}
+
 export async function isOnboardingComplete(): Promise<boolean> {
   try {
     const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);

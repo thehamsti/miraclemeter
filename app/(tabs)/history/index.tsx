@@ -37,10 +37,11 @@ export default function HistoryScreen() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     const filtered = birthRecords.filter(record => {
-      const timestamp = record.timestamp instanceof Date ? record.timestamp : new Date(record.timestamp);
+      const timestamp = record.timestamp ? (record.timestamp instanceof Date ? record.timestamp : new Date(record.timestamp)) : null;
+      const dateStr = timestamp ? formatDate(timestamp) : 'Unknown Date';
       return (
         record.notes?.toLowerCase().includes(query.toLowerCase()) ||
-        formatDate(timestamp).toLowerCase().includes(query.toLowerCase())
+        dateStr.toLowerCase().includes(query.toLowerCase())
       );
     });
     setFilteredRecords(filtered);
@@ -72,17 +73,22 @@ export default function HistoryScreen() {
   };
 
   const renderBirthRecord = ({ item }: { item: BirthRecord }) => {
-    const timestamp = item.timestamp instanceof Date ? item.timestamp : new Date(item.timestamp);
+    const timestamp = item.timestamp ? (item.timestamp instanceof Date ? item.timestamp : new Date(item.timestamp)) : null;
+    const dateStr = timestamp ? formatDate(timestamp) : 'Unknown Date';
+    const deliveryStr = item.deliveryType === 'vaginal' ? 'Vaginal' : 
+                       item.deliveryType === 'c-section' ? 'C-Section' : 
+                       'Unknown';
+    const eventStr = item.eventType ? (item.eventType === 'delivery' ? 'Delivery' : 'Transition') : '';
 
     return (
       <ThemedView style={[styles.card, { backgroundColor }]}>
         <ThemedView style={styles.cardContent}>
-          <ThemedText style={styles.date}>{formatDate(timestamp)}</ThemedText>
+          <ThemedText style={styles.date}>{dateStr}</ThemedText>
 
           <ThemedView style={styles.mainContent}>
             <ThemedView style={styles.birthInfo}>
               <ThemedText numberOfLines={1}>
-                {item.babies.length} {item.babies.length > 1 ? 'babies' : 'baby'} • {item.deliveryType}
+                {item.babies.length} {item.babies.length > 1 ? 'babies' : 'baby'} • {deliveryStr}{eventStr ? ` • ${eventStr}` : ''}
               </ThemedText>
               {item.notes && (
                 <ThemedText numberOfLines={1} style={[styles.notes, { color: textColor }]}>

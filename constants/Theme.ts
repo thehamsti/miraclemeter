@@ -13,9 +13,9 @@ export const theme = {
       tertiary: 'rgba(255, 255, 255, 0.4)',
     },
     accent: {
-      primary: '#5E6AD2',
-      secondary: '#8A94F0',
-      hover: '#4954BA',
+      primary: '#14B8A6',
+      secondary: '#5EEAD4',
+      hover: '#0F766E',
     },
     success: '#2ECC71',
     warning: '#F1C40F',

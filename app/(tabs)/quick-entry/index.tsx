@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { StyleSheet, SafeAreaView, Alert, View } from 'react-native';
+import { StyleSheet, SafeAreaView, Alert, View, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Stepper } from '@/components/Stepper';
 import { DateTimePicker } from '@/components/birth-entry/DateTimePicker';
@@ -15,23 +15,29 @@ import type { Baby, BirthRecord } from '@/types';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { useRef } from 'react';
 
 export default function QuickEntryScreen() {
   const navigation = useNavigation();
   const [currentStep, setCurrentStep] = useState(0);
-  const [timestamp, setTimestamp] = useState(new Date());
+  const [timestamp, setTimestamp] = useState<Date | undefined>(new Date());
   const [numberOfBabies, setNumberOfBabies] = useState(1);
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
-  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section'>('vaginal');
-  const [eventType, setEventType] = useState<'delivery' | 'transition'>('delivery');
+  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | undefined>(undefined);
+  const [eventType, setEventType] = useState<'delivery' | 'transition' | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Add theme color hooks
   const backgroundColor = useThemeColor({}, 'background');
+  const surfaceColor = useThemeColor({}, 'surface');
   const primaryButtonColor = useThemeColor({}, 'primaryButton');
   const textColor = useThemeColor({}, 'text');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const tintColor = useThemeColor({}, 'tint');
+  const successColor = useThemeColor({}, 'success');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Calculate total steps based on number of babies
   const totalSteps = useMemo(() => {
@@ -77,8 +83,8 @@ export default function QuickEntryScreen() {
     setTimestamp(new Date());
     setNumberOfBabies(1);
     setBabies([{ gender: 'boy', birthOrder: 1 }]);
-    setDeliveryType('vaginal');
-    setEventType('delivery');
+    setDeliveryType(undefined);
+    setEventType(undefined);
     setNotes('');
     setShowSuccess(false);
   }, []);
@@ -94,11 +100,11 @@ export default function QuickEntryScreen() {
 
   const handleReset = useCallback(() => {
     const isInitialState = currentStep === 0 &&
-      timestamp.getTime() === new Date().getTime() &&
+      timestamp && timestamp.getTime() === new Date().getTime() &&
       numberOfBabies === 1 &&
       babies.length === 1 && babies[0].gender === 'boy' && babies[0].birthOrder === 1 &&
-      deliveryType === 'vaginal' &&
-      eventType === 'delivery' &&
+      deliveryType === undefined &&
+      eventType === undefined &&
       notes === '';
 
     if (isInitialState && !showSuccess) {
@@ -134,16 +140,29 @@ export default function QuickEntryScreen() {
 
   const renderStep = () => {
     if (showSuccess) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      
       return (
-        <ThemedView style={[styles.step, styles.successStep]}>
-          <Ionicons name="checkmark-circle" size={80} color={primaryButtonColor} />
-          <ThemedText type="title">
+        <Animated.View style={[styles.step, styles.successStep, { opacity: fadeAnim }]}>
+          <View style={[styles.successIconContainer, { backgroundColor: successColor + '20' }]}>
+            <Ionicons name="checkmark-circle" size={64} color={successColor} />
+          </View>
+          <ThemedText type="heading" style={styles.successTitle}>
             Birth Record Saved!
           </ThemedText>
-          <ThemedText type="subtitle" style={styles.successText}>
+          <ThemedText 
+            type="body" 
+            style={[styles.successText, { color: textSecondaryColor }]}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
             The birth record has been successfully saved to your records.
           </ThemedText>
-        </ThemedView>
+        </Animated.View>
       );
     }
 
@@ -151,8 +170,28 @@ export default function QuickEntryScreen() {
     if (currentStep === 0) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText type="title" style={styles.stepTitle}>When did the birth occur?</ThemedText>
-          <DateTimePicker value={timestamp} onChange={setTimestamp} />
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
+            When did the birth occur?
+          </ThemedText>
+          <View style={styles.stepContent}>
+            <DateTimePicker value={timestamp || new Date()} onChange={setTimestamp} />
+          </View>
+          <Button
+            title="Skip"
+            onPress={() => {
+              setTimestamp(undefined);
+              setCurrentStep(curr => curr + 1);
+            }}
+            variant="secondary"
+            size="normal"
+            style={styles.skipButton}
+            icon={<Ionicons name="arrow-forward-outline" size={18} color={textSecondaryColor} />}
+          />
         </ThemedView>
       );
     }
@@ -161,8 +200,17 @@ export default function QuickEntryScreen() {
     if (currentStep === 1) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText type="title" style={styles.stepTitle}>How many babies?</ThemedText>
-          <MultipleBirthSelector value={numberOfBabies} onChange={handleNumberOfBabiesChange} />
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
+            How many babies?
+          </ThemedText>
+          <View style={styles.stepContent}>
+            <MultipleBirthSelector value={numberOfBabies} onChange={handleNumberOfBabiesChange} />
+          </View>
         </ThemedView>
       );
     }
@@ -173,13 +221,20 @@ export default function QuickEntryScreen() {
       const babyIndex = currentStep - 2;
       return (
         <ThemedView style={styles.step}>
-          <ThemedText style={styles.stepTitle} type="title">
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
             {numberOfBabies > 1 ? `Baby ${babyIndex + 1} Details` : 'Baby Details'}
           </ThemedText>
-          <BabyDetailsForm
-            baby={babies[babyIndex]}
-            onUpdate={(updatedBaby) => handleBabyUpdate(babyIndex, updatedBaby)}
-          />
+          <View style={styles.stepContent}>
+            <BabyDetailsForm
+              baby={babies[babyIndex]}
+              onUpdate={(updatedBaby) => handleBabyUpdate(babyIndex, updatedBaby)}
+            />
+          </View>
         </ThemedView>
       );
     }
@@ -189,8 +244,28 @@ export default function QuickEntryScreen() {
     if (currentStep === deliveryTypeStep) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText type="title" style={styles.stepTitle}>Delivery type?</ThemedText>
-          <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
+            Delivery type?
+          </ThemedText>
+          <View style={styles.stepContent}>
+            <DeliveryTypeSelector value={deliveryType || 'vaginal'} onChange={setDeliveryType} />
+          </View>
+          <Button
+            title="Skip"
+            onPress={() => {
+              setDeliveryType(undefined);
+              setCurrentStep(curr => curr + 1);
+            }}
+            variant="secondary"
+            size="normal"
+            style={styles.skipButton}
+            icon={<Ionicons name="arrow-forward-outline" size={18} color={textSecondaryColor} />}
+          />
         </ThemedView>
       );
     }
@@ -200,21 +275,41 @@ export default function QuickEntryScreen() {
     if (currentStep === eventTypeStep) {
       return (
         <ThemedView style={styles.step}>
-          <ThemedText type="title" style={styles.stepTitle}>Event Type?</ThemedText>
-          <View style={styles.selectorContainer}>
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
+            Event Type?
+          </ThemedText>
+          <View style={[styles.stepContent, styles.selectorContainer]}>
             <Button
               title="Delivery"
               onPress={() => setEventType('delivery')}
               variant={eventType === 'delivery' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
+              icon={<Ionicons name="fitness-outline" size={20} color={eventType === 'delivery' ? 'white' : textColor} />}
             />
             <Button
               title="Transition"
               onPress={() => setEventType('transition')}
               variant={eventType === 'transition' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
+              icon={<Ionicons name="swap-horizontal-outline" size={20} color={eventType === 'transition' ? 'white' : textColor} />}
             />
           </View>
+          <Button
+            title="Skip"
+            onPress={() => {
+              setEventType(undefined);
+              setCurrentStep(curr => curr + 1);
+            }}
+            variant="secondary"
+            size="normal"
+            style={styles.skipButton}
+            icon={<Ionicons name="arrow-forward-outline" size={18} color={textSecondaryColor} />}
+          />
         </ThemedView>
       );
     }
@@ -222,61 +317,90 @@ export default function QuickEntryScreen() {
     // Notes (final step)
     return (
       <ThemedView style={styles.step}>
-        <ThemedText type="title" style={styles.stepTitle}>Additional Notes</ThemedText>
-        <TextInput
-          placeholder="Optional notes about the birth"
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          numberOfLines={4}
-          style={styles.notes}
-        />
+        <ThemedText 
+          type="heading" 
+          style={styles.stepTitle}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+        >
+          Additional Notes
+        </ThemedText>
+        <View style={styles.stepContent}>
+          <TextInput
+            label="Notes (optional)"
+            placeholder="Any additional details about the birth..."
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            numberOfLines={4}
+            style={styles.notes}
+            leftIcon="document-text-outline"
+          />
+        </View>
       </ThemedView>
     );
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {!showSuccess && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
-      
-      <ThemedView style={styles.content}>
-        {renderStep()}
-      </ThemedView>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        {!showSuccess && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
+        
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderStep()}
+        </ScrollView>
 
-      <ThemedView style={styles.buttonContainer}>
-        {showSuccess ? (
-          <Button
-            title="Add Another Record"
-            onPress={resetForm}
-            size="large"
-            style={styles.button}
-          />
-        ) : (
-          <>
-            {currentStep > 0 && (
-              <Button
-                title="Back"
-                onPress={() => setCurrentStep(curr => curr - 1)}
-                variant="secondary"
-                size="large"
-                style={styles.button}
-              />
-            )}
+        <View style={[styles.buttonContainer, { backgroundColor: surfaceColor }]}>
+          {showSuccess ? (
             <Button
-              title={currentStep === totalSteps - 1 ? "Save Birth Record" : "Next"}
-              onPress={() => {
-                if (currentStep === totalSteps - 1) {
-                  handleSubmit();
-                } else {
-                  setCurrentStep(curr => curr + 1);
-                }
-              }}
+              title="Add Another Record"
+              onPress={resetForm}
               size="large"
               style={styles.button}
+              icon={<Ionicons name="add-circle-outline" size={24} color="white" />}
             />
-          </>
-        )}
-      </ThemedView>
+          ) : (
+            <>
+              {currentStep > 0 && (
+                <Button
+                  title="Back"
+                  onPress={() => setCurrentStep(curr => curr - 1)}
+                  variant="secondary"
+                  size="large"
+                  style={styles.button}
+                  icon={<Ionicons name="arrow-back" size={20} color={textColor} />}
+                />
+              )}
+              <Button
+                title={currentStep === totalSteps - 1 ? "Save" : "Next"}
+                onPress={() => {
+                  if (currentStep === totalSteps - 1) {
+                    handleSubmit();
+                  } else {
+                    setCurrentStep(curr => curr + 1);
+                  }
+                }}
+                size="large"
+                style={styles.button}
+                fullWidth={currentStep === 0}
+                icon={<Ionicons 
+                  name={currentStep === totalSteps - 1 ? "checkmark-circle" : "arrow-forward"} 
+                  size={20} 
+                  color="white" 
+                />}
+              />
+            </>
+          )}
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -285,47 +409,89 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
-    padding: 16,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    padding: Spacing.lg,
   },
   step: {
     flex: 1,
     justifyContent: 'center',
-    gap: 24,
+    paddingVertical: Spacing.xl,
+  },
+  stepContent: {
+    marginTop: Spacing.lg,
   },
   stepTitle: {
     textAlign: 'center',
-    marginBottom: 16,
+    marginHorizontal: Spacing.lg,
+    lineHeight: Typography.lineHeights['2xl'] * 1.2,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    paddingBottom: 32,
+    gap: Spacing.sm,
+    padding: Spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? Spacing.xl : Spacing.lg,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   button: {
     flex: 1,
   },
   notes: {
-    height: 120,
+    minHeight: 120,
+    maxHeight: 200,
     textAlignVertical: 'top',
   },
   successStep: {
     alignItems: 'center',
-    gap: 16,
+    gap: Spacing.lg,
+  },
+  successIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  successTitle: {
+    marginBottom: Spacing.sm,
   },
   successText: {
     textAlign: 'center',
-    opacity: 0.8,
+    paddingHorizontal: Spacing.xl,
+    lineHeight: Typography.lineHeights.base * 1.2,
   },
   selectorContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.md,
   },
   selectorButton: {
     flex: 1,
+    maxWidth: 200,
+  },
+  skipButton: {
+    marginTop: Spacing.xl,
+    alignSelf: 'center',
   },
 });

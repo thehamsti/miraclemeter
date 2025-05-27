@@ -14,7 +14,7 @@ export default function StatsScreen() {
   const [birthRecords, setBirthRecords] = useState<BirthRecord[]>([]);
   const [totalDeliveries, setTotalDeliveries] = useState(0);
   const [genderStats, setGenderStats] = useState({ boys: 0, girls: 0, angels: 0 });
-  const [deliveryStats, setDeliveryStats] = useState({ vaginal: 0, csection: 0 });
+  const [deliveryStats, setDeliveryStats] = useState({ vaginal: 0, csection: 0, unknown: 0 });
 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -39,7 +39,8 @@ export default function StatsScreen() {
       // Calculate delivery type statistics
       const vaginal = records.filter(r => r.deliveryType === 'vaginal').length;
       const csection = records.filter(r => r.deliveryType === 'c-section').length;
-      setDeliveryStats({ vaginal, csection });
+      const unknown = records.filter(r => !r.deliveryType).length;
+      setDeliveryStats({ vaginal, csection, unknown });
 
       setTotalDeliveries(records.length);
     } catch (error) {
@@ -63,9 +64,9 @@ export default function StatsScreen() {
   ];
 
   const deliveryData = {
-    labels: ['Vaginal', 'C-Section'],
+    labels: ['Vaginal', 'C-Section', 'Unknown'],
     datasets: [{
-      data: [deliveryStats.vaginal, deliveryStats.csection]
+      data: [deliveryStats.vaginal, deliveryStats.csection, deliveryStats.unknown]
     }]
   };
 
@@ -170,6 +171,14 @@ export default function StatsScreen() {
               value={deliveryStats.csection}
               iconColor={tintColor}
             />
+            {deliveryStats.unknown > 0 && (
+              <StatCard
+                icon="help-circle-outline"
+                label="Unknown"
+                value={deliveryStats.unknown}
+                iconColor={tintColor}
+              />
+            )}
           </ThemedView>
         </ScrollView>
       </SafeAreaView>

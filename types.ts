@@ -5,9 +5,9 @@ interface Baby {
 
 interface BirthRecord {
   id: string;
-  timestamp: Date;
+  timestamp?: Date;
   babies: Baby[];
-  deliveryType: 'vaginal' | 'c-section';
+  deliveryType?: 'vaginal' | 'c-section';
   eventType?: 'delivery' | 'transition';
   notes?: string;
 }

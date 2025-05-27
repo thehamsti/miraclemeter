@@ -3,7 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
     name: "miraclemeter",
     slug: "miraclemeter",
-    version: "0.0.1",
+    version: "0.0.3",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, Alert, Platform } from 'react-native';
+import { StyleSheet, SafeAreaView, Alert, Platform, ScrollView, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,12 +16,17 @@ import { Stack } from 'expo-router';
 import { useTheme } from '@/hooks/ThemeContext';
 import { ThemedSwitch } from '@/components/ThemedSwitch';
 import { ThemedSegmentedButtons } from '@/components/ThemedSegmentedButtons';
+import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SettingsScreen() {
   const backgroundColor = useThemeColor({}, 'background');
+  const surfaceColor = useThemeColor({}, 'surface');
   const textColor = useThemeColor({}, 'text');
+  const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const tintColor = useThemeColor({}, 'tint');
   const borderColor = useThemeColor({}, 'border');
+  const borderLightColor = useThemeColor({}, 'borderLight');
   const [isLoading, setIsLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [frequency, setFrequency] = useState<'daily' | 'shift'>('daily');
@@ -127,38 +132,69 @@ export default function SettingsScreen() {
         }} 
       />
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
-        <ThemedView style={styles.content}>
-          <ThemedView style={styles.section}>
-            <ThemedView style={styles.settingRow}>
-              <ThemedView style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingTitle} type="title">Theme</ThemedText>
-                <ThemedText style={styles.settingDescription} type="default">
+        <ScrollView 
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="color-palette-outline" size={24} color={tintColor} />
+              <ThemedText style={styles.sectionTitle} type="subtitle">
+                Appearance
+              </ThemedText>
+            </View>
+            <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+              <View style={styles.settingTextContainer}>
+                <ThemedText 
+                  style={styles.settingTitle} 
+                  numberOfLines={1}
+                >
+                  Theme
+                </ThemedText>
+                <ThemedText 
+                  style={[styles.settingDescription, { color: textSecondaryColor }]}
+                  numberOfLines={2}
+                >
                   Choose your preferred appearance
                 </ThemedText>
-              </ThemedView>
-            </ThemedView>
-            <ThemedView style={[styles.settingRow, styles.themeButtonContainer]}>
+              </View>
+            </View>
+            <View style={[styles.settingItem, styles.themeButtonContainer]}>
               <ThemedSegmentedButtons
                 value={theme}
                 onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
                 buttons={[
-                  { value: 'light', label: 'Light' },
-                  { value: 'system', label: 'System' },
-                  { value: 'dark', label: 'Dark' },
+                  { value: 'light', label: 'Light', icon: 'white-balance-sunny' },
+                  { value: 'system', label: 'Auto', icon: 'theme-light-dark' },
+                  { value: 'dark', label: 'Dark', icon: 'moon-waning-crescent' },
                 ]}
                 style={styles.themeSegment}
               />
-            </ThemedView>
-          </ThemedView>
+            </View>
+          </View>
 
-          <ThemedView style={styles.section}>
-            <ThemedView style={styles.settingRow}>
-              <ThemedView style={styles.settingTextContainer}>
-                <ThemedText style={styles.settingTitle} type="title">Notifications</ThemedText>
-                <ThemedText style={styles.settingDescription} type="default">
+          <View style={[styles.section, { backgroundColor: surfaceColor, marginTop: Spacing.md }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="notifications-outline" size={24} color={tintColor} />
+              <ThemedText style={styles.sectionTitle} type="subtitle">
+                Notifications
+              </ThemedText>
+            </View>
+            <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+              <View style={styles.settingTextContainer}>
+                <ThemedText 
+                  style={styles.settingTitle}
+                  numberOfLines={1}
+                >
+                  Daily Reminders
+                </ThemedText>
+                <ThemedText 
+                  style={[styles.settingDescription, { color: textSecondaryColor }]}
+                  numberOfLines={2}
+                >
                   Get reminded to log your deliveries
                 </ThemedText>
-              </ThemedView>
+              </View>
               <ThemedSwitch
                 value={notificationsEnabled}
                 onValueChange={(value) => {
@@ -166,11 +202,11 @@ export default function SettingsScreen() {
                   updateNotifications(value, frequency, time);
                 }}
               />
-            </ThemedView>
+            </View>
 
             {notificationsEnabled && (
               <>
-                <ThemedView style={styles.settingRow}>
+                <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
                   <ThemedText style={styles.settingLabel}>Frequency</ThemedText>
                   <ThemedSegmentedButtons
                     value={frequency}
@@ -184,29 +220,33 @@ export default function SettingsScreen() {
                     ]}
                     style={styles.segment}
                   />
-                </ThemedView>
+                </View>
 
-                <ThemedView style={styles.settingRow}>
-                  <ThemedText style={styles.settingLabel}>Time</ThemedText>
+                <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
+                  <ThemedText style={styles.settingLabel}>Reminder Time</ThemedText>
                   {Platform.OS === 'ios' ? (
                     <DateTimePicker
                       value={time}
                       mode="time"
                       onChange={handleTimeChange}
                       style={styles.timePicker}
+                      themeVariant={theme === 'dark' ? 'dark' : 'light'}
                     />
                   ) : (
                     <Button
                       title={time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       onPress={() => setShowTimePicker(true)}
+                      variant="tertiary"
+                      size="small"
                       style={styles.timeButton}
+                      icon={<Ionicons name="time-outline" size={16} color={textColor} />}
                     />
                   )}
-                </ThemedView>
+                </View>
               </>
             )}
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </ScrollView>
 
         {Platform.OS === 'android' && showTimePicker && (
           <DateTimePicker
@@ -228,47 +268,73 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    paddingVertical: 12,
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  settingRow: {
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.weights.semibold,
+  },
+  settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    minHeight: 60,
+    borderBottomWidth: 0.5,
   },
   settingTextContainer: {
     flex: 1,
-    marginRight: 16,
+    marginRight: Spacing.md,
   },
   settingTitle: {
-    fontSize: 17,
-    fontWeight: '400',
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
+    marginBottom: 2,
   },
   settingDescription: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginTop: 2,
+    fontSize: Typography.sm,
+    lineHeight: Typography.lineHeights.sm,
   },
   settingLabel: {
-    fontSize: 17,
-    fontWeight: '400',
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
+    flex: 1,
   },
   segment: {
     flex: 1,
-    maxWidth: 200,
+    maxWidth: 180,
   },
   timePicker: {
     width: 100,
   },
   timeButton: {
-    minWidth: 100,
+    minWidth: 120,
   },
   themeButtonContainer: {
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingBottom: Spacing.lg,
   },
   themeSegment: {
     width: '100%',
