@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   link: {
     fontSize: Typography.base,
     lineHeight: Typography.lineHeights.base,
-    color: '#14B8A6',
+    color: '#643872',
     fontFamily: getFontFamily('medium'),
     textDecorationLine: 'underline',
   },

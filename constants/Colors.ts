@@ -4,8 +4,8 @@
  */
 
 // Primary brand colors - Professional medical theme
-const primaryLight = '#14B8A6'; // Minty teal
-const primaryDark = '#5EEAD4'; // Lighter minty teal for dark mode
+const primaryLight = '#643872'; // Deep purple
+const primaryDark = '#9B7EBD'; // Lighter purple for dark mode
 
 // Base colors
 const white = '#FFFFFF';
@@ -35,7 +35,7 @@ const error = '#DC2626';
 const errorLight = '#FEE2E2';
 const warning = '#F59E0B';
 const warningLight = '#FEF3C7';
-const info = '#14B8A6';
+const info = '#643872';
 const infoLight = '#DBEAFE';
 
 // Gender colors - Softer, more professional
@@ -57,7 +57,7 @@ export const Colors = {
     // Brand
     tint: primaryLight,
     primary: primaryLight,
-    primaryLight: '#F0FDFA',
+    primaryLight: '#F3F0F7',
     
     // Navigation
     tabIconDefault: gray400,
@@ -113,7 +113,7 @@ export const Colors = {
     // Brand
     tint: primaryDark,
     primary: primaryDark,
-    primaryLight: '#134E4A',
+    primaryLight: '#2D1B3D',
     
     // Navigation
     tabIconDefault: gray500,
@@ -136,8 +136,8 @@ export const Colors = {
     successLight: '#064E3B',
     warning: '#FBBF24',
     warningLight: '#78350F',
-    info: '#5EEAD4',
-    infoLight: '#134E4A',
+    info: '#9B7EBD',
+    infoLight: '#2D1B3D',
     
     // Gender
     male: '#60A5FA',

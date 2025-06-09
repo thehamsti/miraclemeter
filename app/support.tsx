@@ -26,12 +26,12 @@ export default function SupportScreen() {
           </ThemedText>
           <Button 
             title="Buy Me a Coffee ☕️" 
-            onPress={() => Linking.openURL('https://www.buymeacoffee.com/yourname')}
+            onPress={() => Linking.openURL('https://coff.ee/hamstico')}
             style={styles.button}
           />
           <Button 
             title="Send Feedback 💬" 
-            onPress={() => Linking.openURL('mailto:support@birth-tracker.app')}
+            onPress={() => Linking.openURL('mailto:john@hamsti.co')}
             style={styles.button}
           />
         </ThemedView>
