@@ -4,22 +4,19 @@
     "info": {
       "en-US": {
         "title": "Miracle Meter",
-        "subtitle": "Track deliveries for L&D nurses",
+        "subtitle": "Tracker for L&D nurses",
         "description": "A privacy-focused mobile app for labor and delivery nurses to anonymously track births they assist with. Features quick data entry, meaningful statistics and analytics, customizable preferences, and an intuitive interface designed for busy healthcare professionals.",
         "keywords": [
           "birth tracking",
           "labor and delivery",
           "nurse",
-          "medical",
-          "healthcare",
           "statistics",
           "delivery records",
           "birth statistics",
-          "medical tracking",
           "nurse tools"
         ],
         "marketingUrl": "https://miraclemeter.app",
-        "supportUrl": "https://miraclemeter.app/support", 
+        "supportUrl": "https://miraclemeter.app/support",
         "privacyPolicyUrl": "https://miraclemeter.app/privacy"
       }
     }

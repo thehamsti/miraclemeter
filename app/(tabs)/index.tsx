@@ -88,14 +88,26 @@ export default function HomeScreen() {
       setMonthCount(monthRecords.length);
 
       // Calculate gender counts
-      let boys = 0, girls = 0, angels = 0;
+      let boys = 0,
+        girls = 0,
+        angels = 0;
       records.forEach((record) => {
-        record.babies.forEach((baby) => {
-          if (baby.gender === "boy") boys++;
-          if (baby.gender === "girl") girls++;
-          if (baby.gender === "angel") angels++;
-        });
+        if (record.babies && Array.isArray(record.babies)) {
+          record.babies.forEach((baby) => {
+            if (baby.gender === "boy") boys++;
+            else if (baby.gender === "girl") girls++;
+            else if (baby.gender === "angel") angels++;
+          });
+        }
       });
+      console.log(
+        "Gender counts - Boys:",
+        boys,
+        "Girls:",
+        girls,
+        "Angels:",
+        angels,
+      );
       setBoysCount(boys);
       setGirlsCount(girls);
       setAngelsCount(angels);
@@ -164,17 +176,17 @@ export default function HomeScreen() {
                 Your Birth Tracker
               </ThemedText>
             </View>
-            <Link href="/settings" asChild>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.settingsButton,
-                  pressed && styles.settingsButtonPressed,
-                ]}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons name="settings-outline" size={24} color="white" />
-              </Pressable>
-            </Link>
+            {/* <Link href="/settings" asChild> */}
+            {/*   <Pressable */}
+            {/*     style={({ pressed }) => [ */}
+            {/*       styles.settingsButton, */}
+            {/*       pressed && styles.settingsButtonPressed, */}
+            {/*     ]} */}
+            {/*     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} */}
+            {/*   > */}
+            {/*     <Ionicons name="settings-outline" size={24} color="white" /> */}
+            {/*   </Pressable> */}
+            {/* </Link> */}
           </View>
         </LinearGradient>
 
@@ -184,89 +196,92 @@ export default function HomeScreen() {
             style={[styles.quickStatCard, { backgroundColor: surfaceColor }]}
           >
             <View
-              style={[styles.quickStatIconContainer, {
-                backgroundColor: successColor + "20",
-              }]}
+              style={[
+                styles.quickStatIconContainer,
+                {
+                  backgroundColor: successColor + "20",
+                },
+              ]}
             >
-              <Ionicons name="today-outline" size={20} color={successColor} />
+              <Ionicons name="today-outline" size={24} color={successColor} />
             </View>
-            <View style={styles.quickStatTextContainer}>
-              <ThemedText
-                style={[styles.quickStatValue, { color: textColor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {todayCount}
-              </ThemedText>
-              <ThemedText
-                style={[styles.quickStatLabel, { color: textSecondaryColor }]}
-                numberOfLines={1}
-              >
-                Today
-              </ThemedText>
-            </View>
+            <ThemedText
+              style={[styles.quickStatValue, { color: textColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {todayCount}
+            </ThemedText>
+            <ThemedText
+              style={[styles.quickStatLabel, { color: textSecondaryColor }]}
+              numberOfLines={1}
+            >
+              Today
+            </ThemedText>
           </View>
 
           <View
             style={[styles.quickStatCard, { backgroundColor: surfaceColor }]}
           >
             <View
-              style={[styles.quickStatIconContainer, {
-                backgroundColor: primaryColor + "20",
-              }]}
+              style={[
+                styles.quickStatIconContainer,
+                {
+                  backgroundColor: primaryColor + "20",
+                },
+              ]}
             >
               <Ionicons
                 name="calendar-outline"
-                size={20}
+                size={24}
                 color={primaryColor}
               />
             </View>
-            <View style={styles.quickStatTextContainer}>
-              <ThemedText
-                style={[styles.quickStatValue, { color: textColor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {weekCount}
-              </ThemedText>
-              <ThemedText
-                style={[styles.quickStatLabel, { color: textSecondaryColor }]}
-                numberOfLines={1}
-              >
-                This Week
-              </ThemedText>
-            </View>
+            <ThemedText
+              style={[styles.quickStatValue, { color: textColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {weekCount}
+            </ThemedText>
+            <ThemedText
+              style={[styles.quickStatLabel, { color: textSecondaryColor }]}
+              numberOfLines={1}
+            >
+              This Week
+            </ThemedText>
           </View>
 
           <View
             style={[styles.quickStatCard, { backgroundColor: surfaceColor }]}
           >
             <View
-              style={[styles.quickStatIconContainer, {
-                backgroundColor: warningColor + "20",
-              }]}
+              style={[
+                styles.quickStatIconContainer,
+                {
+                  backgroundColor: warningColor + "20",
+                },
+              ]}
             >
               <Ionicons
                 name="trending-up-outline"
-                size={20}
+                size={24}
                 color={warningColor}
               />
             </View>
-            <View style={styles.quickStatTextContainer}>
-              <ThemedText
-                style={[styles.quickStatValue, { color: textColor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {monthCount}
-              </ThemedText>
-              <ThemedText
-                style={[styles.quickStatLabel, { color: textSecondaryColor }]}
-                numberOfLines={1}
-              >
-                This Month
-              </ThemedText>
-            </View>
+            <ThemedText
+              style={[styles.quickStatValue, { color: textColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {monthCount}
+            </ThemedText>
+            <ThemedText
+              style={[styles.quickStatLabel, { color: textSecondaryColor }]}
+              numberOfLines={1}
+            >
+              This Month
+            </ThemedText>
           </View>
         </View>
 
@@ -320,17 +335,16 @@ export default function HomeScreen() {
 
           <View style={styles.genderCards}>
             <View
-              style={[styles.genderCard, {
-                backgroundColor: maleColor + "10",
-                borderColor: maleColor + "30",
-              }]}
+              style={[
+                styles.genderCard,
+                {
+                  backgroundColor: maleColor + "10",
+                  borderColor: maleColor + "30",
+                },
+              ]}
             >
               <Ionicons name="male" size={28} color={maleColor} />
-              <ThemedText
-                style={[styles.genderCount, { color: textColor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
+              <ThemedText style={[styles.genderCount, { color: textColor }]}>
                 {boysCount}
               </ThemedText>
               <ThemedText
@@ -342,17 +356,16 @@ export default function HomeScreen() {
             </View>
 
             <View
-              style={[styles.genderCard, {
-                backgroundColor: femaleColor + "10",
-                borderColor: femaleColor + "30",
-              }]}
+              style={[
+                styles.genderCard,
+                {
+                  backgroundColor: femaleColor + "10",
+                  borderColor: femaleColor + "30",
+                },
+              ]}
             >
               <Ionicons name="female" size={28} color={femaleColor} />
-              <ThemedText
-                style={[styles.genderCount, { color: textColor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
+              <ThemedText style={[styles.genderCount, { color: textColor }]}>
                 {girlsCount}
               </ThemedText>
               <ThemedText
@@ -365,17 +378,16 @@ export default function HomeScreen() {
 
             {angelsCount > 0 && (
               <View
-                style={[styles.genderCard, {
-                  backgroundColor: warningColor + "10",
-                  borderColor: warningColor + "30",
-                }]}
+                style={[
+                  styles.genderCard,
+                  {
+                    backgroundColor: warningColor + "10",
+                    borderColor: warningColor + "30",
+                  },
+                ]}
               >
                 <Ionicons name="star" size={28} color={warningColor} />
-                <ThemedText
-                  style={[styles.genderCount, { color: textColor }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
+                <ThemedText style={[styles.genderCount, { color: textColor }]}>
                   {angelsCount}
                 </ThemedText>
                 <ThemedText
@@ -407,47 +419,48 @@ export default function HomeScreen() {
             </Link>
           </View>
 
-          {recentRecords.length > 0
-            ? (
-              <View style={styles.recentList}>
-                {recentRecords.map((record, index) => (
-                  <RecordCard
-                    key={record.id}
-                    record={record}
-                    style={[
-                      styles.recordCard,
-                      { backgroundColor: surfaceColor },
-                      index === 0 && styles.firstRecord,
-                    ]}
-                  />
-                ))}
-              </View>
-            )
-            : (
+          {recentRecords.length > 0 ? (
+            <View style={styles.recentList}>
+              {recentRecords.map((record, index) => (
+                <RecordCard
+                  key={record.id}
+                  record={record}
+                  style={[
+                    styles.recordCard,
+                    { backgroundColor: surfaceColor },
+                    index === 0 && styles.firstRecord,
+                  ]}
+                />
+              ))}
+            </View>
+          ) : (
+            <View
+              style={[styles.emptyState, { backgroundColor: surfaceColor }]}
+            >
               <View
-                style={[styles.emptyState, { backgroundColor: surfaceColor }]}
-              >
-                <View
-                  style={[styles.emptyIconContainer, {
+                style={[
+                  styles.emptyIconContainer,
+                  {
                     backgroundColor: primaryColor + "10",
-                  }]}
-                >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={48}
-                    color={primaryColor}
-                  />
-                </View>
-                <ThemedText style={[styles.emptyTitle, { color: textColor }]}>
-                  No Records Yet
-                </ThemedText>
-                <ThemedText
-                  style={[styles.emptyText, { color: textSecondaryColor }]}
-                >
-                  Start tracking births by tapping the button above
-                </ThemedText>
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color={primaryColor}
+                />
               </View>
-            )}
+              <ThemedText style={[styles.emptyTitle, { color: textColor }]}>
+                No Records Yet
+              </ThemedText>
+              <ThemedText
+                style={[styles.emptyText, { color: textSecondaryColor }]}
+              >
+                Start tracking births by tapping the button above
+              </ThemedText>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -504,12 +517,13 @@ const styles = StyleSheet.create({
   },
   quickStatCard: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.xl,
-    gap: Spacing.sm,
-    minHeight: 72,
+    gap: Spacing.xs,
+    minHeight: 100,
     ...Platform.select({
       ios: {
         ...Shadows.md,
@@ -523,19 +537,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quickStatIconContainer: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   quickStatValue: {
-    fontSize: Typography.xl,
+    fontSize: Typography["2xl"],
     fontWeight: Typography.weights.bold,
+    marginTop: Spacing.xs,
   },
   quickStatLabel: {
-    fontSize: Typography.xs,
+    fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
+    textAlign: "center",
   },
   ctaContainer: {
     paddingHorizontal: Spacing.lg,
@@ -662,4 +678,3 @@ const styles = StyleSheet.create({
     lineHeight: Typography.lineHeights.sm,
   },
 });
-

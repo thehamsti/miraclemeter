@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     padding: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? Spacing.xl : Spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 80,
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(0,0,0,0.1)',
     ...Platform.select({
