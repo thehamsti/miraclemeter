@@ -11,8 +11,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
 import { saveBirthRecord } from '@/services/storage';
-import type { Baby, BirthRecord } from '@/types';
+import type { Baby, BirthRecord, Achievement } from '@/types';
 import { useNavigation } from 'expo-router';
+import { AchievementNotification } from '@/components/AchievementNotification';
+import { ACHIEVEMENTS } from '@/constants/achievements';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
@@ -28,6 +30,9 @@ export default function QuickEntryScreen() {
   const [eventType, setEventType] = useState<'delivery' | 'transition' | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [newAchievements, setNewAchievements] = useState<string[]>([]);
+  const [currentAchievementIndex, setCurrentAchievementIndex] = useState(0);
+  const [showAchievement, setShowAchievement] = useState(false);
 
   // Add theme color hooks
   const backgroundColor = useThemeColor({}, 'background');
@@ -70,8 +75,15 @@ export default function QuickEntryScreen() {
     };
 
     try {
-      await saveBirthRecord(birthRecord);
+      const achievements = await saveBirthRecord(birthRecord);
+      setNewAchievements(achievements);
       setShowSuccess(true);
+      
+      // Show achievements one by one if any were unlocked
+      if (achievements.length > 0) {
+        setCurrentAchievementIndex(0);
+        setShowAchievement(true);
+      }
     } catch (error) {
       console.error('Failed to save birth record:', error);
       Alert.alert("Error", "Failed to save birth record. Please try again.");
@@ -87,6 +99,9 @@ export default function QuickEntryScreen() {
     setEventType(undefined);
     setNotes('');
     setShowSuccess(false);
+    setNewAchievements([]);
+    setCurrentAchievementIndex(0);
+    setShowAchievement(false);
   }, []);
 
   useFocusEffect(
@@ -341,8 +356,31 @@ export default function QuickEntryScreen() {
     );
   };
 
+  const handleAchievementDismiss = () => {
+    setShowAchievement(false);
+    
+    // Show next achievement if there are more
+    if (currentAchievementIndex < newAchievements.length - 1) {
+      setTimeout(() => {
+        setCurrentAchievementIndex(prev => prev + 1);
+        setShowAchievement(true);
+      }, 500);
+    }
+  };
+
+  const currentAchievement = newAchievements[currentAchievementIndex] 
+    ? ACHIEVEMENTS.find(a => a.id === newAchievements[currentAchievementIndex])
+    : null;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {currentAchievement && (
+        <AchievementNotification
+          achievement={currentAchievement}
+          visible={showAchievement}
+          onDismiss={handleAchievementDismiss}
+        />
+      )}
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}

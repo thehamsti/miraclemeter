@@ -3,7 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
     name: "miraclemeter",
     slug: "miraclemeter",
-    version: "1.0.0",
+    version: "1.1.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -13,18 +13,18 @@ const config: ExpoConfig = {
         bundleIdentifier: "com.hamstico.miraclemeter",
     },
     android: {
-        package: "com.hamstico.miraclemeter"
+        package: "com.hamstico.miraclemeter",
     },
     platforms: ["ios"],
     extra: {
         eas: {
-            projectId: "c1ba267b-c55e-4530-9dcd-fbc530c2c76d"
-        }
+            projectId: "c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
+        },
     },
     web: {
         bundler: "metro",
         output: "static",
-        favicon: "./assets/images/favicon.png"
+        favicon: "./assets/images/favicon.png",
     },
     plugins: [
         "expo-router",
@@ -34,13 +34,13 @@ const config: ExpoConfig = {
                 backgroundColor: "#643872",
                 image: "./assets/images/icon.png",
                 imageWidth: 200,
-                resizeMode: "contain"
-            }
-        ]
+                resizeMode: "contain",
+            },
+        ],
     ],
     experiments: {
-        typedRoutes: true
-    }
+        typedRoutes: true,
+    },
 };
 
 export default config;

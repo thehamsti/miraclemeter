@@ -55,9 +55,9 @@ export function Menu({ isVisible, onClose }: MenuProps) {
             href="/settings" 
           />
           <MenuItem 
-            icon="heart-outline" 
-            label="Support the Developer" 
-            href="/support" 
+            icon="information-circle-outline" 
+            label="About" 
+            href="/about" 
           />
           <MenuItem 
             icon="chatbox-outline" 

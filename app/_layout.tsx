@@ -4,6 +4,8 @@ import { View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { ThemeProvider } from '@/hooks/ThemeContext';
+import { Provider as PaperProvider, DefaultTheme, MD3DarkTheme } from 'react-native-paper';
+import { useColorScheme } from 'react-native';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -16,6 +18,7 @@ SplashScreen.setOptions({
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     async function prepare() {
@@ -55,18 +58,22 @@ export default function RootLayout() {
     return null;
   }
 
+  const paperTheme = colorScheme === 'dark' ? MD3DarkTheme : DefaultTheme;
+
   return (
-    <ThemeProvider>
-      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{
-              headerTitle: 'Home'
-            }}
-          />
-        </Stack>
-      </View>
-    </ThemeProvider>
+    <PaperProvider theme={paperTheme}>
+      <ThemeProvider>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen 
+              name="(tabs)" 
+              options={{
+                headerTitle: 'Home'
+              }}
+            />
+          </Stack>
+        </View>
+      </ThemeProvider>
+    </PaperProvider>
   );
 }

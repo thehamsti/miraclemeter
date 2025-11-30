@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -9,7 +9,7 @@ import {
 import { Link } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { getBirthRecords } from "@/services/storage";
-import { BirthRecord } from "@/types";
+import { BirthRecord, UserAchievements } from "@/types";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
@@ -26,6 +26,8 @@ import {
 } from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { Platform } from "react-native";
+import { getAchievements } from "@/services/achievements";
+import { ACHIEVEMENTS } from "@/constants/achievements";
 
 export default function HomeScreen() {
   const [recentRecords, setRecentRecords] = useState<BirthRecord[]>([]);
@@ -36,6 +38,7 @@ export default function HomeScreen() {
   const [girlsCount, setGirlsCount] = useState(0);
   const [angelsCount, setAngelsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
 
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
@@ -111,6 +114,10 @@ export default function HomeScreen() {
       setBoysCount(boys);
       setGirlsCount(girls);
       setAngelsCount(angels);
+
+      // Load achievements
+      const achievements = await getAchievements();
+      setUserAchievements(achievements);
     } catch (error) {
       console.error("Error loading stats:", error);
     }
@@ -176,17 +183,6 @@ export default function HomeScreen() {
                 Your Birth Tracker
               </ThemedText>
             </View>
-            {/* <Link href="/settings" asChild> */}
-            {/*   <Pressable */}
-            {/*     style={({ pressed }) => [ */}
-            {/*       styles.settingsButton, */}
-            {/*       pressed && styles.settingsButtonPressed, */}
-            {/*     ]} */}
-            {/*     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} */}
-            {/*   > */}
-            {/*     <Ionicons name="settings-outline" size={24} color="white" /> */}
-            {/*   </Pressable> */}
-            {/* </Link> */}
           </View>
         </LinearGradient>
 
@@ -311,6 +307,38 @@ export default function HomeScreen() {
                 </ThemedText>
                 <Ionicons name="arrow-forward" size={20} color="white" />
               </LinearGradient>
+            </Pressable>
+          </Link>
+          
+          {/* Achievements Button */}
+          <Link href="/achievements" asChild>
+            <Pressable
+              style={({ pressed }) => [
+                styles.achievementCtaButton,
+                { backgroundColor: surfaceColor },
+                pressed && styles.achievementCtaButtonPressed,
+              ]}
+            >
+              <View style={styles.achievementCtaContent}>
+                <View style={[styles.achievementIconWrapper, { backgroundColor: primaryColor + "20" }]}>
+                  <Ionicons name="trophy" size={24} color={primaryColor} />
+                </View>
+                <View style={styles.achievementTextWrapper}>
+                  <ThemedText
+                    style={[styles.achievementCtaTitle, { color: textColor }]}
+                    numberOfLines={1}
+                  >
+                    Achievements
+                  </ThemedText>
+                  <ThemedText
+                    style={[styles.achievementCtaSubtitle, { color: textSecondaryColor }]}
+                    numberOfLines={1}
+                  >
+                    {userAchievements ? `${userAchievements.unlocked.length}/${ACHIEVEMENTS.length} unlocked` : 'View your progress'}
+                  </ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </View>
             </Pressable>
           </Link>
         </View>
@@ -498,17 +526,6 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.bold,
     letterSpacing: Typography.letterSpacing.tight,
   },
-  settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.full,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  settingsButtonPressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
   quickStatsContainer: {
     flexDirection: "row",
     paddingHorizontal: Spacing.lg,
@@ -556,6 +573,7 @@ const styles = StyleSheet.create({
   ctaContainer: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
+    gap: Spacing.md,
   },
   ctaButton: {
     borderRadius: BorderRadius.xl,
@@ -676,5 +694,45 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     textAlign: "center",
     lineHeight: Typography.lineHeights.sm,
+  },
+  achievementCtaButton: {
+    borderRadius: BorderRadius.xl,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  achievementCtaButtonPressed: {
+    opacity: 0.95,
+    transform: [{ scale: 0.98 }],
+  },
+  achievementCtaContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  achievementIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  achievementTextWrapper: {
+    flex: 1,
+  },
+  achievementCtaTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+    marginBottom: Spacing.xs / 2,
+  },
+  achievementCtaSubtitle: {
+    fontSize: Typography.sm,
   },
 });

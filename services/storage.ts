@@ -1,17 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { BirthRecord, UserPreferences } from '@/types';
+import { checkAchievements } from './achievements';
 
 const STORAGE_KEY = 'birth_records';
 const ONBOARDING_COMPLETE_KEY = 'onboarding_complete';
 const USER_PREFERENCES_KEY = 'user_preferences';
 
-export async function saveBirthRecord(record: BirthRecord): Promise<void> {
+export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
   try {
     const existingRecordsJson = await AsyncStorage.getItem(STORAGE_KEY);
     const existingRecords: BirthRecord[] = existingRecordsJson ? JSON.parse(existingRecordsJson) : [];
     
     const updatedRecords = [...existingRecords, record];
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
+    
+    // Check for new achievements
+    const preferences = await getUserPreferences();
+    const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
+    
+    return newAchievements;
   } catch (error) {
     console.error('Error saving birth record:', error);
     throw error;
@@ -103,13 +110,19 @@ export const deleteBirthRecord = async (id: string): Promise<void> => {
   }
 };
 
-export async function updateBirthRecord(updatedRecord: BirthRecord): Promise<void> {
+export async function updateBirthRecord(updatedRecord: BirthRecord): Promise<string[]> {
   try {
     const records = await getBirthRecords();
     const updatedRecords = records.map(record => 
       record.id === updatedRecord.id ? updatedRecord : record
     );
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
+    
+    // Check for new achievements
+    const preferences = await getUserPreferences();
+    const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
+    
+    return newAchievements;
   } catch (error) {
     console.error('Error updating birth record:', error);
     throw error;
