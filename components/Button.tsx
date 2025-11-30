@@ -1,11 +1,9 @@
-import { Pressable, StyleSheet, type ViewStyle, Animated, Platform } from 'react-native';
+import { Pressable, StyleSheet, type ViewStyle, Animated, Platform, View, ActivityIndicator } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { View } from 'react-native';
-import { ActivityIndicator } from 'react-native';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
-import { useRef } from 'react';
 
 interface ButtonProps {
   title: string;
@@ -34,7 +32,7 @@ export function Button({
 }: ButtonProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { scaleAnim, handlePressIn, handlePressOut } = usePressAnimation();
 
   const tintColor = useThemeColor({}, 'tint');
   const primaryButtonColor = useThemeColor({}, 'primaryButton');
@@ -81,22 +79,6 @@ export function Button({
     }
   };
 
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-  };
-
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
       <Pressable
@@ -109,6 +91,9 @@ export function Button({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
+        accessibilityLabel={title}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading }}
       >
         <View style={styles.content}>
           {loading ? (

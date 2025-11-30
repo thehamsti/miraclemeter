@@ -45,7 +45,7 @@ All data stored locally via AsyncStorage (no backend):
 ### Theme System
 - `hooks/ThemeContext.tsx` - Theme provider wrapping app
 - `hooks/useThemeColor.ts` - Hook to get themed colors
-- `constants/Colors.ts` and `constants/Theme.ts` - Color definitions
+- `constants/Colors.ts` - Color definitions, spacing, typography, shadows
 - React Native Paper (`PaperProvider`) for Material Design components
 
 ## Key Patterns

@@ -111,14 +111,17 @@ export function TextInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           selectionColor={primaryColor}
+          accessibilityLabel={label}
         />
         {rightIcon && (
-          <Pressable 
+          <Pressable
             onPress={onRightIconPress}
             style={({ pressed }) => [
               styles.iconContainer,
               pressed && styles.iconPressed,
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={`${label} action`}
           >
             <Ionicons 
               name={rightIcon} 

@@ -7,18 +7,21 @@ interface IconButtonProps extends PressableProps {
   name: keyof typeof MaterialCommunityIcons.glyphMap;
   size?: number;
   color?: string;
+  accessibilityLabel: string;
 }
 
-export function IconButton({ name, size = 24, color, style, ...props }: IconButtonProps) {
+export function IconButton({ name, size = 24, color, style, accessibilityLabel, ...props }: IconButtonProps) {
   const iconColor = useThemeColor({}, 'text');
 
   return (
-    <Pressable 
+    <Pressable
       style={({ pressed }) => [
         styles.button,
         pressed && styles.pressed,
         style
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       {...props}
     >
       <MaterialCommunityIcons 

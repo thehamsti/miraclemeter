@@ -31,6 +31,10 @@ export const AchievementBadge = ({
   const iconSize = size === 'small' ? 32 : 40;
   const cardStyle = size === 'small' ? styles.smallCard : styles.largeCard;
   
+  const accessibilityLabel = isUnlocked
+    ? `${achievement.name}, unlocked. ${achievement.description}`
+    : `${achievement.name}, locked. Progress: ${currentProgress} of ${achievement.requirement.value}. ${achievement.description}`;
+
   return (
     <Pressable
       style={[
@@ -39,6 +43,8 @@ export const AchievementBadge = ({
         isUnlocked ? styles.unlocked : styles.locked,
         { backgroundColor: isUnlocked ? primaryLightColor : surfaceColor }
       ]}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: !isUnlocked }}
     >
       <View style={styles.content}>
         <View style={[

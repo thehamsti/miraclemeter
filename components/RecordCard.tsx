@@ -4,11 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { useThemeColor, useShadowOpacity } from '@/hooks/useThemeColor';
+import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { BirthRecord } from '@/types';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { formatDistanceToNow } from '@/utils/dateUtils';
 import { useRouter } from 'expo-router';
-import { useRef } from 'react';
 
 interface RecordCardProps {
   record?: BirthRecord;
@@ -20,7 +20,7 @@ interface RecordCardProps {
 
 export function RecordCard({ record, placeholder, style, onPress, showActions = true }: RecordCardProps) {
   const router = useRouter();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { scaleAnim, handlePressIn, handlePressOut } = usePressAnimation({ scale: 0.98 });
   const surfaceColor = useThemeColor({}, 'surface');
   const surfaceElevatedColor = useThemeColor({}, 'surfaceElevated');
   const textColor = useThemeColor({}, 'text');
@@ -70,22 +70,6 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
         params: { id: record.id }
       });
     }
-  };
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
   };
 
   const getGenderIcon = (gender: string) => {

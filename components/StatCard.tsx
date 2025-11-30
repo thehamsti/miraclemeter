@@ -49,7 +49,11 @@ export function StatCard({ icon, iconColor, label, value, subtitle = 'Total' }: 
 
   return (
     <Animated.View style={[animatedStyle, { flex: 1 }]}>
-      <Pressable onPress={handlePress}>
+      <Pressable
+        onPress={handlePress}
+        accessibilityLabel={`${label}: ${value} ${subtitle}`}
+        accessibilityRole="button"
+      >
         <ThemedView style={[styles.card, { backgroundColor, borderColor }]}>
           <Ionicons name={icon} size={24} color={iconColor || secondaryButtonTextColor} />
           <ThemedText type="defaultSemiBold">{label}</ThemedText>

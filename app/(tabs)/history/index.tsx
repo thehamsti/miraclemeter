@@ -25,6 +25,8 @@ export default function HistoryScreen() {
   const errorColor = useThemeColor({}, 'error');
   const successColor = useThemeColor({}, 'success');
   const warningColor = useThemeColor({}, 'warning');
+  const maleColor = useThemeColor({}, 'male');
+  const femaleColor = useThemeColor({}, 'female');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [birthRecords, setBirthRecords] = useState<BirthRecord[]>([]);
@@ -81,7 +83,7 @@ export default function HistoryScreen() {
   const handleEdit = (record: BirthRecord) => {
     router.push({
       pathname: "/edit",
-      params: { editRecord: JSON.stringify(record) }
+      params: { id: record.id }
     });
   };
 
@@ -189,7 +191,7 @@ export default function HistoryScreen() {
               <View style={styles.genderBreakdown}>
                 {genderCounts.boys > 0 && (
                   <View style={styles.genderItem}>
-                    <Ionicons name="male" size={14} color={primaryColor} />
+                    <Ionicons name="male" size={14} color={maleColor} />
                     <ThemedText style={[styles.genderCount, { color: textSecondaryColor }]}>
                       {genderCounts.boys}
                     </ThemedText>
@@ -197,7 +199,7 @@ export default function HistoryScreen() {
                 )}
                 {genderCounts.girls > 0 && (
                   <View style={styles.genderItem}>
-                    <Ionicons name="female" size={14} color={errorColor} />
+                    <Ionicons name="female" size={14} color={femaleColor} />
                     <ThemedText style={[styles.genderCount, { color: textSecondaryColor }]}>
                       {genderCounts.girls}
                     </ThemedText>

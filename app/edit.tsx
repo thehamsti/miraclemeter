@@ -1,77 +1,75 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, Alert, ScrollView, KeyboardAvoidingView, Platform, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, View, Pressable } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
-import { Stepper } from '@/components/Stepper';
 import { DateTimePicker } from '@/components/birth-entry/DateTimePicker';
 import { DeliveryTypeSelector } from '@/components/birth-entry/DeliveryTypeSelector';
-import { MultipleBirthSelector } from '@/components/birth-entry/MultipleBirthSelector';
 import { BabyDetailsForm } from '@/components/birth-entry/BabyDetailsForm';
-import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
 import { updateBirthRecord, getBirthRecordById, deleteBirthRecord } from '@/services/storage';
 import type { BirthRecord, Baby } from '@/types';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
+// Module-level cache to prevent duplicate fetches across component instances
+const recordCache: Record<string, BirthRecord> = {};
+
 export default function EditBirthScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [loading, setLoading] = useState(true);
-  const [record, setRecord] = useState<BirthRecord | null>(null);
-  const [currentStep, setCurrentStep] = useState(0);
+  const params = useLocalSearchParams<{ id: string }>();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  // Initialize from cache if available
+  const [record, setRecord] = useState<BirthRecord | null>(id ? recordCache[id] || null : null);
   const [timestamp, setTimestamp] = useState(new Date());
-  const [numberOfBabies, setNumberOfBabies] = useState(1);
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
-  const [deliveryType, setDeliveryType] = useState<'Vaginal' | 'C-Section' | 'Assisted'>('Vaginal');
+  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section'>('vaginal');
   const [eventType, setEventType] = useState<'delivery' | 'transition'>('delivery');
   const [notes, setNotes] = useState('');
-  
+  const [saving, setSaving] = useState(false);
+
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
   const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const primaryColor = useThemeColor({}, 'primary');
   const errorColor = useThemeColor({}, 'error');
+  const borderColor = useThemeColor({}, 'border');
 
-  // Load the record when component mounts
   useEffect(() => {
-    loadRecord();
-  }, [id]);
+    // Skip if no id or already have record loaded
+    if (!id || record) return;
 
-  const loadRecord = async () => {
-    if (!id) {
-      Alert.alert('Error', 'No record ID provided');
-      router.back();
-      return;
+    // Check cache first
+    const cached = recordCache[id];
+
+    if (!cached) {
+      // Fetch from storage
+      getBirthRecordById(id).then((fetchedRecord) => {
+        if (!fetchedRecord) {
+          Alert.alert('Error', 'Record not found');
+          router.back();
+          return;
+        }
+        recordCache[id] = fetchedRecord;
+        setRecord(fetchedRecord);
+        setTimestamp(fetchedRecord.timestamp ? new Date(fetchedRecord.timestamp) : new Date());
+        setBabies(fetchedRecord.babies);
+        setDeliveryType(fetchedRecord.deliveryType || 'vaginal');
+        setEventType(fetchedRecord.eventType || 'delivery');
+        setNotes(fetchedRecord.notes || '');
+      });
+    } else {
+      // Use cached
+      setRecord(cached);
+      setTimestamp(cached.timestamp ? new Date(cached.timestamp) : new Date());
+      setBabies(cached.babies);
+      setDeliveryType(cached.deliveryType || 'vaginal');
+      setEventType(cached.eventType || 'delivery');
+      setNotes(cached.notes || '');
     }
-
-    try {
-      const fetchedRecord = await getBirthRecordById(id);
-      if (!fetchedRecord) {
-        Alert.alert('Error', 'Record not found');
-        router.back();
-        return;
-      }
-
-      setRecord(fetchedRecord);
-      setTimestamp(fetchedRecord.timestamp ? new Date(fetchedRecord.timestamp) : new Date());
-      setNumberOfBabies(fetchedRecord.babies.length);
-      setBabies(fetchedRecord.babies);
-      setDeliveryType((fetchedRecord.deliveryType || 'vaginal') as 'Vaginal' | 'C-Section' | 'Assisted');
-      setEventType(fetchedRecord.eventType || 'delivery');
-      setNotes(fetchedRecord.notes || '');
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading record:', error);
-      Alert.alert('Error', 'Failed to load record');
-      router.back();
-    }
-  };
-
-  // Calculate total steps based on number of babies
-  const totalSteps = 3 + numberOfBabies + 1 + 1; // DateTime + NumberOfBabies + (1 per baby) + DeliveryType + EventType + Notes
+  }, [id, record]);
 
   const handleBabyUpdate = (index: number, baby: Baby) => {
     const newBabies = [...babies];
@@ -79,34 +77,23 @@ export default function EditBirthScreen() {
     setBabies(newBabies);
   };
 
-  const handleNumberOfBabiesChange = (number: number) => {
-    setNumberOfBabies(number);
-    const newBabies = Array(number).fill(null).map((_, index) => ({
-      ...babies[index] || { gender: 'boy', birthOrder: index + 1 }
-    }));
-    setBabies(newBabies);
-  };
-
-  const handleSubmit = async () => {
-    if (!record) return;
-
-    const updatedRecord: BirthRecord = {
-      ...record,
-      timestamp,
-      babies,
-      deliveryType,
-      eventType,
-      notes: notes.trim() || undefined,
-    };
+  const handleSave = async () => {
+    if (!record || saving) return;
+    setSaving(true);
 
     try {
-      await updateBirthRecord(updatedRecord);
-      Alert.alert('Success', 'Birth record updated successfully', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      await updateBirthRecord({
+        ...record,
+        timestamp,
+        babies,
+        deliveryType,
+        eventType,
+        notes: notes.trim() || undefined,
+      });
+      router.back();
     } catch (error) {
-      console.error('Failed to update birth record:', error);
-      Alert.alert('Error', 'Failed to update birth record');
+      Alert.alert('Error', 'Failed to save changes');
+      setSaving(false);
     }
   };
 
@@ -115,263 +102,188 @@ export default function EditBirthScreen() {
 
     Alert.alert(
       'Delete Record',
-      'Are you sure you want to delete this birth record? This action cannot be undone.',
+      'Are you sure? This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            try {
-              await deleteBirthRecord(record.id);
-              router.back();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete record');
-            }
-          }
+            await deleteBirthRecord(record.id);
+            router.back();
+          },
         },
       ]
     );
   };
 
-  const handleCancel = () => {
-    Alert.alert(
-      'Cancel Editing',
-      'Are you sure you want to cancel? All changes will be lost.',
-      [
-        { text: 'Continue Editing', style: 'cancel' },
-        { 
-          text: 'Cancel', 
-          style: 'destructive',
-          onPress: () => router.back()
-        },
-      ]
-    );
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={primaryColor} />
-          <ThemedText style={[styles.loadingText, { color: textSecondaryColor }]}>
-            Loading record...
-          </ThemedText>
-        </View>
-      </SafeAreaView>
-    );
+  if (!record) {
+    return null;
   }
-
-  const renderStep = () => {
-    // DateTime selection
-    if (currentStep === 0) {
-      return (
-        <ThemedView style={styles.step}>
-          <ThemedText 
-            type="heading" 
-            style={styles.stepTitle}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-          >
-            When did the birth occur?
-          </ThemedText>
-          <View style={styles.stepContent}>
-            <DateTimePicker value={timestamp} onChange={setTimestamp} />
-          </View>
-        </ThemedView>
-      );
-    }
-    
-    // Number of babies
-    if (currentStep === 1) {
-      return (
-        <ThemedView style={styles.step}>
-          <ThemedText 
-            type="heading" 
-            style={styles.stepTitle}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-          >
-            How many babies?
-          </ThemedText>
-          <View style={styles.stepContent}>
-            <MultipleBirthSelector value={numberOfBabies} onChange={handleNumberOfBabiesChange} />
-          </View>
-        </ThemedView>
-      );
-    }
-    
-    // Individual baby details (steps 2 to 2+numberOfBabies-1)
-    const babyDetailsEndStep = 1 + numberOfBabies;
-    if (currentStep > 1 && currentStep <= babyDetailsEndStep) {
-      const babyIndex = currentStep - 2;
-      return (
-        <ThemedView style={styles.step}>
-          <ThemedText 
-            type="heading" 
-            style={styles.stepTitle}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-          >
-            {numberOfBabies > 1 ? `Baby ${babyIndex + 1} Details` : 'Baby Details'}
-          </ThemedText>
-          <View style={styles.stepContent}>
-            <BabyDetailsForm
-              baby={babies[babyIndex]}
-              onUpdate={(updatedBaby) => handleBabyUpdate(babyIndex, updatedBaby)}
-            />
-          </View>
-        </ThemedView>
-      );
-    }
-    
-    // Delivery type
-    const deliveryTypeStep = babyDetailsEndStep + 1;
-    if (currentStep === deliveryTypeStep) {
-      return (
-        <ThemedView style={styles.step}>
-          <ThemedText 
-            type="heading" 
-            style={styles.stepTitle}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-          >
-            Delivery type?
-          </ThemedText>
-          <View style={styles.stepContent}>
-            <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
-          </View>
-        </ThemedView>
-      );
-    }
-
-    // Event Type
-    const eventTypeStep = deliveryTypeStep + 1;
-    if (currentStep === eventTypeStep) {
-      return (
-        <ThemedView style={styles.step}>
-          <ThemedText 
-            type="heading" 
-            style={styles.stepTitle}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-          >
-            Event Type?
-          </ThemedText>
-          <View style={[styles.stepContent, styles.selectorContainer]}>
-            <Button
-              title="Delivery"
-              onPress={() => setEventType('delivery')}
-              variant={eventType === 'delivery' ? 'primary' : 'secondary'}
-              style={styles.selectorButton}
-              icon={<Ionicons name="fitness-outline" size={20} color={eventType === 'delivery' ? 'white' : textColor} />}
-            />
-            <Button
-              title="Transition"
-              onPress={() => setEventType('transition')}
-              variant={eventType === 'transition' ? 'primary' : 'secondary'}
-              style={styles.selectorButton}
-              icon={<Ionicons name="swap-horizontal-outline" size={20} color={eventType === 'transition' ? 'white' : textColor} />}
-            />
-          </View>
-        </ThemedView>
-      );
-    }
-    
-    // Notes (final step)
-    return (
-      <ThemedView style={styles.step}>
-        <ThemedText 
-          type="heading" 
-          style={styles.stepTitle}
-          numberOfLines={2}
-          adjustsFontSizeToFit
-        >
-          Additional Notes
-        </ThemedText>
-        <View style={styles.stepContent}>
-          <TextInput
-            label="Notes (optional)"
-            placeholder="Any additional details about the birth..."
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={4}
-            style={styles.notes}
-            leftIcon="document-text-outline"
-          />
-        </View>
-      </ThemedView>
-    );
-  };
 
   return (
     <>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Edit Birth Record',
+          title: 'Edit Record',
           headerStyle: { backgroundColor: surfaceColor },
           headerTintColor: textColor,
-          headerRight: () => (
-            <Button
-              title="Delete"
-              onPress={handleDelete}
-              variant="danger"
-              size="small"
-              icon={<Ionicons name="trash-outline" size={16} color="white" />}
-            />
-          ),
-        }} 
+        }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor }]}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={[styles.container, { backgroundColor }]}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Stepper currentStep={currentStep} totalSteps={totalSteps} />
-          
-          <ScrollView 
-            style={styles.content}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {renderStep()}
-          </ScrollView>
+          {/* Date & Time */}
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="calendar-outline" size={20} color={primaryColor} />
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                Date & Time
+              </ThemedText>
+            </View>
+            <DateTimePicker value={timestamp} onChange={setTimestamp} />
+          </View>
 
-          <View style={[styles.buttonContainer, { backgroundColor: surfaceColor }]}>
-            {currentStep > 0 && (
-              <Button
-                title="Back"
-                onPress={() => setCurrentStep(curr => curr - 1)}
-                variant="secondary"
-                size="large"
-                style={styles.button}
-                icon={<Ionicons name="arrow-back" size={20} color={textColor} />}
-              />
-            )}
-            <Button
-              title={currentStep === totalSteps - 1 ? "Save" : "Next"}
-              onPress={() => {
-                if (currentStep === totalSteps - 1) {
-                  handleSubmit();
-                } else {
-                  setCurrentStep(curr => curr + 1);
-                }
-              }}
-              size="large"
-              style={styles.button}
-              fullWidth={currentStep === 0}
-              icon={<Ionicons 
-                name={currentStep === totalSteps - 1 ? "checkmark-circle" : "arrow-forward"} 
-                size={20} 
-                color="white" 
-              />}
+          {/* Delivery Type */}
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="medical-outline" size={20} color={primaryColor} />
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                Delivery Type
+              </ThemedText>
+            </View>
+            <DeliveryTypeSelector value={deliveryType} onChange={setDeliveryType} />
+          </View>
+
+          {/* Event Type */}
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="swap-horizontal-outline" size={20} color={primaryColor} />
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                Event Type
+              </ThemedText>
+            </View>
+            <View style={styles.eventTypeRow}>
+              <Pressable
+                style={[
+                  styles.eventTypeButton,
+                  { borderColor: eventType === 'delivery' ? primaryColor : borderColor },
+                  eventType === 'delivery' && { backgroundColor: primaryColor + '15' },
+                ]}
+                onPress={() => setEventType('delivery')}
+              >
+                <Ionicons
+                  name="fitness-outline"
+                  size={20}
+                  color={eventType === 'delivery' ? primaryColor : textSecondaryColor}
+                />
+                <ThemedText
+                  style={[
+                    styles.eventTypeText,
+                    { color: eventType === 'delivery' ? primaryColor : textSecondaryColor },
+                  ]}
+                >
+                  Delivery
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.eventTypeButton,
+                  { borderColor: eventType === 'transition' ? primaryColor : borderColor },
+                  eventType === 'transition' && { backgroundColor: primaryColor + '15' },
+                ]}
+                onPress={() => setEventType('transition')}
+              >
+                <Ionicons
+                  name="swap-horizontal-outline"
+                  size={20}
+                  color={eventType === 'transition' ? primaryColor : textSecondaryColor}
+                />
+                <ThemedText
+                  style={[
+                    styles.eventTypeText,
+                    { color: eventType === 'transition' ? primaryColor : textSecondaryColor },
+                  ]}
+                >
+                  Transition
+                </ThemedText>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Babies */}
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="people-outline" size={20} color={primaryColor} />
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                {babies.length > 1 ? `Babies (${babies.length})` : 'Baby'}
+              </ThemedText>
+            </View>
+            {babies.map((baby, index) => (
+              <View key={index} style={styles.babySection}>
+                {babies.length > 1 && (
+                  <ThemedText style={[styles.babyLabel, { color: textSecondaryColor }]}>
+                    Baby {index + 1}
+                  </ThemedText>
+                )}
+                <BabyDetailsForm
+                  baby={baby}
+                  onUpdate={(updated) => handleBabyUpdate(index, updated)}
+                />
+              </View>
+            ))}
+          </View>
+
+          {/* Notes */}
+          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="document-text-outline" size={20} color={primaryColor} />
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                Notes
+              </ThemedText>
+            </View>
+            <TextInput
+              placeholder="Optional notes..."
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={3}
+              style={styles.notesInput}
             />
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+
+          {/* Delete Button */}
+          <Pressable
+            style={[styles.deleteButton, { borderColor: errorColor }]}
+            onPress={handleDelete}
+          >
+            <Ionicons name="trash-outline" size={20} color={errorColor} />
+            <ThemedText style={[styles.deleteText, { color: errorColor }]}>
+              Delete Record
+            </ThemedText>
+          </Pressable>
+        </ScrollView>
+
+        {/* Save Button */}
+        <View style={[styles.footer, { backgroundColor: surfaceColor }]}>
+          <Button
+            title={saving ? 'Saving...' : 'Save Changes'}
+            onPress={handleSave}
+            size="large"
+            fullWidth
+            disabled={saving}
+            icon={<Ionicons name="checkmark-circle" size={20} color="white" />}
+          />
+        </View>
+      </KeyboardAvoidingView>
     </>
   );
 }
@@ -380,74 +292,80 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  keyboardView: {
+  scrollView: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  loadingText: {
-    fontSize: Typography.base,
   },
   content: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexGrow: 1,
     padding: Spacing.lg,
+    paddingBottom: 100,
+    gap: Spacing.md,
   },
-  step: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: Spacing.xl,
-  },
-  stepContent: {
-    marginTop: Spacing.lg,
-  },
-  stepTitle: {
-    textAlign: 'center',
-    marginHorizontal: Spacing.lg,
-    lineHeight: Typography.lineHeights['2xl'] * 1.2,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
+  section: {
+    borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? Spacing.xl : Spacing.lg,
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(0,0,0,0.1)',
     ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
+      ios: Shadows.sm,
+      android: { elevation: 2 },
     }),
   },
-  button: {
-    flex: 1,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  notes: {
-    minHeight: 120,
-    maxHeight: 200,
+  sectionTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  eventTypeRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  eventTypeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+  },
+  eventTypeText: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+  },
+  babySection: {
+    marginTop: Spacing.sm,
+  },
+  babyLabel: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    marginBottom: Spacing.sm,
+  },
+  notesInput: {
+    minHeight: 80,
     textAlignVertical: 'top',
   },
-  selectorContainer: {
+  deleteButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.md,
-    paddingHorizontal: Spacing.md,
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1.5,
+    marginTop: Spacing.md,
   },
-  selectorButton: {
-    flex: 1,
-    maxWidth: 200,
+  deleteText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
+  },
+  footer: {
+    padding: Spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? Spacing.xl : Spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
 });

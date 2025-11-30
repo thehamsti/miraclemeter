@@ -164,26 +164,17 @@ export const checkAchievements = async (
             progress = records.filter((r) => r.babies.length === 3).length;
             break;
           case "double_shift":
-            // Check for days with 2 deliveries
-            const deliveriesByDate = groupDeliveriesByDate(records);
-            progress = Object.values(deliveriesByDate).filter(
-              (count) => count >= 2,
-            ).length;
-            break;
           case "triple_shift":
-            // Check for days with 3 deliveries
-            const deliveriesByDate2 = groupDeliveriesByDate(records);
-            progress = Object.values(deliveriesByDate2).filter(
-              (count) => count >= 3,
-            ).length;
+          case "marathon_shift": {
+            // Cache deliveries by date for shift-related achievements
+            const deliveriesByDate = groupDeliveriesByDate(records);
+            const deliveryCounts = Object.values(deliveriesByDate);
+            const threshold = achievement.requirement.condition === "double_shift" ? 2
+              : achievement.requirement.condition === "triple_shift" ? 3
+              : 4;
+            progress = deliveryCounts.filter((count) => count >= threshold).length;
             break;
-          case "marathon_shift":
-            // Check for days with 4+ deliveries
-            const deliveriesByDate3 = groupDeliveriesByDate(records);
-            progress = Object.values(deliveriesByDate3).filter(
-              (count) => count >= 4,
-            ).length;
-            break;
+          }
           case "weekend":
             progress = records.filter((r) => {
               if (!r.timestamp) return false;
