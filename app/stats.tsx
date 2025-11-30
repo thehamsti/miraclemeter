@@ -29,8 +29,6 @@ export default function StatsScreen() {
   const warningColor = useThemeColor({}, 'warning');
   const successColor = useThemeColor({}, 'success');
   const errorColor = useThemeColor({}, 'error');
-  const shadowColor = useThemeColor({}, 'shadowColor');
-  const shadowOpacity = useThemeColor({}, 'shadowOpacity');
 
   const loadStats = useCallback(async () => {
     try {

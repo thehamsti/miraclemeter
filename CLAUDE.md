@@ -4,81 +4,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MiracleMeter is a React Native mobile app for healthcare professionals to track births they've assisted with. Built with Expo managed workflow, TypeScript, and React Native Paper UI components.
+MiracleMeter is a React Native mobile app for healthcare professionals to track births they've assisted with. Built with Expo managed workflow, TypeScript, and React Native Paper UI components. iOS-only app with local-first data storage.
 
 ## Commands
 
-### Development
 ```bash
-# Start development server
-npm start
+# Development
+npm start              # Start Expo dev server
+npm run ios            # Run on iOS simulator
+npm test               # Run tests in watch mode
+npm run lint           # Run ESLint
 
-# Run on iOS simulator
-npm run ios
-
-# Run tests
-npm test
-
-# Run linter
-npm run lint
-
-# Run a specific test file
+# Single test file
 npm test -- components/__tests__/ThemedText-test.tsx
-```
 
-### Building & Deployment
-```bash
-# Build iOS app locally
+# Build & Deploy
 eas build --platform ios --profile production --local
-
-# Submit to App Store
 eas submit --platform ios
 ```
 
 ## Architecture
 
-### Navigation Structure
-Using Expo Router file-based routing:
-- `app/(tabs)/` - Main tab navigation (Home, Quick Entry, History, Stats)
-- `app/(auth)/` - Onboarding flow
-- `app/settings.tsx`, `app/edit.tsx` - Modal screens
+### Navigation (Expo Router)
+- `app/(tabs)/` - Main tabs: Home (`index.tsx`), Quick Entry, History
+- `app/(auth)/onboarding.tsx` - First-launch onboarding flow
+- `app/*.tsx` - Modal screens: settings, edit, stats, about, feedback, achievements
 
-### Data Flow
-- **Storage**: AsyncStorage for local persistence (no backend)
-- **State**: Component-level state management, no global state library
-- **Data Model**: Birth records stored as JSON array in AsyncStorage under key `birthRecords`
+### Data Layer
+All data stored locally via AsyncStorage (no backend):
+- `services/storage.ts` - Birth records CRUD, user preferences, onboarding state
+- `services/achievements.ts` - Achievement tracking, progress calculation, streak logic
+- Storage keys: `birth_records`, `user_preferences`, `onboarding_complete`, `userAchievements`
 
-### Key Services
-- `services/storage.ts` - Handles all AsyncStorage operations for birth records
-- `utils/dateUtils.ts` - Date formatting and calculations
-- `utils/notifications.ts` - Push notification management
+### Data Types (types.ts)
+- `BirthRecord` - Core record with babies array, delivery type, timestamp
+- `Baby` - Gender ('boy' | 'girl' | 'angel'), birth order
+- `UserPreferences` - Name, theme, shift settings, notifications
+- `Achievement` / `UserAchievements` - Gamification system
 
-### UI Components
-- Custom themed components in `components/` extend React Native Paper
-- Theme context in `hooks/ThemeContext.tsx` manages dark/light mode
-- Consistent styling through `constants/Colors.ts` and `constants/Theme.ts`
+### Theme System
+- `hooks/ThemeContext.tsx` - Theme provider wrapping app
+- `hooks/useThemeColor.ts` - Hook to get themed colors
+- `constants/Colors.ts` and `constants/Theme.ts` - Color definitions
+- React Native Paper (`PaperProvider`) for Material Design components
 
-## Important Conventions
+## Key Patterns
 
-### TypeScript
-- Strict mode enabled
-- Define types in `types.ts` for shared data models
-- Use proper type annotations for all function parameters and returns
+### Theming
+Always use `useThemeColor` hook for colors:
+```tsx
+const backgroundColor = useThemeColor({}, 'background');
+```
 
-### Component Structure
-- Functional components with hooks
-- Extract reusable logic into custom hooks
-- Keep components focused and single-purpose
+### Achievements Integration
+`saveBirthRecord()` and `updateBirthRecord()` in storage.ts automatically call `checkAchievements()` and return newly unlocked achievement IDs.
 
-### Testing
-- Jest with React Native Testing Library
-- Test files in `__tests__` directories next to components
-- Focus on user interactions and rendered output
+### Birth Entry Components
+- `components/birth-entry/` - Modular form components for birth data entry
+- `DeliveryTypeSelector`, `MultipleBirthSelector`, `BabyDetailsForm`
 
-## iOS-Specific Considerations
-- App is iOS-only (configured in app.config.ts)
-- Uses iOS-specific UI patterns (e.g., DateTimePicker)
-- Bundle identifier: `com.hamstico.miraclemeter`
+## Version Bumping
 
-## Memories
-- When incrementing version you have to go to package.json package-lock.json app.config.ts and ios/miraclemeter/Info.plist
+When incrementing version, update ALL of these files:
+- `package.json` (version field)
+- `package-lock.json` (version field)
+- `app.config.ts` (version field)
+- `ios/miraclemeter/Info.plist` (CFBundleShortVersionString)

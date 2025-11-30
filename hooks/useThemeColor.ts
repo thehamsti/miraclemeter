@@ -4,12 +4,12 @@
  */
 
 import { useTheme } from './ThemeContext';
-import { Colors } from '@/constants/Colors';
+import { Colors, ShadowOpacity } from '@/constants/Colors';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark
-) {
+): string {
   const { effectiveTheme } = useTheme();
   const colorFromProps = props[effectiveTheme];
 
@@ -18,4 +18,9 @@ export function useThemeColor(
   }
 
   return Colors[effectiveTheme][colorName];
+}
+
+export function useShadowOpacity(): number {
+  const { effectiveTheme } = useTheme();
+  return ShadowOpacity[effectiveTheme];
 }

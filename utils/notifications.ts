@@ -8,6 +8,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -93,6 +95,7 @@ export async function scheduleDailyReminder(prefs: NotificationPreferences) {
       sound: true,
     },
     trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
       hour: prefs.time.hour,
       minute: prefs.time.minute,
       repeats: true,

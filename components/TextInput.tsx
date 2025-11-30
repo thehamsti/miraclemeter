@@ -1,4 +1,4 @@
-import { TextInput as RNTextInput, StyleSheet, type TextInputProps, View, Animated, Platform } from 'react-native';
+import { TextInput as RNTextInput, StyleSheet, type TextInputProps, View, Animated, Platform, Pressable } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';

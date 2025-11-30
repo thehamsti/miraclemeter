@@ -50,8 +50,6 @@ export default function HomeScreen() {
   const warningColor = useThemeColor({}, "warning");
   const successColor = useThemeColor({}, "success");
   const borderColor = useThemeColor({}, "border");
-  const shadowColor = useThemeColor({}, "shadowColor");
-  const shadowOpacity = useThemeColor({}, "shadowOpacity");
 
   const loadStats = useCallback(async () => {
     try {

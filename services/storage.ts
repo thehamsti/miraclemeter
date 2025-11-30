@@ -34,7 +34,7 @@ export async function getBirthRecords(): Promise<BirthRecord[]> {
     // Convert stored date strings back to Date objects
     return records.map(record => ({
       ...record,
-      timestamp: new Date(record.timestamp)
+      timestamp: record.timestamp ? new Date(record.timestamp) : undefined
     }));
   } catch (error) {
     console.error('Error loading birth records:', error);

@@ -3,7 +3,7 @@ import { StyleSheet, View, Pressable, ViewStyle, Animated, Platform } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { useThemeColor, useShadowOpacity } from '@/hooks/useThemeColor';
 import { BirthRecord } from '@/types';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { formatDistanceToNow } from '@/utils/dateUtils';
@@ -34,7 +34,7 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
   const femaleColor = useThemeColor({}, 'female');
   const warningColor = useThemeColor({}, 'warning');
   const shadowColor = useThemeColor({}, 'shadowColor');
-  const shadowOpacity = useThemeColor({}, 'shadowOpacity');
+  const shadowOpacity = useShadowOpacity();
 
   if (!record) {
     return (

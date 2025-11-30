@@ -97,7 +97,6 @@ export const Colors = {
     
     // Shadows
     shadowColor: black,
-    shadowOpacity: 0.08,
   },
   dark: {
     // Text
@@ -153,9 +152,14 @@ export const Colors = {
     
     // Shadows
     shadowColor: black,
-    shadowOpacity: 0.3,
   },
 };
+
+// Shadow opacity values (separate since they're numbers, not color strings)
+export const ShadowOpacity = {
+  light: 0.08,
+  dark: 0.3,
+} as const;
 
 // Spacing scale
 export const Spacing = {
@@ -203,10 +207,10 @@ export const Typography = {
   
   // Font weights
   weights: {
-    regular: '400',
-    medium: '500',
-    semibold: '600',
-    bold: '700',
+    regular: '400' as const,
+    medium: '500' as const,
+    semibold: '600' as const,
+    bold: '700' as const,
   },
   
   // Letter spacing for better readability

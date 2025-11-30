@@ -2,7 +2,7 @@ import { Tabs, usePathname } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Platform, View } from 'react-native';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { useThemeColor, useShadowOpacity } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 import { Menu } from '@/components/Menu';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,7 +18,7 @@ export default function TabLayout() {
   const tabIconDefault = useThemeColor({}, 'tabIconDefault');
   const borderColor = useThemeColor({}, 'border');
   const shadowColor = useThemeColor({}, 'shadowColor');
-  const shadowOpacity = useThemeColor({}, 'shadowOpacity');
+  const shadowOpacity = useShadowOpacity();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
