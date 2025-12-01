@@ -6,11 +6,12 @@ const config: ExpoConfig = {
     version: "1.1.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "myapp",
+    scheme: "miraclemeter",
     userInterfaceStyle: "automatic",
     ios: {
         supportsTablet: true,
         bundleIdentifier: "com.hamstico.miraclemeter",
+        associatedDomains: ["applinks:miraclemeter"],
     },
     android: {
         package: "com.hamstico.miraclemeter",

@@ -1,7 +1,7 @@
 import { Text, type TextProps, StyleSheet, Platform } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { Typography } from '@/constants/Colors';
+import { Typography, Colors } from '@/constants/Colors';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -22,6 +22,7 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const primaryColor = useThemeColor({}, 'primary');
 
   // Enable font size adjustment for long text to prevent clipping
   // Only auto-adjust if adjustsFontSizeToFit is not explicitly set to false
@@ -35,7 +36,7 @@ export function ThemedText({
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        type === 'link' ? [styles.link, { color: primaryColor }] : undefined,
         type === 'caption' ? styles.caption : undefined,
         type === 'body' ? styles.body : undefined,
         type === 'heading' ? styles.heading : undefined,
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
   link: {
     fontSize: Typography.base,
     lineHeight: Typography.lineHeights.base,
-    color: '#643872',
+    color: Colors.light.primary,
     fontFamily: getFontFamily('medium'),
     textDecorationLine: 'underline',
   },

@@ -1,64 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, Alert, Platform, ScrollView, View } from 'react-native';
+import { StyleSheet, Alert, Platform, ScrollView, View, Pressable } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import { TextInput } from '@/components/TextInput';
 import { Button } from '@/components/Button';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { SegmentedButtons } from 'react-native-paper';
 import { 
   requestNotificationPermissions, 
   scheduleDailyReminder,
   getNotificationPreferences,
   saveNotificationPreferences
 } from '@/utils/notifications';
-import { Stack } from 'expo-router';
+import { getUserPreferences, saveUserPreferences } from '@/services/storage';
+import { Stack, router } from 'expo-router';
 import { useTheme } from '@/hooks/ThemeContext';
 import { ThemedSwitch } from '@/components/ThemedSwitch';
 import { ThemedSegmentedButtons } from '@/components/ThemedSegmentedButtons';
-import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import type { UserPreferences } from '@/types';
 
 export default function SettingsScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
   const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
-  const tintColor = useThemeColor({}, 'tint');
-  const borderColor = useThemeColor({}, 'border');
+  const primaryColor = useThemeColor({}, 'primary');
   const borderLightColor = useThemeColor({}, 'borderLight');
-  const [isLoading, setIsLoading] = useState(false);
+  // Profile state
+  const [name, setName] = useState('');
+  const [unit, setUnit] = useState('');
+  const [shift, setShift] = useState<'day' | 'night' | 'rotating'>('day');
+  
+  // Notification state
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [frequency, setFrequency] = useState<'daily' | 'shift'>('daily');
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const { theme: themeColor } = useTheme();
+  const { theme, setTheme, effectiveTheme } = useTheme();
 
   useEffect(() => {
     loadPreferences();
   }, []);
 
-  const loadPreferences = async () => {
-    const prefs = await getNotificationPreferences();
-    setNotificationsEnabled(prefs.enabled);
-    setFrequency(prefs.frequency);
+  async function loadPreferences() {
+    // Load notification preferences
+    const notifPrefs = await getNotificationPreferences();
+    setNotificationsEnabled(notifPrefs.enabled);
+    setFrequency(notifPrefs.frequency);
     const prefTime = new Date();
-    prefTime.setHours(prefs.time.hour);
-    prefTime.setMinutes(prefs.time.minute);
+    prefTime.setHours(notifPrefs.time.hour);
+    prefTime.setMinutes(notifPrefs.time.minute);
     setTime(prefTime);
-  };
+    
+    // Load user preferences
+    const userPrefs = await getUserPreferences();
+    if (userPrefs) {
+      setName(userPrefs.name || '');
+      setUnit(userPrefs.unit || '');
+      setShift(userPrefs.shift || 'day');
+    }
+  }
 
-  const handleTimeChange = (event: any, selectedTime?: Date) => {
+  async function saveProfileChanges(updates: Partial<UserPreferences>) {
+    try {
+      const currentPrefs = await getUserPreferences();
+      const updatedPrefs: UserPreferences = {
+        ...currentPrefs,
+        tutorialCompleted: currentPrefs?.tutorialCompleted ?? true,
+        ...updates,
+      };
+      await saveUserPreferences(updatedPrefs);
+    } catch (error) {
+      console.error('Failed to save profile changes:', error);
+      Alert.alert('Error', 'Failed to save changes. Please try again.');
+    }
+  }
+
+  function handleTimeChange(_event: unknown, selectedTime?: Date) {
     setShowTimePicker(Platform.OS === 'ios');
     if (selectedTime) {
       setTime(selectedTime);
       updateNotifications(notificationsEnabled, frequency, selectedTime);
     }
-  };
+  }
 
-  const updateNotifications = async (enabled: boolean, freq: 'daily' | 'shift', notifTime: Date) => {
-    setIsLoading(true);
+  async function updateNotifications(enabled: boolean, freq: 'daily' | 'shift', notifTime: Date) {
     try {
       if (enabled) {
         const permissionGranted = await requestNotificationPermissions();
@@ -71,29 +99,14 @@ export default function SettingsScreen() {
           return;
         }
 
-        // Schedule the appropriate reminder type
-        if (freq === 'daily') {
-          await scheduleDailyReminder({
-            enabled,
-            frequency: freq,
-            time: {
-              hour: notifTime.getHours(),
-              minute: notifTime.getMinutes(),
-            },
-          });
-        } else {
-          // Handle shift reminder scheduling
-          // Note: Implement shift reminder scheduling logic here
-          // For now, we'll use daily reminder as fallback
-          await scheduleDailyReminder({
-            enabled,
-            frequency: freq,
-            time: {
-              hour: notifTime.getHours(),
-              minute: notifTime.getMinutes(),
-            },
-          });
-        }
+        await scheduleDailyReminder({
+          enabled,
+          frequency: freq,
+          time: {
+            hour: notifTime.getHours(),
+            minute: notifTime.getMinutes(),
+          },
+        });
       }
 
       await saveNotificationPreferences({
@@ -112,140 +125,215 @@ export default function SettingsScreen() {
         );
       }
     } catch (error) {
+      console.error('Failed to update notification settings:', error);
       Alert.alert(
         "Error",
         "Failed to update notification settings. Please try again."
       );
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }
 
   return (
     <>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: 'Settings',
-          headerStyle: { backgroundColor },
-          headerTintColor: textColor,
-        }} 
-      />
-      <SafeAreaView style={[styles.container, { backgroundColor }]}>
-        <ScrollView 
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[styles.section, { backgroundColor: surfaceColor }]}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="color-palette-outline" size={24} color={tintColor} />
-              <ThemedText style={styles.sectionTitle} type="subtitle">
-                Appearance
-              </ThemedText>
-            </View>
-            <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText 
-                  style={styles.settingTitle} 
-                  numberOfLines={1}
-                >
-                  Theme
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.container, { backgroundColor }]}>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
+          {/* Header Section with Gradient */}
+          <LinearGradient
+            colors={[primaryColor, primaryColor + '95']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerGradient}
+          >
+            <View style={styles.header}>
+              <Pressable
+                onPress={() => router.back()}
+                style={styles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="chevron-back" size={24} color="white" />
+              </Pressable>
+              <View style={styles.headerTextContainer}>
+                <ThemedText style={[styles.headerSubtitle, { color: 'white' }]}>
+                  Customize Your
                 </ThemedText>
-                <ThemedText 
-                  style={[styles.settingDescription, { color: textSecondaryColor }]}
-                  numberOfLines={2}
-                >
-                  Choose your preferred appearance
+                <ThemedText style={[styles.headerTitle, { color: 'white' }]}>
+                  Settings
                 </ThemedText>
               </View>
+              <View style={[styles.headerIconContainer, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}>
+                <Ionicons name="settings" size={28} color="white" />
+              </View>
             </View>
-            <View style={[styles.settingItem, styles.themeButtonContainer]}>
-              <ThemedSegmentedButtons
-                value={theme}
-                onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
-                buttons={[
-                  { value: 'light', label: 'Light', icon: 'white-balance-sunny' },
-                  { value: 'system', label: 'Auto', icon: 'theme-light-dark' },
-                  { value: 'dark', label: 'Dark', icon: 'moon-waning-crescent' },
-                ]}
-                style={styles.themeSegment}
-              />
-            </View>
-          </View>
+          </LinearGradient>
 
-          <View style={[styles.section, { backgroundColor: surfaceColor, marginTop: Spacing.md }]}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="notifications-outline" size={24} color={tintColor} />
-              <ThemedText style={styles.sectionTitle} type="subtitle">
-                Notifications
-              </ThemedText>
-            </View>
-            <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
-              <View style={styles.settingTextContainer}>
-                <ThemedText 
-                  style={styles.settingTitle}
-                  numberOfLines={1}
-                >
-                  Daily Reminders
-                </ThemedText>
-                <ThemedText 
-                  style={[styles.settingDescription, { color: textSecondaryColor }]}
-                  numberOfLines={2}
-                >
-                  Get reminded to log your deliveries
+          <View style={styles.sectionsContainer}>
+            {/* Profile Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="person-outline" size={22} color={primaryColor} />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Profile
                 </ThemedText>
               </View>
-              <ThemedSwitch
-                value={notificationsEnabled}
-                onValueChange={(value) => {
-                  setNotificationsEnabled(value);
-                  updateNotifications(value, frequency, time);
-                }}
-              />
-            </View>
-
-            {notificationsEnabled && (
-              <>
-                <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
-                  <ThemedText style={styles.settingLabel}>Frequency</ThemedText>
+              
+              <View style={styles.profileFormContainer}>
+                <TextInput
+                  label="Your Name"
+                  placeholder="How should we call you?"
+                  value={name}
+                  onChangeText={setName}
+                  onBlur={() => saveProfileChanges({ name: name.trim() || undefined })}
+                  leftIcon="person-outline"
+                />
+                
+                <TextInput
+                  label="Unit / Department"
+                  placeholder="Where do you work?"
+                  value={unit}
+                  onChangeText={setUnit}
+                  onBlur={() => saveProfileChanges({ unit: unit.trim() || undefined })}
+                  leftIcon="business-outline"
+                />
+                
+                <View style={styles.shiftContainer}>
+                  <ThemedText style={[styles.shiftLabel, { color: textSecondaryColor }]}>
+                    Shift Preference
+                  </ThemedText>
                   <ThemedSegmentedButtons
-                    value={frequency}
+                    value={shift}
                     onValueChange={(value) => {
-                      setFrequency(value as 'daily' | 'shift');
-                      updateNotifications(notificationsEnabled, value as 'daily' | 'shift', time);
+                      const newShift = value as 'day' | 'night' | 'rotating';
+                      setShift(newShift);
+                      saveProfileChanges({ shift: newShift });
                     }}
                     buttons={[
-                      { value: 'daily', label: 'Daily' },
-                      { value: 'shift', label: 'Every Shift' },
+                      { value: 'day', label: 'Day' },
+                      { value: 'night', label: 'Night' },
+                      { value: 'rotating', label: 'Rotating' },
                     ]}
-                    style={styles.segment}
                   />
                 </View>
+              </View>
+            </View>
 
-                <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
-                  <ThemedText style={styles.settingLabel}>Reminder Time</ThemedText>
-                  {Platform.OS === 'ios' ? (
-                    <DateTimePicker
-                      value={time}
-                      mode="time"
-                      onChange={handleTimeChange}
-                      style={styles.timePicker}
-                      themeVariant={theme === 'dark' ? 'dark' : 'light'}
-                    />
-                  ) : (
-                    <Button
-                      title={time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      onPress={() => setShowTimePicker(true)}
-                      variant="tertiary"
-                      size="small"
-                      style={styles.timeButton}
-                      icon={<Ionicons name="time-outline" size={16} color={textColor} />}
-                    />
-                  )}
+            {/* Appearance Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="color-palette-outline" size={22} color={primaryColor} />
                 </View>
-              </>
-            )}
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Appearance
+                </ThemedText>
+              </View>
+              
+              <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                    Theme
+                  </ThemedText>
+                  <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                    Choose your preferred appearance
+                  </ThemedText>
+                </View>
+              </View>
+              
+              <View style={styles.themeButtonContainer}>
+                <ThemedSegmentedButtons
+                  value={theme}
+                  onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
+                  buttons={[
+                    { value: 'light', label: 'Light', icon: 'white-balance-sunny' },
+                    { value: 'system', label: 'Auto', icon: 'theme-light-dark' },
+                    { value: 'dark', label: 'Dark', icon: 'moon-waning-crescent' },
+                  ]}
+                  style={styles.themeSegment}
+                />
+              </View>
+            </View>
+
+            {/* Notifications Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="notifications-outline" size={22} color={primaryColor} />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Notifications
+                </ThemedText>
+              </View>
+              
+              <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                    Daily Reminders
+                  </ThemedText>
+                  <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                    Get reminded to log your deliveries
+                  </ThemedText>
+                </View>
+                <ThemedSwitch
+                  value={notificationsEnabled}
+                  onValueChange={(value) => {
+                    setNotificationsEnabled(value);
+                    updateNotifications(value, frequency, time);
+                  }}
+                />
+              </View>
+
+              {notificationsEnabled && (
+                <>
+                  <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+                    <ThemedText style={[styles.settingLabel, { color: textColor }]}>
+                      Frequency
+                    </ThemedText>
+                    <ThemedSegmentedButtons
+                      value={frequency}
+                      onValueChange={(value) => {
+                        setFrequency(value as 'daily' | 'shift');
+                        updateNotifications(notificationsEnabled, value as 'daily' | 'shift', time);
+                      }}
+                      buttons={[
+                        { value: 'daily', label: 'Daily' },
+                        { value: 'shift', label: 'Every Shift' },
+                      ]}
+                      style={styles.segment}
+                    />
+                  </View>
+
+                  <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
+                    <ThemedText style={[styles.settingLabel, { color: textColor }]}>
+                      Reminder Time
+                    </ThemedText>
+                    {Platform.OS === 'ios' ? (
+                      <DateTimePicker
+                        value={time}
+                        mode="time"
+                        onChange={handleTimeChange}
+                        style={styles.timePicker}
+                        themeVariant={effectiveTheme === 'dark' ? 'dark' : 'light'}
+                      />
+                    ) : (
+                      <Button
+                        title={time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        onPress={() => setShowTimePicker(true)}
+                        variant="tertiary"
+                        size="small"
+                        style={styles.timeButton}
+                        icon={<Ionicons name="time-outline" size={16} color={textColor} />}
+                      />
+                    )}
+                  </View>
+                </>
+              )}
+            </View>
           </View>
+
+          {/* Bottom spacing for safe area */}
+          <View style={{ height: 120 }} />
         </ScrollView>
 
         {Platform.OS === 'android' && showTimePicker && (
@@ -255,7 +343,7 @@ export default function SettingsScreen() {
             onChange={handleTimeChange}
           />
         )}
-      </SafeAreaView>
+      </View>
     </>
   );
 }
@@ -264,22 +352,62 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  headerGradient: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: Spacing.xl + Spacing.sm,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
     flex: 1,
   },
+  headerSubtitle: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    marginBottom: Spacing.xs,
+    letterSpacing: Typography.letterSpacing.wide,
+    opacity: 0.9,
+  },
+  headerTitle: {
+    fontSize: Typography['2xl'],
+    fontWeight: Typography.weights.bold,
+    letterSpacing: Typography.letterSpacing.tight,
+  },
+  headerIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sectionsContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: -Spacing.lg,
+    gap: Spacing.md,
+  },
   section: {
-    marginHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        ...Shadows.md,
       },
       android: {
-        elevation: 2,
+        elevation: 4,
       },
     }),
   },
@@ -289,7 +417,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.sm,
-    gap: Spacing.sm,
+    gap: Spacing.md,
+  },
+  sectionIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: Typography.lg,
@@ -322,6 +457,13 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
     flex: 1,
   },
+  themeButtonContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  themeSegment: {
+    width: '100%',
+  },
   segment: {
     flex: 1,
     maxWidth: 180,
@@ -332,11 +474,17 @@ const styles = StyleSheet.create({
   timeButton: {
     minWidth: 120,
   },
-  themeButtonContainer: {
-    justifyContent: 'center',
-    paddingBottom: Spacing.lg,
+  profileFormContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
-  themeSegment: {
-    width: '100%',
+  shiftContainer: {
+    marginTop: Spacing.xs,
+  },
+  shiftLabel: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    marginBottom: Spacing.sm,
+    letterSpacing: Typography.letterSpacing.wide,
   },
 });

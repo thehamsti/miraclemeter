@@ -13,6 +13,8 @@ export function SetupForm({ onComplete }: SetupFormProps) {
   const [unit, setUnit] = useState('');
   const [shift, setShift] = useState('day');
   const textColor = useThemeColor({}, 'text');
+  const textTertiaryColor = useThemeColor({}, 'textTertiary');
+  const borderColor = useThemeColor({}, 'border');
 
   const handleSubmit = async () => {
     await saveUserPreferences({
@@ -30,17 +32,17 @@ export function SetupForm({ onComplete }: SetupFormProps) {
       <Text style={[styles.title, { color: textColor }]}>Setup Your Profile</Text>
       
       <TextInput
-        style={[styles.input, { color: textColor }]}
+        style={[styles.input, { color: textColor, borderColor }]}
         placeholder="Your Name (Optional)"
-        placeholderTextColor="#666"
+        placeholderTextColor={textTertiaryColor}
         value={name}
         onChangeText={setName}
       />
 
       <TextInput
-        style={[styles.input, { color: textColor }]}
+        style={[styles.input, { color: textColor, borderColor }]}
         placeholder="Unit/Department"
-        placeholderTextColor="#666"
+        placeholderTextColor={textTertiaryColor}
         value={unit}
         onChangeText={setUnit}
       />
@@ -81,7 +83,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,

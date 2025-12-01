@@ -6,10 +6,11 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 interface ThemedSegmentedButtonsProps {
   value: string;
   onValueChange: (value: string) => void;
-  buttons: Array<{
+  buttons: {
     value: string;
     label: string;
-  }>;
+    icon?: string;
+  }[];
   style?: StyleProp<ViewStyle>;
 }
 

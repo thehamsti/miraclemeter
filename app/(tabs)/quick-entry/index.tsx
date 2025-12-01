@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, SafeAreaView, Alert, View, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Stepper } from '@/components/Stepper';
@@ -12,27 +12,31 @@ import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
 import { saveBirthRecord } from '@/services/storage';
 import type { Baby, BirthRecord, Achievement } from '@/types';
-import { useNavigation } from 'expo-router';
+import { useNavigation, useLocalSearchParams } from 'expo-router';
 import { AchievementNotification } from '@/components/AchievementNotification';
 import { ACHIEVEMENTS } from '@/constants/achievements';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
-import { useRef } from 'react';
 
 export default function QuickEntryScreen() {
   const navigation = useNavigation();
+  const { widgetGender } = useLocalSearchParams<{ widgetGender?: string }>();
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [timestamp, setTimestamp] = useState<Date | undefined>(new Date());
   const [numberOfBabies, setNumberOfBabies] = useState(1);
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
-  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | undefined>(undefined);
+  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown' | undefined>(undefined);
   const [eventType, setEventType] = useState<'delivery' | 'transition' | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [currentAchievementIndex, setCurrentAchievementIndex] = useState(0);
   const [showAchievement, setShowAchievement] = useState(false);
+  
+  // Widget quick-add mode: shows confirmation screen instead of full stepper
+  const [isWidgetMode, setIsWidgetMode] = useState(false);
 
   // Add theme color hooks
   const backgroundColor = useThemeColor({}, 'background');
@@ -43,6 +47,8 @@ export default function QuickEntryScreen() {
   const tintColor = useThemeColor({}, 'tint');
   const successColor = useThemeColor({}, 'success');
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+
 
   // Calculate total steps based on number of babies
   const totalSteps = useMemo(() => {
@@ -102,15 +108,22 @@ export default function QuickEntryScreen() {
     setNewAchievements([]);
     setCurrentAchievementIndex(0);
     setShowAchievement(false);
+    setIsWidgetMode(false);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       resetForm();
-      return () => {
-        // Optional: any cleanup if needed when screen loses focus
-      };
-    }, [resetForm])
+      
+      // Handle widget gender parameter - pre-fill and enter widget mode
+      if (widgetGender && (widgetGender === 'boy' || widgetGender === 'girl' || widgetGender === 'angel')) {
+        setBabies([{ gender: widgetGender, birthOrder: 1 }]);
+        setTimestamp(new Date());
+        setIsWidgetMode(true);
+      }
+      
+      return () => {};
+    }, [resetForm, widgetGender])
   );
 
   const handleReset = useCallback(() => {
@@ -153,6 +166,20 @@ export default function QuickEntryScreen() {
     });
   }, [navigation, handleReset]);
 
+  // Get icon and color for gender display
+  const getGenderDisplay = (gender: Baby['gender']) => {
+    switch (gender) {
+      case 'boy':
+        return { icon: 'male' as const, color: '#2563EB', label: 'Boy' };
+      case 'girl':
+        return { icon: 'female' as const, color: '#DB2777', label: 'Girl' };
+      case 'angel':
+        return { icon: 'star' as const, color: '#F59E0B', label: 'Angel' };
+      default:
+        return { icon: 'person' as const, color: tintColor, label: 'Baby' };
+    }
+  };
+
   const renderStep = () => {
     if (showSuccess) {
       Animated.timing(fadeAnim, {
@@ -178,6 +205,53 @@ export default function QuickEntryScreen() {
             The birth record has been successfully saved to your records.
           </ThemedText>
         </Animated.View>
+      );
+    }
+
+    // Widget quick-add confirmation screen
+    if (isWidgetMode) {
+      const genderDisplay = getGenderDisplay(babies[0]?.gender);
+      const timeString = timestamp ? timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now';
+      
+      return (
+        <ThemedView style={styles.step}>
+          <View style={styles.widgetHeader}>
+            <Ionicons name="flash" size={16} color={tintColor} />
+            <ThemedText type="caption" style={[styles.widgetBadge, { color: tintColor }]}>
+              Quick Add from Widget
+            </ThemedText>
+          </View>
+          
+          <ThemedText 
+            type="heading" 
+            style={styles.stepTitle}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+          >
+            Confirm Birth Record
+          </ThemedText>
+          
+          <View style={styles.widgetConfirmCard}>
+            <View style={[styles.widgetGenderIcon, { backgroundColor: genderDisplay.color + '20' }]}>
+              <Ionicons name={genderDisplay.icon} size={48} color={genderDisplay.color} />
+            </View>
+            <ThemedText type="subtitle" style={{ color: genderDisplay.color }}>
+              {genderDisplay.label}
+            </ThemedText>
+            <ThemedText type="caption" style={{ color: textSecondaryColor }}>
+              {timeString}
+            </ThemedText>
+          </View>
+          
+          <Button
+            title="Add More Details"
+            onPress={() => setIsWidgetMode(false)}
+            variant="secondary"
+            size="normal"
+            style={styles.widgetDetailsButton}
+            icon={<Ionicons name="create-outline" size={18} color={textSecondaryColor} />}
+          />
+        </ThemedView>
       );
     }
 
@@ -268,19 +342,8 @@ export default function QuickEntryScreen() {
             Delivery type?
           </ThemedText>
           <View style={styles.stepContent}>
-            <DeliveryTypeSelector value={deliveryType || 'vaginal'} onChange={setDeliveryType} />
+            <DeliveryTypeSelector value={deliveryType ?? 'unknown'} onChange={setDeliveryType} />
           </View>
-          <Button
-            title="Skip"
-            onPress={() => {
-              setDeliveryType(undefined);
-              setCurrentStep(curr => curr + 1);
-            }}
-            variant="secondary"
-            size="normal"
-            style={styles.skipButton}
-            icon={<Ionicons name="arrow-forward-outline" size={18} color={textSecondaryColor} />}
-          />
         </ThemedView>
       );
     }
@@ -385,7 +448,7 @@ export default function QuickEntryScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        {!showSuccess && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
+        {!showSuccess && !isWidgetMode && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
         
         <ScrollView 
           style={styles.content}
@@ -404,6 +467,15 @@ export default function QuickEntryScreen() {
               size="large"
               style={styles.button}
               icon={<Ionicons name="add-circle-outline" size={24} color="white" />}
+            />
+          ) : isWidgetMode ? (
+            <Button
+              title="Save"
+              onPress={handleSubmit}
+              size="large"
+              style={styles.button}
+              fullWidth
+              icon={<Ionicons name="checkmark-circle" size={24} color="white" />}
             />
           ) : (
             <>
@@ -529,6 +601,33 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   skipButton: {
+    marginTop: Spacing.xl,
+    alignSelf: 'center',
+  },
+  widgetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  widgetBadge: {
+    fontWeight: Typography.weights.medium,
+  },
+  widgetConfirmCard: {
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.xl,
+    paddingVertical: Spacing.xl,
+  },
+  widgetGenderIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  widgetDetailsButton: {
     marginTop: Spacing.xl,
     alignSelf: 'center',
   },

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Pressable,
   RefreshControl,
@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import { getBirthRecords } from "@/services/storage";
 import { BirthRecord, UserAchievements } from "@/types";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -28,17 +27,21 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Platform } from "react-native";
 import { getAchievements } from "@/services/achievements";
 import { ACHIEVEMENTS } from "@/constants/achievements";
+import { useStatistics } from "@/hooks/useStatistics";
 
 export default function HomeScreen() {
-  const [recentRecords, setRecentRecords] = useState<BirthRecord[]>([]);
-  const [todayCount, setTodayCount] = useState(0);
-  const [weekCount, setWeekCount] = useState(0);
-  const [monthCount, setMonthCount] = useState(0);
-  const [boysCount, setBoysCount] = useState(0);
-  const [girlsCount, setGirlsCount] = useState(0);
-  const [angelsCount, setAngelsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
+  
+  const {
+    recentRecords,
+    todayCount,
+    weekCount,
+    monthCount,
+    genderCounts,
+    loading,
+    refresh,
+  } = useStatistics();
 
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
@@ -51,87 +54,28 @@ export default function HomeScreen() {
   const successColor = useThemeColor({}, "success");
   const borderColor = useThemeColor({}, "border");
 
-  const loadStats = useCallback(async () => {
+  const loadAchievements = useCallback(async () => {
     try {
-      const records = await getBirthRecords();
-
-      // Get recent records (last 5)
-      const recent = records.slice(-5).reverse();
-      setRecentRecords(recent);
-
-      // Calculate today's count
-      const today = new Date();
-      const todayRecords = records.filter((record) => {
-        if (!record.timestamp) return false;
-        const recordDate = new Date(record.timestamp);
-        return recordDate.toDateString() === today.toDateString();
-      });
-      setTodayCount(todayRecords.length);
-
-      // Calculate this week's count
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weekRecords = records.filter((record) => {
-        if (!record.timestamp) return false;
-        const recordDate = new Date(record.timestamp);
-        return recordDate >= weekAgo;
-      });
-      setWeekCount(weekRecords.length);
-
-      // Calculate this month's count
-      const monthAgo = new Date();
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      const monthRecords = records.filter((record) => {
-        if (!record.timestamp) return false;
-        const recordDate = new Date(record.timestamp);
-        return recordDate >= monthAgo;
-      });
-      setMonthCount(monthRecords.length);
-
-      // Calculate gender counts
-      let boys = 0,
-        girls = 0,
-        angels = 0;
-      records.forEach((record) => {
-        if (record.babies && Array.isArray(record.babies)) {
-          record.babies.forEach((baby) => {
-            if (baby.gender === "boy") boys++;
-            else if (baby.gender === "girl") girls++;
-            else if (baby.gender === "angel") angels++;
-          });
-        }
-      });
-      console.log(
-        "Gender counts - Boys:",
-        boys,
-        "Girls:",
-        girls,
-        "Angels:",
-        angels,
-      );
-      setBoysCount(boys);
-      setGirlsCount(girls);
-      setAngelsCount(angels);
-
-      // Load achievements
       const achievements = await getAchievements();
       setUserAchievements(achievements);
     } catch (error) {
-      console.error("Error loading stats:", error);
+      console.error("Error loading achievements:", error);
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      loadStats();
-    }, [loadStats]),
+      refresh();
+      loadAchievements();
+    }, [refresh, loadAchievements]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadStats();
+    await refresh();
+    await loadAchievements();
     setRefreshing(false);
-  }, [loadStats]);
+  }, [refresh, loadAchievements]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -283,6 +227,8 @@ export default function HomeScreen() {
         <View style={styles.ctaContainer}>
           <Link href="/quick-entry" asChild>
             <Pressable
+              accessibilityLabel="Add new birth record"
+              accessibilityRole="button"
               style={({ pressed }) => [
                 styles.ctaButton,
                 { backgroundColor: primaryColor },
@@ -311,6 +257,8 @@ export default function HomeScreen() {
           {/* Achievements Button */}
           <Link href="/achievements" asChild>
             <Pressable
+              accessibilityLabel="View achievements and progress"
+              accessibilityRole="button"
               style={({ pressed }) => [
                 styles.achievementCtaButton,
                 { backgroundColor: surfaceColor },
@@ -347,14 +295,17 @@ export default function HomeScreen() {
             <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
               Gender Distribution
             </ThemedText>
-            <Link href="/stats" asChild>
-              <Pressable style={styles.seeAllButton}>
+<Link href="/stats" asChild>
+              <Pressable 
+                accessibilityLabel="View detailed statistics"
+                accessibilityRole="button"
+                style={styles.seeAllButton}
+              >
                 <ThemedText
                   style={[styles.seeAllText, { color: primaryColor }]}
                 >
-                  See Details
+                  See all
                 </ThemedText>
-                <Ionicons name="arrow-forward" size={16} color={primaryColor} />
               </Pressable>
             </Link>
           </View>
@@ -371,7 +322,7 @@ export default function HomeScreen() {
             >
               <Ionicons name="male" size={28} color={maleColor} />
               <ThemedText style={[styles.genderCount, { color: textColor }]}>
-                {boysCount}
+                {genderCounts.boys}
               </ThemedText>
               <ThemedText
                 style={[styles.genderLabel, { color: textSecondaryColor }]}
@@ -392,7 +343,7 @@ export default function HomeScreen() {
             >
               <Ionicons name="female" size={28} color={femaleColor} />
               <ThemedText style={[styles.genderCount, { color: textColor }]}>
-                {girlsCount}
+                {genderCounts.girls}
               </ThemedText>
               <ThemedText
                 style={[styles.genderLabel, { color: textSecondaryColor }]}
@@ -402,7 +353,7 @@ export default function HomeScreen() {
               </ThemedText>
             </View>
 
-            {angelsCount > 0 && (
+            {genderCounts.angels > 0 && (
               <View
                 style={[
                   styles.genderCard,
@@ -414,7 +365,7 @@ export default function HomeScreen() {
               >
                 <Ionicons name="star" size={28} color={warningColor} />
                 <ThemedText style={[styles.genderCount, { color: textColor }]}>
-                  {angelsCount}
+                  {genderCounts.angels}
                 </ThemedText>
                 <ThemedText
                   style={[styles.genderLabel, { color: textSecondaryColor }]}

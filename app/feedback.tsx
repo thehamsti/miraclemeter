@@ -29,7 +29,7 @@ export default function FeedbackScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <ThemedView style={styles.content}>
           <ThemedText style={styles.description}>
-            We'd love to hear your thoughts on how we can improve the app!
+            We&apos;d love to hear your thoughts on how we can improve the app!
           </ThemedText>
           <TextInput
             placeholder="Your feedback..."

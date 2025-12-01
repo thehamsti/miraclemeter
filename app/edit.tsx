@@ -24,7 +24,7 @@ export default function EditBirthScreen() {
   const [record, setRecord] = useState<BirthRecord | null>(id ? recordCache[id] || null : null);
   const [timestamp, setTimestamp] = useState(new Date());
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
-  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section'>('vaginal');
+  const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown'>('unknown');
   const [eventType, setEventType] = useState<'delivery' | 'transition'>('delivery');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -56,7 +56,7 @@ export default function EditBirthScreen() {
         setRecord(fetchedRecord);
         setTimestamp(fetchedRecord.timestamp ? new Date(fetchedRecord.timestamp) : new Date());
         setBabies(fetchedRecord.babies);
-        setDeliveryType(fetchedRecord.deliveryType || 'vaginal');
+        setDeliveryType(fetchedRecord.deliveryType || 'unknown');
         setEventType(fetchedRecord.eventType || 'delivery');
         setNotes(fetchedRecord.notes || '');
       });
@@ -65,7 +65,7 @@ export default function EditBirthScreen() {
       setRecord(cached);
       setTimestamp(cached.timestamp ? new Date(cached.timestamp) : new Date());
       setBabies(cached.babies);
-      setDeliveryType(cached.deliveryType || 'vaginal');
+      setDeliveryType(cached.deliveryType || 'unknown');
       setEventType(cached.eventType || 'delivery');
       setNotes(cached.notes || '');
     }

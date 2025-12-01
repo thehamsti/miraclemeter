@@ -6,13 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface DeliveryTypeSelectorProps {
-  value: 'vaginal' | 'c-section';
-  onChange: (type: 'vaginal' | 'c-section') => void;
+  value: 'vaginal' | 'c-section' | 'unknown';
+  onChange: (type: 'vaginal' | 'c-section' | 'unknown') => void;
 }
 
 export function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorProps) {
-  const tintColor = useThemeColor({}, 'tint');
-  const backgroundColor = useThemeColor({}, 'background');
   const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
   const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
 
@@ -27,19 +25,22 @@ export function DeliveryTypeSelector({ value, onChange }: DeliveryTypeSelectorPr
           title="Vaginal"
           onPress={() => onChange('vaginal')}
           icon={<Ionicons name="woman" size={20} color={value === 'vaginal' ? primaryButtonTextColor : secondaryButtonTextColor} />}
-          style={StyleSheet.flatten([
-            styles.button,
-          ])}
+          style={styles.button}
           variant={value === 'vaginal' ? 'primary' : 'secondary'}
         />
         <Button
           title="C-Section"
           onPress={() => onChange('c-section')}
           icon={<Ionicons name="cut" size={20} color={value === 'c-section' ? primaryButtonTextColor : secondaryButtonTextColor} />}
-          style={StyleSheet.flatten([
-            styles.button,
-          ])}
+          style={styles.button}
           variant={value === 'c-section' ? 'primary' : 'secondary'}
+        />
+        <Button
+          title="Unknown"
+          onPress={() => onChange('unknown')}
+          icon={<Ionicons name="help-circle" size={20} color={value === 'unknown' ? primaryButtonTextColor : secondaryButtonTextColor} />}
+          style={styles.button}
+          variant={value === 'unknown' ? 'primary' : 'secondary'}
         />
       </ThemedView>
     </ThemedView>

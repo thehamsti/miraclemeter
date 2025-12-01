@@ -70,3 +70,27 @@ When incrementing version, update ALL of these files:
 - `package-lock.json` (version field)
 - `app.config.ts` (version field)
 - `ios/miraclemeter/Info.plist` (CFBundleShortVersionString)
+
+## Onboarding / Immersive Screen Style
+
+For full-screen immersive experiences (onboarding flows, feature tours):
+
+### Visual Design
+- **Gradients**: `expo-linear-gradient` with two-color arrays per step (e.g., `['#643872', '#9B7EBD']`)
+- **Decorations**: Floating icons with opacity, rotation, and position offsets for visual depth
+- **Icons**: `Ionicons` from `@expo/vector-icons` (not MaterialCommunityIcons)
+
+### Animation Patterns
+- **Scroll-driven**: Use `Animated.ScrollView` with `Animated.event` for scroll position tracking
+- **Interpolation**: Define `inputRange`/`outputRange` based on page widths for smooth transitions
+- **Properties to animate**: scale, opacity, rotation, translateX for parallax effects
+
+### Layout
+- Horizontal `ScrollView` with `pagingEnabled` (no third-party carousel libs)
+- `useSafeAreaInsets()` for proper padding on notched devices
+- Page indicators using animated width/opacity based on scroll position
+
+### Buttons
+- Custom `Pressable` components styled with gradient-derived colors
+- Include pressed state with opacity and scale transforms
+- Use step-specific colors (e.g., `currentStepColor` from gradient[0])

@@ -1,6 +1,7 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface StepperProps {
   currentStep: number;
@@ -8,15 +9,18 @@ interface StepperProps {
 }
 
 export function Stepper({ currentStep, totalSteps }: StepperProps) {
+  const primaryColor = useThemeColor({}, 'primary');
+  const inactiveColor = useThemeColor({}, 'border');
+
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.stepsContainer}>
         {Array.from({ length: totalSteps }).map((_, index) => (
-          <ThemedView
+          <View
             key={index}
             style={[
               styles.step,
-              index <= currentStep ? styles.activeStep : styles.inactiveStep,
+              { backgroundColor: index <= currentStep ? primaryColor : inactiveColor },
             ]}
           />
         ))}
@@ -42,12 +46,7 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
   },
-  activeStep: {
-    backgroundColor: '#007AFF',
-  },
-  inactiveStep: {
-    backgroundColor: '#E0E0E0',
-  },
+
   stepText: {
     textAlign: 'center',
     fontSize: 14,

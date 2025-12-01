@@ -103,6 +103,13 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        accessibilityLabel={`Birth record from ${isValidDate ? date.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric',
+          year: 'numeric'
+        }) : 'unknown date'}. ${record.deliveryType === 'vaginal' ? 'Vaginal' : 
+          record.deliveryType === 'c-section' ? 'C-Section' : 'Unknown'} delivery. ${record.babies.length} ${record.babies.length === 1 ? 'baby' : 'babies'}. Tap to view details.`}
+        accessibilityRole="button"
         style={({ pressed }) => [
           styles.card,
           { 
@@ -145,6 +152,8 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
                 pathname: '/edit',
                 params: { id: record.id }
               })}
+              accessibilityLabel="More options"
+              accessibilityRole="button"
               style={({ pressed }) => [
                 styles.moreButton,
                 { backgroundColor: pressed ? borderLightColor : 'transparent' }
@@ -325,8 +334,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   moreButton: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',

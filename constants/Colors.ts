@@ -97,6 +97,11 @@ export const Colors = {
     
     // Shadows
     shadowColor: black,
+    
+    // Overlays
+    overlayBackground: 'rgba(0, 0, 0, 0.5)',
+    pressedOverlay: 'rgba(0, 0, 0, 0.1)',
+    borderSubtle: 'rgba(0, 0, 0, 0.1)',
   },
   dark: {
     // Text
@@ -152,6 +157,11 @@ export const Colors = {
     
     // Shadows
     shadowColor: black,
+    
+    // Overlays
+    overlayBackground: 'rgba(0, 0, 0, 0.7)',
+    pressedOverlay: 'rgba(255, 255, 255, 0.1)',
+    borderSubtle: 'rgba(255, 255, 255, 0.1)',
   },
 };
 

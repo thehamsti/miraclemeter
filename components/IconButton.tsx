@@ -12,12 +12,13 @@ interface IconButtonProps extends PressableProps {
 
 export function IconButton({ name, size = 24, color, style, accessibilityLabel, ...props }: IconButtonProps) {
   const iconColor = useThemeColor({}, 'text');
+  const pressedOverlay = useThemeColor({}, 'pressedOverlay');
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.button,
-        pressed && styles.pressed,
+        pressed && { ...styles.pressed, backgroundColor: pressedOverlay },
         style
       ]}
       accessibilityRole="button"
@@ -42,6 +43,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
 }); 

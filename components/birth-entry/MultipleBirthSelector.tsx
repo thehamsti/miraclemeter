@@ -21,6 +21,7 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
   const textColor = useThemeColor({}, 'text');
   const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
   const secondaryButtonTextColor = useThemeColor({}, 'secondaryButtonText');
+  const overlayBackground = useThemeColor({}, 'overlayBackground');
 
   const handleCustomSubmit = () => {
     const num = parseInt(customNumber);
@@ -86,7 +87,7 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
         animationType="fade"
         onRequestClose={() => setShowModal(false)}
       >
-        <ThemedView style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+        <ThemedView style={[styles.modalOverlay, { backgroundColor: overlayBackground }]}>
           <ThemedView style={[styles.modalContent, { backgroundColor }]}>
             <ThemedView style={styles.modalTitleContainer}>
               <Ionicons name="people" size={24} color={tintColor} />

@@ -1,6 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { BirthRecord, UserPreferences } from '@/types';
 import { checkAchievements } from './achievements';
+import { updateWidgetData, calculateTodayCount } from './widgetBridge';
+
+export class StorageError extends Error {
+  constructor(message: string, public cause?: Error) {
+    super(message);
+    this.name = 'StorageError';
+  }
+}
 
 const STORAGE_KEY = 'birth_records';
 const ONBOARDING_COMPLETE_KEY = 'onboarding_complete';
@@ -17,6 +25,12 @@ export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
     // Check for new achievements
     const preferences = await getUserPreferences();
     const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
+    
+    // Sync with widget
+    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+      timestamp: r.timestamp ? new Date(r.timestamp) : undefined
+    })));
+    await updateWidgetData(todayCount, updatedRecords.length);
     
     return newAchievements;
   } catch (error) {
@@ -38,7 +52,7 @@ export async function getBirthRecords(): Promise<BirthRecord[]> {
     }));
   } catch (error) {
     console.error('Error loading birth records:', error);
-    return [];
+    throw new StorageError('Failed to load birth records', error instanceof Error ? error : undefined);
   }
 }
 
@@ -49,7 +63,7 @@ export async function getBirthRecordById(id: string): Promise<BirthRecord | null
     return record || null;
   } catch (error) {
     console.error('Error loading birth record by ID:', error);
-    return null;
+    throw new StorageError('Failed to load birth record', error instanceof Error ? error : undefined);
   }
 }
 
@@ -59,7 +73,7 @@ export async function isOnboardingComplete(): Promise<boolean> {
     return value === 'true';
   } catch (error) {
     console.error('Error checking onboarding status:', error);
-    return false;
+    throw new StorageError('Failed to check onboarding status', error instanceof Error ? error : undefined);
   }
 }
 
@@ -68,6 +82,7 @@ export async function completeOnboarding(): Promise<void> {
     await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
   } catch (error) {
     console.error('Error completing onboarding:', error);
+    throw new StorageError('Failed to complete onboarding', error instanceof Error ? error : undefined);
   }
 }
 
@@ -76,6 +91,7 @@ export async function saveUserPreferences(preferences: UserPreferences): Promise
     await AsyncStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(preferences));
   } catch (error) {
     console.error('Error saving user preferences:', error);
+    throw new StorageError('Failed to save user preferences', error instanceof Error ? error : undefined);
   }
 }
 
@@ -85,7 +101,7 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
     return value ? JSON.parse(value) : null;
   } catch (error) {
     console.error('Error getting user preferences:', error);
-    return null;
+    throw new StorageError('Failed to load user preferences', error instanceof Error ? error : undefined);
   }
 }
 
@@ -99,16 +115,22 @@ export async function resetStorage(): Promise<void> {
   }
 }
 
-export const deleteBirthRecord = async (id: string): Promise<void> => {
+export async function deleteBirthRecord(id: string): Promise<void> {
   try {
     const records = await getBirthRecords();
     const updatedRecords = records.filter(record => record.id !== id);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
+    
+    // Sync with widget
+    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+      timestamp: r.timestamp ? new Date(r.timestamp) : undefined
+    })));
+    await updateWidgetData(todayCount, updatedRecords.length);
   } catch (error) {
     console.error('Error deleting birth record:', error);
     throw error;
   }
-};
+}
 
 export async function updateBirthRecord(updatedRecord: BirthRecord): Promise<string[]> {
   try {
@@ -121,6 +143,12 @@ export async function updateBirthRecord(updatedRecord: BirthRecord): Promise<str
     // Check for new achievements
     const preferences = await getUserPreferences();
     const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
+    
+    // Sync with widget
+    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+      timestamp: r.timestamp ? new Date(r.timestamp) : undefined
+    })));
+    await updateWidgetData(todayCount, updatedRecords.length);
     
     return newAchievements;
   } catch (error) {

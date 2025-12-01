@@ -1,8 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, ScrollView, SafeAreaView, Dimensions, View, Platform, Pressable } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { getBirthRecords } from '@/services/storage';
 import { BirthRecord } from '@/types';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -12,12 +11,16 @@ import { BarChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Colors';
+import { useStatistics } from '@/hooks/useStatistics';
 
 export default function StatsScreen() {
-  const [birthRecords, setBirthRecords] = useState<BirthRecord[]>([]);
-  const [totalDeliveries, setTotalDeliveries] = useState(0);
-  const [genderStats, setGenderStats] = useState({ boys: 0, girls: 0, angels: 0 });
-  const [deliveryStats, setDeliveryStats] = useState({ vaginal: 0, csection: 0, unknown: 0 });
+  const {
+    records: birthRecords,
+    totalDeliveries,
+    genderCounts: genderStats,
+    deliveryCounts: deliveryStats,
+    loading,
+  } = useStatistics();
 
   const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
@@ -30,39 +33,11 @@ export default function StatsScreen() {
   const successColor = useThemeColor({}, 'success');
   const errorColor = useThemeColor({}, 'error');
 
-  const loadStats = useCallback(async () => {
-    try {
-      const records = await getBirthRecords();
-      setBirthRecords(records);
-
-      // Calculate gender statistics
-      let boys = 0, girls = 0, angels = 0;
-      records.forEach(record => {
-        record.babies.forEach(baby => {
-          if (baby.gender === 'boy') boys++;
-          if (baby.gender === 'girl') girls++;
-          if (baby.gender === 'angel') angels++;
-        });
-      });
-      setGenderStats({ boys, girls, angels });
-
-      // Calculate delivery type statistics
-      const vaginal = records.filter(r => r.deliveryType === 'vaginal').length;
-      const csection = records.filter(r => r.deliveryType === 'c-section').length;
-      const unknown = records.filter(r => !r.deliveryType).length;
-      setDeliveryStats({ vaginal, csection, unknown });
-
-      setTotalDeliveries(records.length);
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      loadStats();
+      // Statistics are loaded by the useStatistics hook
       return () => {}; // Optional cleanup function
-    }, [loadStats])
+    }, [])
   );
 
   const screenWidth = Dimensions.get('window').width;
@@ -95,15 +70,15 @@ export default function StatsScreen() {
 
   const deliveryData = {
     labels: ['Vaginal', 'C-Section', 'Unknown'].filter((_, idx) => 
-      [deliveryStats.vaginal, deliveryStats.csection, deliveryStats.unknown][idx] > 0
+      [deliveryStats.vaginal, deliveryStats.cSection, deliveryStats.unknown][idx] > 0
     ),
     datasets: [{
-      data: [deliveryStats.vaginal, deliveryStats.csection, deliveryStats.unknown].filter(val => val > 0),
+      data: [deliveryStats.vaginal, deliveryStats.cSection, deliveryStats.unknown].filter(val => val > 0),
       colors: [
         (opacity = 1) => successColor + Math.round(opacity * 255).toString(16).padStart(2, '0'),
         (opacity = 1) => primaryColor + Math.round(opacity * 255).toString(16).padStart(2, '0'),
         (opacity = 1) => errorColor + Math.round(opacity * 255).toString(16).padStart(2, '0'),
-      ].slice(0, [deliveryStats.vaginal, deliveryStats.csection, deliveryStats.unknown].filter(val => val > 0).length)
+      ].slice(0, [deliveryStats.vaginal, deliveryStats.cSection, deliveryStats.unknown].filter(val => val > 0).length)
     }]
   };
 
@@ -307,15 +282,15 @@ export default function StatsScreen() {
                   </View>
                 )}
 
-                {deliveryStats.csection > 0 && (
+                {deliveryStats.cSection > 0 && (
                   <View style={[styles.deliveryStatCard, { backgroundColor: surfaceColor, borderLeftColor: primaryColor }]}>
                     <Ionicons name="medical-outline" size={24} color={primaryColor} />
                     <View style={styles.deliveryStatContent}>
                       <ThemedText style={[styles.deliveryStatValue, { color: textColor }]}>
-                        {deliveryStats.csection}
+                        {deliveryStats.cSection}
                       </ThemedText>
                       <ThemedText style={[styles.deliveryStatLabel, { color: textSecondaryColor }]}>
-                        C-Section ({Math.round((deliveryStats.csection / totalDeliveries) * 100)}%)
+                        C-Section ({Math.round((deliveryStats.cSection / totalDeliveries) * 100)}%)
                       </ThemedText>
                     </View>
                   </View>

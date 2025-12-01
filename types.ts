@@ -7,7 +7,7 @@ interface BirthRecord {
   id: string;
   timestamp?: Date;
   babies: Baby[];
-  deliveryType?: 'vaginal' | 'c-section';
+  deliveryType?: 'vaginal' | 'c-section' | 'unknown';
   eventType?: 'delivery' | 'transition';
   notes?: string;
 }

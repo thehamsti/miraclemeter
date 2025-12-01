@@ -1,13 +1,45 @@
-import { Stack } from 'expo-router';
-import { StyleSheet, SafeAreaView, Linking } from 'react-native';
+import { useState } from 'react';
+import { Stack, router } from 'expo-router';
+import { StyleSheet, SafeAreaView, Linking, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
+const DEV_TAP_COUNT = 5;
+const DEV_TAP_TIMEOUT = 3000; // 3 seconds to complete the taps
+
+// Module-level state to persist across remounts
+let devTapCount = 0;
+let devTapTimeout: ReturnType<typeof setTimeout> | null = null;
+
 export default function AboutScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
+  const [tapCount, setTapCount] = useState(devTapCount);
+
+  const handleStarTap = () => {
+    if (devTapTimeout) {
+      clearTimeout(devTapTimeout);
+      devTapTimeout = null;
+    }
+
+    devTapCount += 1;
+    setTapCount(devTapCount);
+    console.log('Tap count:', devTapCount);
+    
+    if (devTapCount >= DEV_TAP_COUNT) {
+      devTapCount = 0;
+      setTapCount(0);
+      router.push('/dev-menu');
+      return;
+    }
+
+    devTapTimeout = setTimeout(() => {
+      devTapCount = 0;
+      setTapCount(0);
+    }, DEV_TAP_TIMEOUT);
+  };
 
   return (
     <>
@@ -22,8 +54,16 @@ export default function AboutScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <ThemedView style={styles.content}>
           <ThemedText style={styles.description}>
-            Hey there! 👋 This app was created with love for my amazing wife Kelly, who inspired me to build something to help midwives and labor and delivery nurses track births. ✨
+            Hey there! 👋 This app was created with love for my amazing wife Kelly, who inspired me to build something to help midwives and labor and delivery nurses track births.
           </ThemedText>
+          <TouchableOpacity 
+            onPress={handleStarTap} 
+            style={styles.starButton}
+            activeOpacity={0.5}
+          >
+            <ThemedText style={styles.star}>✨</ThemedText>
+            {tapCount > 0 && <ThemedText style={styles.tapHint}>{tapCount}/{DEV_TAP_COUNT}</ThemedText>}
+          </TouchableOpacity>
           <Button 
             title="Visit MiracleMeter.app 🌐" 
             onPress={() => Linking.openURL('https://miraclemeter.app')}
@@ -47,12 +87,27 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
+    alignItems: 'center',
   },
   description: {
     lineHeight: 24,
     textAlign: 'center',
   },
+  starButton: {
+    padding: 16,
+    marginVertical: 8,
+  },
+  star: {
+    fontSize: 32,
+  },
+  tapHint: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 8,
+    textAlign: 'center',
+  },
   button: {
     marginTop: 20,
+    width: '100%',
   },
 }); 

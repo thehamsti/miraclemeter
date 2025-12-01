@@ -25,9 +25,15 @@ export const getAchievements = async (): Promise<UserAchievements> => {
     const data = await AsyncStorage.getItem(ACHIEVEMENTS_KEY);
     if (data) {
       const parsed = JSON.parse(data);
-      // Ensure progress object exists
+      // Ensure progress object exists with all achievement keys
       if (!parsed.progress) {
         parsed.progress = {};
+      }
+      // Add any missing achievement keys to progress
+      for (const achievement of ACHIEVEMENTS) {
+        if (parsed.progress[achievement.id] === undefined) {
+          parsed.progress[achievement.id] = 0;
+        }
       }
       return parsed;
     }

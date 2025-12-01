@@ -14,14 +14,45 @@
 		C69EBD644404261DC5C4AB7C /* libPods-miraclemeter.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B2CE91D6F6B789C35146B6A /* libPods-miraclemeter.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		F701BC494DE062A0CE7D07E6 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90B560F9EFC884EF69CD210 /* ExpoModulesProvider.swift */; };
+		WIDGET001D0001 /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDGET001F0001 /* WidgetBridge.swift */; };
+		WIDGET001D0002 /* WidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = WIDGET001F0002 /* WidgetBridge.m */; };
+		WIDGET002D0001 /* MiracleMeterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDGET002F0001 /* MiracleMeterWidget.swift */; };
+		WIDGET002D0002 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDGET002F0002 /* SharedDataManager.swift */; };
+		WIDGET002D0003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = WIDGET002F0003 /* Assets.xcassets */; };
+		WIDGET002D0004 /* MiracleMeterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WIDGET002P0001 /* MiracleMeterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		APPINTENTS0001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPINTENTS0002 /* AppIntents.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		WIDGET003C0001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WIDGET002T0001;
+			remoteInfo = MiracleMeterWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		WIDGET004B0001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				WIDGET002D0004 /* MiracleMeterWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		11FF4F957C1F4EA3C6536018 /* Pods-miraclemeter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-miraclemeter.release.xcconfig"; path = "Target Support Files/Pods-miraclemeter/Pods-miraclemeter.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* miraclemeter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = miraclemeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = miraclemeter/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = miraclemeter/Info.plist; sourceTree = "<group>"; };
-		234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = miraclemeter/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = miraclemeter/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7B2CE91D6F6B789C35146B6A /* libPods-miraclemeter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-miraclemeter.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9405AF5599A0B66ED9DB5FA3 /* Pods-miraclemeter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-miraclemeter.debug.xcconfig"; path = "Target Support Files/Pods-miraclemeter/Pods-miraclemeter.debug.xcconfig"; sourceTree = "<group>"; };
 		A90B560F9EFC884EF69CD210 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-miraclemeter/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -30,6 +61,15 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = miraclemeter/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* miraclemeter-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "miraclemeter-Bridging-Header.h"; path = "miraclemeter/miraclemeter-Bridging-Header.h"; sourceTree = "<group>"; };
+		WIDGET001F0001 /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetBridge.swift; path = miraclemeter/WidgetBridge.swift; sourceTree = "<group>"; };
+		WIDGET001F0002 /* WidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetBridge.m; path = miraclemeter/WidgetBridge.m; sourceTree = "<group>"; };
+		APPINTENTS0002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = miraclemeter/AppIntents.swift; sourceTree = "<group>"; };
+		WIDGET002F0001 /* MiracleMeterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiracleMeterWidget.swift; sourceTree = "<group>"; };
+		WIDGET002F0002 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
+		WIDGET002F0003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		WIDGET002F0004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		WIDGET002F0005 /* MiracleMeterWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MiracleMeterWidgetExtension.entitlements; sourceTree = "<group>"; };
+		WIDGET002P0001 /* MiracleMeterWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MiracleMeterWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +81,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		WIDGET002B0001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -48,7 +95,10 @@
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
+				APPINTENTS0002 /* AppIntents.swift */,
 				F11748442D0722820044C1D9 /* miraclemeter-Bridging-Header.h */,
+				WIDGET001F0001 /* WidgetBridge.swift */,
+				WIDGET001F0002 /* WidgetBridge.m */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -94,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07FAE1A68108700A75B9A /* miraclemeter */,
+				WIDGET002G0001 /* MiracleMeterWidget */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -109,6 +160,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* miraclemeter.app */,
+				WIDGET002P0001 /* MiracleMeterWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,7 +171,6 @@
 				9405AF5599A0B66ED9DB5FA3 /* Pods-miraclemeter.debug.xcconfig */,
 				11FF4F957C1F4EA3C6536018 /* Pods-miraclemeter.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -130,6 +181,18 @@
 			);
 			name = Supporting;
 			path = miraclemeter/Supporting;
+			sourceTree = "<group>";
+		};
+		WIDGET002G0001 /* MiracleMeterWidget */ = {
+			isa = PBXGroup;
+			children = (
+				WIDGET002F0001 /* MiracleMeterWidget.swift */,
+				WIDGET002F0002 /* SharedDataManager.swift */,
+				WIDGET002F0003 /* Assets.xcassets */,
+				WIDGET002F0004 /* Info.plist */,
+				WIDGET002F0005 /* MiracleMeterWidgetExtension.entitlements */,
+			);
+			path = MiracleMeterWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -147,15 +210,34 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				56B984D4F6331B60C09B0A0E /* [CP] Embed Pods Frameworks */,
+				WIDGET004B0001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				WIDGET003D0001 /* PBXTargetDependency */,
 			);
 			name = miraclemeter;
 			productName = miraclemeter;
 			productReference = 13B07F961A680F5B00A75B9A /* miraclemeter.app */;
 			productType = "com.apple.product-type.application";
+		};
+		WIDGET002T0001 /* MiracleMeterWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WIDGET002L0001 /* Build configuration list for PBXNativeTarget "MiracleMeterWidgetExtension" */;
+			buildPhases = (
+				WIDGET002A0001 /* Sources */,
+				WIDGET002B0001 /* Frameworks */,
+				WIDGET002R0001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MiracleMeterWidgetExtension;
+			productName = MiracleMeterWidgetExtension;
+			productReference = WIDGET002P0001 /* MiracleMeterWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -167,6 +249,9 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
+					};
+					WIDGET002T0001 = {
+						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
@@ -184,6 +269,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* miraclemeter */,
+				WIDGET002T0001 /* MiracleMeterWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -197,6 +283,14 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				B3AE728887B66C38FF98CB8B /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDGET002R0001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WIDGET002D0003 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,11 +343,16 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/miraclemeter/miraclemeter.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-miraclemeter/expo-configure-project.sh",
 			);
 			name = "[Expo] Configure project";
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-miraclemeter/ExpoModulesProvider.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -369,28 +468,50 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				APPINTENTS0001 /* AppIntents.swift in Sources */,
 				F701BC494DE062A0CE7D07E6 /* ExpoModulesProvider.swift in Sources */,
+				WIDGET001D0001 /* WidgetBridge.swift in Sources */,
+				WIDGET001D0002 /* WidgetBridge.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDGET002A0001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WIDGET002D0001 /* MiracleMeterWidget.swift in Sources */,
+				WIDGET002D0002 /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		WIDGET003D0001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WIDGET002T0001 /* MiracleMeterWidgetExtension */;
+			targetProxy = WIDGET003C0001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 9405AF5599A0B66ED9DB5FA3 /* Pods-miraclemeter.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = miraclemeter/miraclemeter.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WFBVT5M3;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
 				INFOPLIST_FILE = miraclemeter/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -416,12 +537,14 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 11FF4F957C1F4EA3C6536018 /* Pods-miraclemeter.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = miraclemeter/miraclemeter.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WFBVT5M3;
 				INFOPLIST_FILE = miraclemeter/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -489,7 +612,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -548,7 +671,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -563,6 +686,66 @@
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		WIDGET002C0001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MiracleMeterWidget/MiracleMeterWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WFBVT5M3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MiracleMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Miracle Meter";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hamstico.miraclemeter.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		WIDGET002C0002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MiracleMeterWidget/MiracleMeterWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6WFBVT5M3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MiracleMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Miracle Meter";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hamstico.miraclemeter.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -583,6 +766,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		WIDGET002L0001 /* Build configuration list for PBXNativeTarget "MiracleMeterWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WIDGET002C0001 /* Debug */,
+				WIDGET002C0002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
