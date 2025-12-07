@@ -67,10 +67,27 @@ sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION
 
 # Update version in iOS Info.plist files
 echo -e "${YELLOW}Updating version in iOS Info.plist files...${NC}"
-sed -i '' "s/<string>$CURRENT_VERSION<\/string><!-- CFBundleShortVersionString -->/<string>$NEW_VERSION<\/string><!-- CFBundleShortVersionString -->/" ios/miraclemeter/Info.plist 2>/dev/null || \
-sed -i '' "/<key>CFBundleShortVersionString<\/key>/{n;s/<string>[0-9]*\.[0-9]*\.[0-9]*<\/string>/<string>$NEW_VERSION<\/string>/;}" ios/miraclemeter/Info.plist
+# Update CFBundleShortVersionString in main app Info.plist
+sed -i '' '/CFBundleShortVersionString/,/<string>/ s/<string>[0-9]*\.[0-9]*\.[0-9]*<\/string>/<string>'$NEW_VERSION'<\/string>/' ios/miraclemeter/Info.plist
+# Update CFBundleShortVersionString in widget Info.plist
+sed -i '' '/CFBundleShortVersionString/,/<string>/ s/<string>[0-9]*\.[0-9]*\.[0-9]*<\/string>/<string>'$NEW_VERSION'<\/string>/' ios/MiracleMeterWidget/Info.plist
 
-sed -i '' "/<key>CFBundleShortVersionString<\/key>/{n;s/<string>[0-9]*\.[0-9]*\.[0-9]*<\/string>/<string>$NEW_VERSION<\/string>/;}" ios/MiracleMeterWidget/Info.plist
+# Verify the version updates were successful
+echo -e "${YELLOW}Verifying version updates...${NC}"
+APP_PLIST_VERSION=$(grep -A1 "CFBundleShortVersionString" ios/miraclemeter/Info.plist | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
+WIDGET_PLIST_VERSION=$(grep -A1 "CFBundleShortVersionString" ios/MiracleMeterWidget/Info.plist | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
+
+if [ "$APP_PLIST_VERSION" != "$NEW_VERSION" ]; then
+    echo -e "${RED}Error: Failed to update version in ios/miraclemeter/Info.plist (found: $APP_PLIST_VERSION)${NC}"
+    exit 1
+fi
+
+if [ "$WIDGET_PLIST_VERSION" != "$NEW_VERSION" ]; then
+    echo -e "${RED}Error: Failed to update version in ios/MiracleMeterWidget/Info.plist (found: $WIDGET_PLIST_VERSION)${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ All version files updated successfully to $NEW_VERSION${NC}"
 
 # Commit the version change
 echo -e "${YELLOW}Committing version bump...${NC}"
