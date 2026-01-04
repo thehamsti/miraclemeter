@@ -236,54 +236,29 @@ export default function HomeScreen() {
         </View>
 
         {recapEntry && !isRecapDismissed && (
-          <View style={styles.yearlyHighlightSection}>
-            <View style={styles.sectionHeader}>
-              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-                2025 Breakdown
-              </ThemedText>
-              <View style={styles.yearlyHighlightActions}>
-                <Link href="/stats" asChild>
-                  <Pressable
-                    accessibilityLabel="View yearly statistics"
-                    accessibilityRole="button"
-                    style={styles.seeAllButton}
-                  >
-                    <ThemedText style={[styles.seeAllText, { color: primaryColor }]}>
-                      See all years
-                    </ThemedText>
-                  </Pressable>
-                </Link>
-                <Pressable
-                  accessibilityLabel="Hide recap highlight"
-                  accessibilityRole="button"
-                  onPress={handleDismissRecap}
-                  style={styles.dismissButton}
-                >
-                  <Ionicons name="close-circle" size={20} color={textSecondaryColor} />
-                </Pressable>
-              </View>
-            </View>
-
+          <View style={styles.recapBannerContainer}>
             <Link href="/recap" asChild>
               <Pressable
-                accessibilityLabel="Open yearly recap"
+                accessibilityLabel="View your 2025 recap"
                 accessibilityRole="button"
-                style={[styles.yearlyHighlightCard, { backgroundColor: surfaceColor }]}
+                style={[styles.recapBanner, { backgroundColor: primaryColor + "15" }]}
               >
-                <View style={[styles.yearlyHighlightIcon, { backgroundColor: primaryColor + "20" }]}>
-                  <Ionicons name="sparkles" size={26} color={primaryColor} />
-                </View>
-                <View style={styles.yearlyHighlightContent}>
-                  <ThemedText style={[styles.yearlyHighlightTitle, { color: textColor }]}>
-                    {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"}
-                  </ThemedText>
-                  <ThemedText style={[styles.yearlyHighlightSubtitle, { color: textSecondaryColor }]}>
-                    Counted in 2025
-                  </ThemedText>
-                </View>
-                <Ionicons name="chevron-forward" size={22} color={textSecondaryColor} />
+                <Ionicons name="sparkles" size={16} color={primaryColor} />
+                <ThemedText style={[styles.recapBannerText, { color: primaryColor }]}>
+                  Your 2025 Wrap is ready
+                </ThemedText>
+                <Ionicons name="chevron-forward" size={14} color={primaryColor} />
               </Pressable>
             </Link>
+            <Pressable
+              accessibilityLabel="Dismiss recap banner"
+              accessibilityRole="button"
+              onPress={handleDismissRecap}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.recapDismiss}
+            >
+              <Ionicons name="close" size={16} color={textSecondaryColor} />
+            </Pressable>
           </View>
         )}
 
@@ -469,7 +444,7 @@ export default function HomeScreen() {
                   style={[
                     styles.recordCard,
                     { backgroundColor: surfaceColor },
-                    index === 0 && styles.firstRecord,
+                    index === 0 ? styles.firstRecord : undefined,
                   ]}
                 />
               ))}
@@ -583,50 +558,29 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
     textAlign: "center",
   },
-  yearlyHighlightSection: {
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-  },
-  yearlyHighlightActions: {
+  recapBannerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
     gap: Spacing.sm,
   },
-  dismissButton: {
-    padding: Spacing.xs,
-  },
-  yearlyHighlightCard: {
+  recapBanner: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.xl,
-    gap: Spacing.md,
-    ...Platform.select({
-      ios: {
-        ...Shadows.md,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  yearlyHighlightIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: BorderRadius.lg,
-    alignItems: "center",
     justifyContent: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
   },
-  yearlyHighlightContent: {
-    flex: 1,
-  },
-  yearlyHighlightTitle: {
-    fontSize: Typography.lg,
+  recapBannerText: {
+    fontSize: Typography.sm,
     fontWeight: Typography.weights.semibold,
   },
-  yearlyHighlightSubtitle: {
-    fontSize: Typography.sm,
-    marginTop: Spacing.xs,
+  recapDismiss: {
+    padding: Spacing.xs,
   },
   ctaContainer: {
     paddingHorizontal: Spacing.lg,
