@@ -110,7 +110,7 @@ function RootLayoutContent() {
 
   const checkForAppUpdate = useCallback(async () => {
     try {
-      const currentVersion = Constants.expoConfig?.version ?? Constants.manifest?.version ?? '0.0.0';
+      const currentVersion = Constants.expoConfig?.version ?? '0.0.0';
       const storedVersion = await getStoredAppVersion();
 
       if (!storedVersion) {
