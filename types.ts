@@ -64,6 +64,17 @@ interface UserAchievements {
 interface YearlyBabyCount {
   year: number;
   babies: number;
+  genders: {
+    boys: number;
+    girls: number;
+    angels: number;
+  };
+  deliveries: {
+    vaginal: number;
+    cSection: number;
+    unknown: number;
+    total: number;
+  };
 }
 
 export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements, YearlyBabyCount };

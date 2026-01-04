@@ -91,22 +91,44 @@ export function useStatistics(): Statistics {
 
     setGenderCounts({ boys, girls, angels });
 
-    const yearlyCountsMap: Record<number, number> = {};
+    const yearlyDataMap: Record<number, YearlyBabyCount> = {};
 
     for (const record of birthRecords) {
       if (!record.timestamp) continue;
 
       const year = new Date(record.timestamp).getFullYear();
-      const babiesCount = record.babies ? record.babies.length : 0;
-      yearlyCountsMap[year] = (yearlyCountsMap[year] ?? 0) + babiesCount;
+
+      if (!yearlyDataMap[year]) {
+        yearlyDataMap[year] = {
+          year,
+          babies: 0,
+          genders: { boys: 0, girls: 0, angels: 0 },
+          deliveries: { vaginal: 0, cSection: 0, unknown: 0, total: 0 },
+        };
+      }
+
+      const entry = yearlyDataMap[year];
+      entry.deliveries.total++;
+
+      if (record.deliveryType === 'vaginal') {
+        entry.deliveries.vaginal++;
+      } else if (record.deliveryType === 'c-section') {
+        entry.deliveries.cSection++;
+      } else {
+        entry.deliveries.unknown++;
+      }
+
+      if (record.babies && Array.isArray(record.babies)) {
+        entry.babies += record.babies.length;
+        for (const baby of record.babies) {
+          if (baby.gender === 'boy') entry.genders.boys++;
+          else if (baby.gender === 'girl') entry.genders.girls++;
+          else if (baby.gender === 'angel') entry.genders.angels++;
+        }
+      }
     }
 
-    const yearlyCounts = Object.keys(yearlyCountsMap)
-      .map((year) => ({
-        year: Number(year),
-        babies: yearlyCountsMap[Number(year)],
-      }))
-      .sort((a, b) => b.year - a.year);
+    const yearlyCounts = Object.values(yearlyDataMap).sort((a, b) => b.year - a.year);
 
     setYearlyBabyCounts(yearlyCounts);
 
