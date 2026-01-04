@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Link } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
@@ -11,11 +11,13 @@ import { RecordCard } from "@/components/RecordCard";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useStatistics } from "@/hooks/useStatistics";
 import { getAchievements } from "@/services/achievements";
+import { getHomeRecapDismissed, setHomeRecapDismissed } from "@/services/storage";
 import type { UserAchievements } from "@/types";
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
+  const [isRecapDismissed, setIsRecapDismissed] = useState(false);
   
   const {
     recentRecords,
@@ -40,7 +42,7 @@ export default function HomeScreen() {
   const recapYear = 2025;
   const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
 
-  const loadAchievements = useCallback(async () => {
+  const loadAchievements = useCallback(async (): Promise<void> => {
     try {
       const achievements = await getAchievements();
       setUserAchievements(achievements);
@@ -49,31 +51,55 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const loadRecapDismissal = useCallback(async (): Promise<void> => {
+    try {
+      const dismissed = await getHomeRecapDismissed();
+      setIsRecapDismissed(dismissed);
+    } catch (error) {
+      console.error("Error loading recap dismissal:", error);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       refresh();
       loadAchievements();
-    }, [refresh, loadAchievements]),
+      loadRecapDismissal();
+    }, [refresh, loadAchievements, loadRecapDismissal]),
   );
+
+  useEffect(() => {
+    loadRecapDismissal();
+  }, [loadRecapDismissal]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refresh();
     await loadAchievements();
+    await loadRecapDismissal();
     setRefreshing(false);
-  }, [refresh, loadAchievements]);
+  }, [refresh, loadAchievements, loadRecapDismissal]);
 
-  const getGreeting = () => {
+  const getGreeting = (): string => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
 
-  const getEmoji = () => {
+  const getEmoji = (): string => {
     const emojis = ["👶", "🍼", "🎉", "💝", "✨", "🌟"];
     return emojis[Math.floor(Math.random() * emojis.length)];
   };
+
+  const handleDismissRecap = useCallback(async (): Promise<void> => {
+    try {
+      setIsRecapDismissed(true);
+      await setHomeRecapDismissed(true);
+    } catch (error) {
+      console.error("Error dismissing recap:", error);
+    }
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -209,39 +235,55 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {recapEntry && (
+        {recapEntry && !isRecapDismissed && (
           <View style={styles.yearlyHighlightSection}>
             <View style={styles.sectionHeader}>
               <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
                 2025 Breakdown
               </ThemedText>
-              <Link href="/stats" asChild>
+              <View style={styles.yearlyHighlightActions}>
+                <Link href="/stats" asChild>
+                  <Pressable
+                    accessibilityLabel="View yearly statistics"
+                    accessibilityRole="button"
+                    style={styles.seeAllButton}
+                  >
+                    <ThemedText style={[styles.seeAllText, { color: primaryColor }]}>
+                      See all years
+                    </ThemedText>
+                  </Pressable>
+                </Link>
                 <Pressable
-                  accessibilityLabel="View yearly statistics"
+                  accessibilityLabel="Hide recap highlight"
                   accessibilityRole="button"
-                  style={styles.seeAllButton}
+                  onPress={handleDismissRecap}
+                  style={styles.dismissButton}
                 >
-                  <ThemedText style={[styles.seeAllText, { color: primaryColor }]}>
-                    See all years
-                  </ThemedText>
+                  <Ionicons name="close-circle" size={20} color={textSecondaryColor} />
                 </Pressable>
-              </Link>
+              </View>
             </View>
 
-            <View style={[styles.yearlyHighlightCard, { backgroundColor: surfaceColor }]}>
-              <View style={[styles.yearlyHighlightIcon, { backgroundColor: primaryColor + "20" }]}>
-                <Ionicons name="sparkles" size={26} color={primaryColor} />
-              </View>
-              <View style={styles.yearlyHighlightContent}>
-                <ThemedText style={[styles.yearlyHighlightTitle, { color: textColor }]}>
-                  {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"}
-                </ThemedText>
-                <ThemedText style={[styles.yearlyHighlightSubtitle, { color: textSecondaryColor }]}>
-                  Counted in 2025
-                </ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={22} color={textSecondaryColor} />
-            </View>
+            <Link href="/recap" asChild>
+              <Pressable
+                accessibilityLabel="Open yearly recap"
+                accessibilityRole="button"
+                style={[styles.yearlyHighlightCard, { backgroundColor: surfaceColor }]}
+              >
+                <View style={[styles.yearlyHighlightIcon, { backgroundColor: primaryColor + "20" }]}>
+                  <Ionicons name="sparkles" size={26} color={primaryColor} />
+                </View>
+                <View style={styles.yearlyHighlightContent}>
+                  <ThemedText style={[styles.yearlyHighlightTitle, { color: textColor }]}>
+                    {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"}
+                  </ThemedText>
+                  <ThemedText style={[styles.yearlyHighlightSubtitle, { color: textSecondaryColor }]}>
+                    Counted in 2025
+                  </ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={22} color={textSecondaryColor} />
+              </Pressable>
+            </Link>
           </View>
         )}
 
@@ -544,6 +586,14 @@ const styles = StyleSheet.create({
   yearlyHighlightSection: {
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.lg,
+  },
+  yearlyHighlightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  dismissButton: {
+    padding: Spacing.xs,
   },
   yearlyHighlightCard: {
     flexDirection: "row",
