@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AppState, Linking } from 'react-native';
 import { Stack, SplashScreen, useRouter } from 'expo-router';
-import { ThemeProvider, useTheme } from '@/hooks/ThemeContext';
+import Constants from 'expo-constants';
 import { Provider as PaperProvider, DefaultTheme, MD3DarkTheme } from 'react-native-paper';
-import { ToastProvider } from '@/contexts/ToastContext';
+import { ToastProvider, useToastContext } from '@/contexts/ToastContext';
+import { ThemeProvider, useTheme } from '@/hooks/ThemeContext';
 import { ToastContainer } from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { isOnboardingComplete, getBirthRecords } from '@/services/storage';
+import { isOnboardingComplete, getBirthRecords, getStoredAppVersion, setStoredAppVersion } from '@/services/storage';
 import { getPendingWidgetRecord, updateWidgetData, calculateTodayCount } from '@/services/widgetBridge';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
@@ -15,6 +16,7 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutContent() {
   const { effectiveTheme } = useTheme();
   const router = useRouter();
+  const { showToast } = useToastContext();
   const [isReady, setIsReady] = useState(false);
 
   // Sync widget data on app start and handle pending records
@@ -106,6 +108,31 @@ function RootLayoutContent() {
     };
   }, [isReady, syncWidgetAndCheckPending, handleDeepLink]);
 
+  const checkForAppUpdate = useCallback(async () => {
+    try {
+      const currentVersion = Constants.expoConfig?.version ?? Constants.manifest?.version ?? '0.0.0';
+      const storedVersion = await getStoredAppVersion();
+
+      if (!storedVersion) {
+        await setStoredAppVersion(currentVersion);
+        return;
+      }
+
+      if (storedVersion !== currentVersion) {
+        await setStoredAppVersion(currentVersion);
+        showToast('Update complete! Your recap is ready.', 'info');
+        router.push('/recap');
+      }
+    } catch (error) {
+      console.error('Error checking app version:', error);
+    }
+  }, [router, showToast]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    checkForAppUpdate();
+  }, [isReady, checkForAppUpdate]);
+
   useEffect(() => {
     if (isReady) {
       SplashScreen.hideAsync();
@@ -116,21 +143,20 @@ function RootLayoutContent() {
 
   return (
     <PaperProvider theme={paperTheme}>
-      <ToastProvider>
-        <ErrorBoundary>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(auth)/onboarding" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="stats" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="about" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="feedback" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="achievements" options={{ presentation: 'modal' }} />
-          </Stack>
-          <ToastContainer />
-        </ErrorBoundary>
-      </ToastProvider>
+      <ErrorBoundary>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)/onboarding" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="stats" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="about" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="feedback" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="achievements" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="recap" options={{ presentation: 'modal' }} />
+        </Stack>
+        <ToastContainer />
+      </ErrorBoundary>
     </PaperProvider>
   );
 }
@@ -138,7 +164,9 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootLayoutContent />
+      <ToastProvider>
+        <RootLayoutContent />
+      </ToastProvider>
     </ThemeProvider>
   );
 }

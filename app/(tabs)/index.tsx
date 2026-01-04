@@ -1,33 +1,17 @@
 import React, { useCallback, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Link } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import { BirthRecord, UserAchievements } from "@/types";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { Button } from "@/components/Button";
-import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { StatCard } from "@/components/StatCard";
-import { RecordCard } from "@/components/RecordCard";
-import {
-  BorderRadius,
-  Colors,
-  Shadows,
-  Spacing,
-  Typography,
-} from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { Platform } from "react-native";
-import { getAchievements } from "@/services/achievements";
+import { Ionicons } from "@expo/vector-icons";
 import { ACHIEVEMENTS } from "@/constants/achievements";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/Colors";
+import { ThemedText } from "@/components/ThemedText";
+import { RecordCard } from "@/components/RecordCard";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useStatistics } from "@/hooks/useStatistics";
+import { getAchievements } from "@/services/achievements";
+import type { UserAchievements } from "@/types";
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +23,7 @@ export default function HomeScreen() {
     weekCount,
     monthCount,
     genderCounts,
-    loading,
+    yearlyBabyCounts,
     refresh,
   } = useStatistics();
 
@@ -52,7 +36,9 @@ export default function HomeScreen() {
   const femaleColor = useThemeColor({}, "female");
   const warningColor = useThemeColor({}, "warning");
   const successColor = useThemeColor({}, "success");
-  const borderColor = useThemeColor({}, "border");
+
+  const recapYear = 2025;
+  const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
 
   const loadAchievements = useCallback(async () => {
     try {
@@ -222,6 +208,42 @@ export default function HomeScreen() {
             </ThemedText>
           </View>
         </View>
+
+        {recapEntry && (
+          <View style={styles.yearlyHighlightSection}>
+            <View style={styles.sectionHeader}>
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                2025 Breakdown
+              </ThemedText>
+              <Link href="/stats" asChild>
+                <Pressable
+                  accessibilityLabel="View yearly statistics"
+                  accessibilityRole="button"
+                  style={styles.seeAllButton}
+                >
+                  <ThemedText style={[styles.seeAllText, { color: primaryColor }]}>
+                    See all years
+                  </ThemedText>
+                </Pressable>
+              </Link>
+            </View>
+
+            <View style={[styles.yearlyHighlightCard, { backgroundColor: surfaceColor }]}>
+              <View style={[styles.yearlyHighlightIcon, { backgroundColor: primaryColor + "20" }]}>
+                <Ionicons name="sparkles" size={26} color={primaryColor} />
+              </View>
+              <View style={styles.yearlyHighlightContent}>
+                <ThemedText style={[styles.yearlyHighlightTitle, { color: textColor }]}>
+                  {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"}
+                </ThemedText>
+                <ThemedText style={[styles.yearlyHighlightSubtitle, { color: textSecondaryColor }]}>
+                  Counted in 2025
+                </ThemedText>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={textSecondaryColor} />
+            </View>
+          </View>
+        )}
 
         {/* Main CTA Button */}
         <View style={styles.ctaContainer}>
@@ -518,6 +540,43 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
     textAlign: "center",
+  },
+  yearlyHighlightSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+  },
+  yearlyHighlightCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+    ...Platform.select({
+      ios: {
+        ...Shadows.md,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  yearlyHighlightIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  yearlyHighlightContent: {
+    flex: 1,
+  },
+  yearlyHighlightTitle: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.weights.semibold,
+  },
+  yearlyHighlightSubtitle: {
+    fontSize: Typography.sm,
+    marginTop: Spacing.xs,
   },
   ctaContainer: {
     paddingHorizontal: Spacing.lg,

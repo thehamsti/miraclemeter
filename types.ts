@@ -61,4 +61,9 @@ interface UserAchievements {
   };
 }
 
-export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements };
+interface YearlyBabyCount {
+  year: number;
+  babies: number;
+}
+
+export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements, YearlyBabyCount };

@@ -1,25 +1,21 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, Dimensions, View, Platform, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BirthRecord } from '@/types';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { StatCard } from '@/components/StatCard';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Colors';
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useStatistics } from '@/hooks/useStatistics';
 
 export default function StatsScreen() {
   const {
-    records: birthRecords,
     totalDeliveries,
     genderCounts: genderStats,
     deliveryCounts: deliveryStats,
-    loading,
+    yearlyBabyCounts,
   } = useStatistics();
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -170,6 +166,37 @@ export default function StatsScreen() {
               </View>
             </View>
           </View>
+
+          {yearlyBabyCounts.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Yearly Breakdown
+                </ThemedText>
+                <View style={[styles.totalBadge, { backgroundColor: primaryColor + '15' }]}>
+                  <ThemedText style={[styles.totalBadgeText, { color: primaryColor }]}>
+                    {yearlyBabyCounts.length} years
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.yearlyList}>
+                {yearlyBabyCounts.map((entry) => (
+                  <View key={entry.year} style={[styles.yearlyCard, { backgroundColor: surfaceColor }]}>
+                    <View style={styles.yearlyCardContent}>
+                      <ThemedText style={[styles.yearlyYearText, { color: textColor }]}>
+                        {entry.year}
+                      </ThemedText>
+                      <ThemedText style={[styles.yearlyCountText, { color: textSecondaryColor }]}>
+                        {entry.babies} {entry.babies === 1 ? 'baby' : 'babies'}
+                      </ThemedText>
+                    </View>
+                    <Ionicons name="sparkles-outline" size={20} color={primaryColor} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Gender Distribution Section */}
           {totalBabies > 0 && (
@@ -519,6 +546,35 @@ const styles = StyleSheet.create({
   },
   deliveryStatsGrid: {
     gap: Spacing.md,
+  },
+  yearlyList: {
+    gap: Spacing.sm,
+  },
+  yearlyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  yearlyCardContent: {
+    gap: Spacing.xs,
+  },
+  yearlyYearText: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.weights.semibold,
+  },
+  yearlyCountText: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
   },
   deliveryStatCard: {
     flexDirection: 'row',

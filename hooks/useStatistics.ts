@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { getBirthRecords } from '@/services/storage';
-import { BirthRecord } from '@/types';
+import type { BirthRecord, YearlyBabyCount } from '@/types';
 
 interface GenderCounts {
   boys: number;
@@ -25,6 +25,7 @@ interface Statistics {
   monthCount: number;
   genderCounts: GenderCounts;
   deliveryCounts: DeliveryCounts;
+  yearlyBabyCounts: YearlyBabyCount[];
   loading: boolean;
   refresh: () => Promise<void>;
 }
@@ -37,6 +38,7 @@ export function useStatistics(): Statistics {
   const [monthCount, setMonthCount] = useState(0);
   const [genderCounts, setGenderCounts] = useState<GenderCounts>({ boys: 0, girls: 0, angels: 0 });
   const [deliveryCounts, setDeliveryCounts] = useState<DeliveryCounts>({ vaginal: 0, cSection: 0, unknown: 0 });
+  const [yearlyBabyCounts, setYearlyBabyCounts] = useState<YearlyBabyCount[]>([]);
 
   const calculateStats = useCallback((birthRecords: BirthRecord[]) => {
     const now = new Date();
@@ -88,6 +90,25 @@ export function useStatistics(): Statistics {
     }
 
     setGenderCounts({ boys, girls, angels });
+
+    const yearlyCountsMap: Record<number, number> = {};
+
+    for (const record of birthRecords) {
+      if (!record.timestamp) continue;
+
+      const year = new Date(record.timestamp).getFullYear();
+      const babiesCount = record.babies ? record.babies.length : 0;
+      yearlyCountsMap[year] = (yearlyCountsMap[year] ?? 0) + babiesCount;
+    }
+
+    const yearlyCounts = Object.keys(yearlyCountsMap)
+      .map((year) => ({
+        year: Number(year),
+        babies: yearlyCountsMap[Number(year)],
+      }))
+      .sort((a, b) => b.year - a.year);
+
+    setYearlyBabyCounts(yearlyCounts);
 
     // Calculate delivery type counts
     let vaginal = 0;
@@ -147,6 +168,7 @@ export function useStatistics(): Statistics {
     monthCount,
     genderCounts,
     deliveryCounts,
+    yearlyBabyCounts,
     loading,
     refresh: loadStats,
   };
