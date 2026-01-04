@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, View, Platform } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,12 +20,43 @@ export default function RecapScreen() {
   const primaryColor = useThemeColor({}, 'primary');
   const successColor = useThemeColor({}, 'success');
   const warningColor = useThemeColor({}, 'warning');
+  const infoColor = useThemeColor({}, 'info');
+  const primaryLight = useThemeColor({}, 'primaryLight');
   const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
 
   const recapYear = 2025;
   const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
   const recapCount = recapEntry ? recapEntry.babies : 0;
   const averageBabies = totalDeliveries > 0 ? Math.round((totalBabies / totalDeliveries) * 10) / 10 : 0;
+
+  const floatAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnimation, {
+          toValue: 1,
+          duration: 2200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnimation, {
+          toValue: 0,
+          duration: 2200,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [floatAnimation]);
+
+  const floatUp = floatAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -12],
+  });
+
+  const floatDown = floatAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 10],
+  });
 
   let topYearLabel = '—';
   let topYearCount = 0;
@@ -42,11 +73,40 @@ export default function RecapScreen() {
       <View style={[styles.container, { backgroundColor }]}>
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
           <LinearGradient
-            colors={[primaryColor, primaryColor + '90']}
+            colors={[primaryColor, successColor]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}
           >
+            <View style={styles.floatingIcons} pointerEvents="none">
+              <Animated.View
+                style={[
+                  styles.floatingIcon,
+                  styles.floatOne,
+                  { backgroundColor: primaryLight, transform: [{ translateY: floatUp }] },
+                ]}
+              >
+                <Ionicons name="star" size={26} color={primaryButtonTextColor} />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.floatingIcon,
+                  styles.floatTwo,
+                  { backgroundColor: primaryLight, transform: [{ translateY: floatDown }] },
+                ]}
+              >
+                <Ionicons name="heart" size={24} color={primaryButtonTextColor} />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.floatingIcon,
+                  styles.floatThree,
+                  { backgroundColor: primaryLight, transform: [{ translateY: floatUp }] },
+                ]}
+              >
+                <Ionicons name="sparkles" size={22} color={primaryButtonTextColor} />
+              </Animated.View>
+            </View>
             <Pressable
               onPress={() => router.back()}
               style={styles.closeButton}
@@ -56,14 +116,28 @@ export default function RecapScreen() {
               <Ionicons name="close" size={24} color={primaryButtonTextColor} />
             </Pressable>
             <ThemedText style={[styles.headerEyebrow, { color: primaryButtonTextColor }]}>
-              Miracle Meter Recap
+              Miracle Meter Wrap
             </ThemedText>
             <ThemedText style={[styles.headerTitle, { color: primaryButtonTextColor }]}>
-              Your 2025 Story
+              Your 2025 Baby Wrap
             </ThemedText>
             <ThemedText style={[styles.headerSubtitle, { color: primaryButtonTextColor }]}>
-              A quick wrap of your deliveries, babies, and standout moments.
+              Sparkly highlights, biggest moments, and all the baby joy.
             </ThemedText>
+            <View style={styles.headerBadges}>
+              <View style={[styles.headerBadge, { backgroundColor: primaryLight }]}>
+                <Ionicons name="flash-outline" size={16} color={primaryColor} />
+                <ThemedText style={[styles.headerBadgeText, { color: primaryColor }]}>
+                  Tiny wins
+                </ThemedText>
+              </View>
+              <View style={[styles.headerBadge, { backgroundColor: primaryLight }]}>
+                <Ionicons name="balloon-outline" size={16} color={primaryColor} />
+                <ThemedText style={[styles.headerBadgeText, { color: primaryColor }]}>
+                  Big moments
+                </ThemedText>
+              </View>
+            </View>
           </LinearGradient>
 
           <View style={styles.cardGrid}>
@@ -98,8 +172,8 @@ export default function RecapScreen() {
             </View>
 
             <View style={[styles.statCard, { backgroundColor: surfaceColor }]}>
-              <View style={[styles.statIcon, { backgroundColor: primaryColor + '20' }]}>
-                <Ionicons name="trending-up-outline" size={22} color={primaryColor} />
+              <View style={[styles.statIcon, { backgroundColor: infoColor + '20' }]}>
+                <Ionicons name="trending-up-outline" size={22} color={infoColor} />
               </View>
               <ThemedText style={[styles.statValue, { color: textColor }]}>{averageBabies}</ThemedText>
               <ThemedText style={[styles.statLabel, { color: textSecondaryColor }]}>
@@ -113,8 +187,8 @@ export default function RecapScreen() {
               Highlight of the Year
             </ThemedText>
             <View style={[styles.highlightCard, { backgroundColor: surfaceColor }]}>
-              <View style={[styles.highlightIcon, { backgroundColor: primaryColor + '20' }]}>
-                <Ionicons name="trophy-outline" size={24} color={primaryColor} />
+              <View style={[styles.highlightIcon, { backgroundColor: warningColor + '20' }]}>
+                <Ionicons name="trophy-outline" size={24} color={warningColor} />
               </View>
               <View style={styles.highlightContent}>
                 <ThemedText style={[styles.highlightTitle, { color: textColor }]}>
@@ -160,6 +234,27 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
+    overflow: 'hidden',
+  },
+  floatingIcons: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  floatingIcon: {
+    position: 'absolute',
+    borderRadius: BorderRadius.full,
+    padding: Spacing.sm,
+  },
+  floatOne: {
+    top: Spacing.lg,
+    left: Spacing.lg,
+  },
+  floatTwo: {
+    top: Spacing.xl,
+    right: Spacing.xl,
+  },
+  floatThree: {
+    bottom: Spacing.lg,
+    right: Spacing.lg,
   },
   closeButton: {
     alignSelf: 'flex-end',
@@ -181,6 +276,24 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     marginTop: Spacing.sm,
     lineHeight: Typography.lineHeights.base,
+  },
+  headerBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  headerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  headerBadgeText: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.weights.semibold,
   },
   cardGrid: {
     marginTop: -Spacing.xl,
