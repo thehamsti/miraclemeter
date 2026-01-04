@@ -20,7 +20,8 @@ export default function RecapScreen() {
   const primaryColor = useThemeColor({}, 'primary');
   const successColor = useThemeColor({}, 'success');
   const warningColor = useThemeColor({}, 'warning');
-  const infoColor = useThemeColor({}, 'info');
+  const maleColor = useThemeColor({}, 'male');
+  const femaleColor = useThemeColor({}, 'female');
   const primaryLight = useThemeColor({}, 'primaryLight');
   const primaryButtonTextColor = useThemeColor({}, 'primaryButtonText');
 
@@ -145,19 +146,9 @@ export default function RecapScreen() {
               <View style={[styles.statIcon, { backgroundColor: successColor + '20' }]}>
                 <Ionicons name="sparkles" size={22} color={successColor} />
               </View>
-              <ThemedText style={[styles.statValue, { color: textColor }]}>{recapCount}</ThemedText>
+              <ThemedText style={[styles.statValue, { color: textColor }]}>{recapEntry?.babies ?? 0}</ThemedText>
               <ThemedText style={[styles.statLabel, { color: textSecondaryColor }]}>
                 Babies in 2025
-              </ThemedText>
-            </View>
-
-            <View style={[styles.statCard, { backgroundColor: surfaceColor }]}>
-              <View style={[styles.statIcon, { backgroundColor: primaryColor + '20' }]}>
-                <Ionicons name="people-outline" size={22} color={primaryColor} />
-              </View>
-              <ThemedText style={[styles.statValue, { color: textColor }]}>{totalBabies}</ThemedText>
-              <ThemedText style={[styles.statLabel, { color: textSecondaryColor }]}>
-                Babies logged
               </ThemedText>
             </View>
 
@@ -165,37 +156,126 @@ export default function RecapScreen() {
               <View style={[styles.statIcon, { backgroundColor: warningColor + '20' }]}>
                 <Ionicons name="calendar-outline" size={22} color={warningColor} />
               </View>
-              <ThemedText style={[styles.statValue, { color: textColor }]}>{totalDeliveries}</ThemedText>
+              <ThemedText style={[styles.statValue, { color: textColor }]}>{recapEntry?.deliveries.total ?? 0}</ThemedText>
               <ThemedText style={[styles.statLabel, { color: textSecondaryColor }]}>
-                Deliveries tracked
-              </ThemedText>
-            </View>
-
-            <View style={[styles.statCard, { backgroundColor: surfaceColor }]}>
-              <View style={[styles.statIcon, { backgroundColor: infoColor + '20' }]}>
-                <Ionicons name="trending-up-outline" size={22} color={infoColor} />
-              </View>
-              <ThemedText style={[styles.statValue, { color: textColor }]}>{averageBabies}</ThemedText>
-              <ThemedText style={[styles.statLabel, { color: textSecondaryColor }]}>
-                Avg per delivery
+                Deliveries in 2025
               </ThemedText>
             </View>
           </View>
 
+          {recapEntry && (
+            <View style={styles.breakdownSection}>
+              <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                2025 Breakdown
+              </ThemedText>
+
+              <View style={[styles.breakdownCard, { backgroundColor: surfaceColor }]}>
+                <ThemedText style={[styles.breakdownLabel, { color: textSecondaryColor }]}>
+                  Gender Split
+                </ThemedText>
+                <View style={styles.breakdownRow}>
+                  <View style={styles.breakdownItem}>
+                    <View style={[styles.breakdownDot, { backgroundColor: maleColor }]} />
+                    <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                      {recapEntry.genders.boys}
+                    </ThemedText>
+                    <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                      boys
+                    </ThemedText>
+                  </View>
+                  <View style={styles.breakdownItem}>
+                    <View style={[styles.breakdownDot, { backgroundColor: femaleColor }]} />
+                    <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                      {recapEntry.genders.girls}
+                    </ThemedText>
+                    <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                      girls
+                    </ThemedText>
+                  </View>
+                  {recapEntry.genders.angels > 0 && (
+                    <View style={styles.breakdownItem}>
+                      <View style={[styles.breakdownDot, { backgroundColor: warningColor }]} />
+                      <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                        {recapEntry.genders.angels}
+                      </ThemedText>
+                      <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                        angels
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={[styles.breakdownCard, { backgroundColor: surfaceColor }]}>
+                <ThemedText style={[styles.breakdownLabel, { color: textSecondaryColor }]}>
+                  Delivery Types
+                </ThemedText>
+                <View style={styles.breakdownRow}>
+                  {recapEntry.deliveries.vaginal > 0 && (
+                    <View style={styles.breakdownItem}>
+                      <View style={[styles.breakdownDot, { backgroundColor: successColor }]} />
+                      <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                        {recapEntry.deliveries.vaginal}
+                      </ThemedText>
+                      <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                        vaginal
+                      </ThemedText>
+                    </View>
+                  )}
+                  {recapEntry.deliveries.cSection > 0 && (
+                    <View style={styles.breakdownItem}>
+                      <View style={[styles.breakdownDot, { backgroundColor: primaryColor }]} />
+                      <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                        {recapEntry.deliveries.cSection}
+                      </ThemedText>
+                      <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                        c-section
+                      </ThemedText>
+                    </View>
+                  )}
+                  {recapEntry.deliveries.unknown > 0 && (
+                    <View style={styles.breakdownItem}>
+                      <View style={[styles.breakdownDot, { backgroundColor: textSecondaryColor }]} />
+                      <ThemedText style={[styles.breakdownItemValue, { color: textColor }]}>
+                        {recapEntry.deliveries.unknown}
+                      </ThemedText>
+                      <ThemedText style={[styles.breakdownItemLabel, { color: textSecondaryColor }]}>
+                        unknown
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </View>
+          )}
+
           <View style={styles.highlightSection}>
             <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-              Highlight of the Year
+              All-Time Stats
             </ThemedText>
+            <View style={[styles.highlightCard, { backgroundColor: surfaceColor }]}>
+              <View style={[styles.highlightIcon, { backgroundColor: primaryColor + '20' }]}>
+                <Ionicons name="people-outline" size={24} color={primaryColor} />
+              </View>
+              <View style={styles.highlightContent}>
+                <ThemedText style={[styles.highlightTitle, { color: textColor }]}>
+                  {totalBabies} babies total
+                </ThemedText>
+                <ThemedText style={[styles.highlightSubtitle, { color: textSecondaryColor }]}>
+                  Across {totalDeliveries} deliveries
+                </ThemedText>
+              </View>
+            </View>
             <View style={[styles.highlightCard, { backgroundColor: surfaceColor }]}>
               <View style={[styles.highlightIcon, { backgroundColor: warningColor + '20' }]}>
                 <Ionicons name="trophy-outline" size={24} color={warningColor} />
               </View>
               <View style={styles.highlightContent}>
                 <ThemedText style={[styles.highlightTitle, { color: textColor }]}>
-                  Best year so far
+                  Best year: {topYearLabel}
                 </ThemedText>
                 <ThemedText style={[styles.highlightSubtitle, { color: textSecondaryColor }]}>
-                  {topYearLabel} led with {topYearCount} babies
+                  {topYearCount} babies recorded
                 </ThemedText>
               </View>
             </View>
@@ -331,9 +411,56 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
   },
+  breakdownSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    gap: Spacing.md,
+  },
+  breakdownCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  breakdownLabel: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.weights.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: Typography.letterSpacing.wide,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    gap: Spacing.xl,
+  },
+  breakdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  breakdownDot: {
+    width: 10,
+    height: 10,
+    borderRadius: BorderRadius.full,
+  },
+  breakdownItemValue: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.weights.bold,
+  },
+  breakdownItemLabel: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+  },
   highlightSection: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
+    gap: Spacing.md,
   },
   sectionTitle: {
     fontSize: Typography.lg,
