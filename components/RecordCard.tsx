@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Pressable, ViewStyle, Animated, Platform } from 'react-native';
+import { StyleSheet, View, Pressable, StyleProp, ViewStyle, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 interface RecordCardProps {
   record?: BirthRecord;
   placeholder?: string;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   onPress?: () => void;
   showActions?: boolean;
 }

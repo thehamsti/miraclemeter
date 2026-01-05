@@ -13,6 +13,8 @@ export class StorageError extends Error {
 const STORAGE_KEY = 'birth_records';
 const ONBOARDING_COMPLETE_KEY = 'onboarding_complete';
 const USER_PREFERENCES_KEY = 'user_preferences';
+const APP_VERSION_KEY = 'app_version';
+const getHomeRecapDismissedKey = (year: number) => `home_recap_dismissed_${year}`;
 
 export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
   try {
@@ -112,6 +114,43 @@ export async function resetStorage(): Promise<void> {
   } catch (error) {
     console.error('Error clearing storage:', error);
     throw error;
+  }
+}
+
+export async function getStoredAppVersion(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(APP_VERSION_KEY);
+  } catch (error) {
+    console.error('Error getting stored app version:', error);
+    throw new StorageError('Failed to load app version', error instanceof Error ? error : undefined);
+  }
+}
+
+export async function setStoredAppVersion(version: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(APP_VERSION_KEY, version);
+  } catch (error) {
+    console.error('Error saving stored app version:', error);
+    throw new StorageError('Failed to save app version', error instanceof Error ? error : undefined);
+  }
+}
+
+export async function getHomeRecapDismissed(year: number): Promise<boolean> {
+  try {
+    const value = await AsyncStorage.getItem(getHomeRecapDismissedKey(year));
+    return value === 'true';
+  } catch (error) {
+    console.error('Error getting recap dismissal status:', error);
+    throw new StorageError('Failed to load recap dismissal status', error instanceof Error ? error : undefined);
+  }
+}
+
+export async function setHomeRecapDismissed(year: number, dismissed: boolean): Promise<void> {
+  try {
+    await AsyncStorage.setItem(getHomeRecapDismissedKey(year), dismissed ? 'true' : 'false');
+  } catch (error) {
+    console.error('Error saving recap dismissal status:', error);
+    throw new StorageError('Failed to save recap dismissal status', error instanceof Error ? error : undefined);
   }
 }
 

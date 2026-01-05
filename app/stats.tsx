@@ -1,25 +1,21 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView, SafeAreaView, Dimensions, View, Platform, Pressable } from 'react-native';
+import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BirthRecord } from '@/types';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { StatCard } from '@/components/StatCard';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Colors';
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useStatistics } from '@/hooks/useStatistics';
 
 export default function StatsScreen() {
   const {
-    records: birthRecords,
     totalDeliveries,
     genderCounts: genderStats,
     deliveryCounts: deliveryStats,
-    loading,
+    yearlyBabyCounts,
   } = useStatistics();
 
   const backgroundColor = useThemeColor({}, 'background');
@@ -170,6 +166,82 @@ export default function StatsScreen() {
               </View>
             </View>
           </View>
+
+          {yearlyBabyCounts.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Yearly Breakdown
+                </ThemedText>
+                <View style={[styles.totalBadge, { backgroundColor: primaryColor + '15' }]}>
+                  <ThemedText style={[styles.totalBadgeText, { color: primaryColor }]}>
+                    {yearlyBabyCounts.length} years
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.yearlyList}>
+                {yearlyBabyCounts.map((entry) => (
+                  <View key={entry.year} style={[styles.yearlyCard, { backgroundColor: surfaceColor }]}>
+                    <View style={styles.yearlyCardHeader}>
+                      <ThemedText style={[styles.yearlyYearText, { color: textColor }]}>
+                        {entry.year}
+                      </ThemedText>
+                      <ThemedText style={[styles.yearlyBabyCount, { color: primaryColor }]}>
+                        {entry.babies} {entry.babies === 1 ? 'baby' : 'babies'}
+                      </ThemedText>
+                    </View>
+
+                    <View style={styles.yearlyBreakdown}>
+                      <View style={styles.yearlyBreakdownRow}>
+                        <View style={styles.yearlyBreakdownItem}>
+                          <Ionicons name="male" size={14} color={maleColor} />
+                          <ThemedText style={[styles.yearlyBreakdownText, { color: textSecondaryColor }]}>
+                            {entry.genders.boys}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.yearlyBreakdownItem}>
+                          <Ionicons name="female" size={14} color={femaleColor} />
+                          <ThemedText style={[styles.yearlyBreakdownText, { color: textSecondaryColor }]}>
+                            {entry.genders.girls}
+                          </ThemedText>
+                        </View>
+                        {entry.genders.angels > 0 && (
+                          <View style={styles.yearlyBreakdownItem}>
+                            <Ionicons name="star" size={14} color={warningColor} />
+                            <ThemedText style={[styles.yearlyBreakdownText, { color: textSecondaryColor }]}>
+                              {entry.genders.angels}
+                            </ThemedText>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.yearlyBreakdownRow}>
+                        {entry.deliveries.vaginal > 0 && (
+                          <View style={styles.yearlyBreakdownItem}>
+                            <Ionicons name="fitness-outline" size={14} color={successColor} />
+                            <ThemedText style={[styles.yearlyBreakdownText, { color: textSecondaryColor }]}>
+                              {entry.deliveries.vaginal}
+                            </ThemedText>
+                          </View>
+                        )}
+                        {entry.deliveries.cSection > 0 && (
+                          <View style={styles.yearlyBreakdownItem}>
+                            <Ionicons name="medical-outline" size={14} color={primaryColor} />
+                            <ThemedText style={[styles.yearlyBreakdownText, { color: textSecondaryColor }]}>
+                              {entry.deliveries.cSection}
+                            </ThemedText>
+                          </View>
+                        )}
+                        <ThemedText style={[styles.yearlyDeliveryTotal, { color: textSecondaryColor }]}>
+                          {entry.deliveries.total} {entry.deliveries.total === 1 ? 'delivery' : 'deliveries'}
+                        </ThemedText>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Gender Distribution Section */}
           {totalBabies > 0 && (
@@ -519,6 +591,57 @@ const styles = StyleSheet.create({
   },
   deliveryStatsGrid: {
     gap: Spacing.md,
+  },
+  yearlyList: {
+    gap: Spacing.md,
+  },
+  yearlyCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  yearlyCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  yearlyYearText: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.weights.bold,
+  },
+  yearlyBabyCount: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  yearlyBreakdown: {
+    gap: Spacing.sm,
+  },
+  yearlyBreakdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  yearlyBreakdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  yearlyBreakdownText: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+  },
+  yearlyDeliveryTotal: {
+    fontSize: Typography.xs,
+    fontWeight: Typography.weights.medium,
+    marginLeft: 'auto',
   },
   deliveryStatCard: {
     flexDirection: 'row',

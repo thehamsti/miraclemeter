@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		APPINTENTS0001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPINTENTS0002 /* AppIntents.swift */; };
 		B3AE728887B66C38FF98CB8B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		C69EBD644404261DC5C4AB7C /* libPods-miraclemeter.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B2CE91D6F6B789C35146B6A /* libPods-miraclemeter.a */; };
@@ -20,7 +21,6 @@
 		WIDGET002D0002 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDGET002F0002 /* SharedDataManager.swift */; };
 		WIDGET002D0003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = WIDGET002F0003 /* Assets.xcassets */; };
 		WIDGET002D0004 /* MiracleMeterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WIDGET002P0001 /* MiracleMeterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		APPINTENTS0001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPINTENTS0002 /* AppIntents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,13 +57,13 @@
 		9405AF5599A0B66ED9DB5FA3 /* Pods-miraclemeter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-miraclemeter.debug.xcconfig"; path = "Target Support Files/Pods-miraclemeter/Pods-miraclemeter.debug.xcconfig"; sourceTree = "<group>"; };
 		A90B560F9EFC884EF69CD210 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-miraclemeter/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = miraclemeter/SplashScreen.storyboard; sourceTree = "<group>"; };
+		APPINTENTS0002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = miraclemeter/AppIntents.swift; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = miraclemeter/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* miraclemeter-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "miraclemeter-Bridging-Header.h"; path = "miraclemeter/miraclemeter-Bridging-Header.h"; sourceTree = "<group>"; };
 		WIDGET001F0001 /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetBridge.swift; path = miraclemeter/WidgetBridge.swift; sourceTree = "<group>"; };
 		WIDGET001F0002 /* WidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = WidgetBridge.m; path = miraclemeter/WidgetBridge.m; sourceTree = "<group>"; };
-		APPINTENTS0002 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppIntents.swift; path = miraclemeter/AppIntents.swift; sourceTree = "<group>"; };
 		WIDGET002F0001 /* MiracleMeterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiracleMeterWidget.swift; sourceTree = "<group>"; };
 		WIDGET002F0002 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		WIDGET002F0003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };

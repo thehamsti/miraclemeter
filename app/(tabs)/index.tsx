@@ -1,37 +1,23 @@
-import React, { useCallback, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Link } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import { BirthRecord, UserAchievements } from "@/types";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
-import { Button } from "@/components/Button";
-import { Ionicons } from "@expo/vector-icons";
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { StatCard } from "@/components/StatCard";
-import { RecordCard } from "@/components/RecordCard";
-import {
-  BorderRadius,
-  Colors,
-  Shadows,
-  Spacing,
-  Typography,
-} from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { Platform } from "react-native";
-import { getAchievements } from "@/services/achievements";
+import { Ionicons } from "@expo/vector-icons";
 import { ACHIEVEMENTS } from "@/constants/achievements";
+import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/Colors";
+import { ThemedText } from "@/components/ThemedText";
+import { RecordCard } from "@/components/RecordCard";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useStatistics } from "@/hooks/useStatistics";
+import { getAchievements } from "@/services/achievements";
+import { getHomeRecapDismissed, setHomeRecapDismissed } from "@/services/storage";
+import type { UserAchievements } from "@/types";
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
+  const [isRecapDismissed, setIsRecapDismissed] = useState(false);
   
   const {
     recentRecords,
@@ -39,7 +25,7 @@ export default function HomeScreen() {
     weekCount,
     monthCount,
     genderCounts,
-    loading,
+    yearlyBabyCounts,
     refresh,
   } = useStatistics();
 
@@ -52,9 +38,11 @@ export default function HomeScreen() {
   const femaleColor = useThemeColor({}, "female");
   const warningColor = useThemeColor({}, "warning");
   const successColor = useThemeColor({}, "success");
-  const borderColor = useThemeColor({}, "border");
 
-  const loadAchievements = useCallback(async () => {
+  const recapYear = new Date().getFullYear() - 1;
+  const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
+
+  const loadAchievements = useCallback(async (): Promise<void> => {
     try {
       const achievements = await getAchievements();
       setUserAchievements(achievements);
@@ -63,31 +51,55 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const loadRecapDismissal = useCallback(async (): Promise<void> => {
+    try {
+      const dismissed = await getHomeRecapDismissed(recapYear);
+      setIsRecapDismissed(dismissed);
+    } catch (error) {
+      console.error("Error loading recap dismissal:", error);
+    }
+  }, [recapYear]);
+
   useFocusEffect(
     useCallback(() => {
       refresh();
       loadAchievements();
-    }, [refresh, loadAchievements]),
+      loadRecapDismissal();
+    }, [refresh, loadAchievements, loadRecapDismissal]),
   );
+
+  useEffect(() => {
+    loadRecapDismissal();
+  }, [loadRecapDismissal]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refresh();
     await loadAchievements();
+    await loadRecapDismissal();
     setRefreshing(false);
-  }, [refresh, loadAchievements]);
+  }, [refresh, loadAchievements, loadRecapDismissal]);
 
-  const getGreeting = () => {
+  const getGreeting = (): string => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
 
-  const getEmoji = () => {
+  const getEmoji = (): string => {
     const emojis = ["👶", "🍼", "🎉", "💝", "✨", "🌟"];
     return emojis[Math.floor(Math.random() * emojis.length)];
   };
+
+  const handleDismissRecap = useCallback(async (): Promise<void> => {
+    try {
+      setIsRecapDismissed(true);
+      await setHomeRecapDismissed(recapYear, true);
+    } catch (error) {
+      console.error("Error dismissing recap:", error);
+    }
+  }, [recapYear]);
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -222,6 +234,56 @@ export default function HomeScreen() {
             </ThemedText>
           </View>
         </View>
+
+        {recapEntry && recapEntry.babies > 0 && !isRecapDismissed && (
+          <View style={styles.recapBannerContainer}>
+            <Link href="/recap" asChild>
+              <Pressable
+                accessibilityLabel={`View your ${recapYear} recap`}
+                accessibilityRole="button"
+                style={({ pressed }) => [
+                  styles.recapBanner,
+                  pressed && styles.recapBannerPressed,
+                ]}
+              >
+                <LinearGradient
+                  colors={[primaryColor, primaryColor + "DD"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.recapBannerGradient}
+                >
+                  <View style={styles.recapBannerContent}>
+                    <View style={styles.recapIconContainer}>
+                      <Ionicons name="sparkles" size={24} color="white" />
+                    </View>
+                    <View style={styles.recapTextContainer}>
+                      <ThemedText style={styles.recapBannerTitle}>
+                        Your {recapYear} Wrap
+                      </ThemedText>
+                      <ThemedText style={styles.recapBannerSubtitle}>
+                        {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"} welcomed
+                      </ThemedText>
+                    </View>
+                    <View style={styles.recapArrowContainer}>
+                      <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.8)" />
+                    </View>
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            </Link>
+            <Pressable
+              accessibilityLabel="Dismiss recap banner"
+              accessibilityRole="button"
+              onPress={handleDismissRecap}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.recapDismiss}
+            >
+              <View style={[styles.recapDismissIcon, { backgroundColor: surfaceColor }]}>
+                <Ionicons name="close" size={14} color={textSecondaryColor} />
+              </View>
+            </Pressable>
+          </View>
+        )}
 
         {/* Main CTA Button */}
         <View style={styles.ctaContainer}>
@@ -405,7 +467,7 @@ export default function HomeScreen() {
                   style={[
                     styles.recordCard,
                     { backgroundColor: surfaceColor },
-                    index === 0 && styles.firstRecord,
+                    index === 0 ? styles.firstRecord : undefined,
                   ]}
                 />
               ))}
@@ -518,6 +580,87 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
     textAlign: "center",
+  },
+  recapBannerContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    position: "relative",
+  },
+  recapBanner: {
+    borderRadius: BorderRadius.xl,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        ...Shadows.md,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  recapBannerPressed: {
+    opacity: 0.95,
+    transform: [{ scale: 0.98 }],
+  },
+  recapBannerGradient: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  recapBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  recapIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  recapTextContainer: {
+    flex: 1,
+  },
+  recapBannerTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.bold,
+    color: "white",
+    marginBottom: 2,
+  },
+  recapBannerSubtitle: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    color: "rgba(255, 255, 255, 0.85)",
+  },
+  recapArrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  recapDismiss: {
+    position: "absolute",
+    top: -8,
+    right: Spacing.lg - 4,
+    zIndex: 1,
+  },
+  recapDismissIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.full,
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   ctaContainer: {
     paddingHorizontal: Spacing.lg,
