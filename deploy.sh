@@ -100,9 +100,13 @@ if [ "$RETRY_MODE" = false ]; then
     echo -e "${YELLOW}Updating version in package.json...${NC}"
     sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
+    # Update version in Info.plist (native iOS)
+    echo -e "${YELLOW}Updating version in Info.plist...${NC}"
+    sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" ios/miraclemeter/Info.plist
+
     # Commit version change
     echo -e "${YELLOW}Committing version bump...${NC}"
-    git add app.config.ts package.json
+    git add app.config.ts package.json ios/miraclemeter/Info.plist
     git commit -m "chore: bump version to $NEW_VERSION"
 
     # Create git tag
