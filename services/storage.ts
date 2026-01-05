@@ -14,7 +14,7 @@ const STORAGE_KEY = 'birth_records';
 const ONBOARDING_COMPLETE_KEY = 'onboarding_complete';
 const USER_PREFERENCES_KEY = 'user_preferences';
 const APP_VERSION_KEY = 'app_version';
-const HOME_RECAP_DISMISSED_KEY = 'home_recap_dismissed';
+const getHomeRecapDismissedKey = (year: number) => `home_recap_dismissed_${year}`;
 
 export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
   try {
@@ -135,9 +135,9 @@ export async function setStoredAppVersion(version: string): Promise<void> {
   }
 }
 
-export async function getHomeRecapDismissed(): Promise<boolean> {
+export async function getHomeRecapDismissed(year: number): Promise<boolean> {
   try {
-    const value = await AsyncStorage.getItem(HOME_RECAP_DISMISSED_KEY);
+    const value = await AsyncStorage.getItem(getHomeRecapDismissedKey(year));
     return value === 'true';
   } catch (error) {
     console.error('Error getting recap dismissal status:', error);
@@ -145,9 +145,9 @@ export async function getHomeRecapDismissed(): Promise<boolean> {
   }
 }
 
-export async function setHomeRecapDismissed(dismissed: boolean): Promise<void> {
+export async function setHomeRecapDismissed(year: number, dismissed: boolean): Promise<void> {
   try {
-    await AsyncStorage.setItem(HOME_RECAP_DISMISSED_KEY, dismissed ? 'true' : 'false');
+    await AsyncStorage.setItem(getHomeRecapDismissedKey(year), dismissed ? 'true' : 'false');
   } catch (error) {
     console.error('Error saving recap dismissal status:', error);
     throw new StorageError('Failed to save recap dismissal status', error instanceof Error ? error : undefined);
