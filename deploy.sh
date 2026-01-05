@@ -104,6 +104,10 @@ if [ "$RETRY_MODE" = false ]; then
     echo -e "${YELLOW}Updating version in Info.plist...${NC}"
     sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" ios/miraclemeter/Info.plist
 
+    # Update runtimeVersion in app.config.ts (must match version for bare workflow)
+    echo -e "${YELLOW}Updating runtimeVersion in app.config.ts...${NC}"
+    sed -i '' "s/runtimeVersion: \"$CURRENT_VERSION\"/runtimeVersion: \"$NEW_VERSION\"/" app.config.ts
+
     # Commit version change
     echo -e "${YELLOW}Committing version bump...${NC}"
     git add app.config.ts package.json ios/miraclemeter/Info.plist

@@ -21,9 +21,7 @@ const config: ExpoConfig = {
         url: "https://u.expo.dev/c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
         fallbackToCacheTimeout: 0,
     },
-    runtimeVersion: {
-        policy: "appVersion",
-    },
+    runtimeVersion: "1.4.1",
     extra: {
         eas: {
             projectId: "c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
