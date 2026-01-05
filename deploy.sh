@@ -67,7 +67,7 @@ echo ""
 
 # Check for native code changes using Expo Fingerprint
 echo -e "${YELLOW}Checking for native code changes...${NC}"
-CURRENT_FINGERPRINT=$(npx @expo/fingerprint . 2>/dev/null | head -1 || echo "unknown")
+CURRENT_FINGERPRINT=$(npx @expo/fingerprint . 2>/dev/null | bun -e "const d = await Bun.stdin.json(); console.log(d.hash)" 2>/dev/null || echo "unknown")
 LAST_FINGERPRINT=$(cat "$FINGERPRINT_FILE" 2>/dev/null || echo "")
 
 if [ "$CURRENT_FINGERPRINT" = "$LAST_FINGERPRINT" ] && [ -n "$LAST_FINGERPRINT" ]; then
