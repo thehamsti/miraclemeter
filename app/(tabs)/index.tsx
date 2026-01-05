@@ -39,7 +39,7 @@ export default function HomeScreen() {
   const warningColor = useThemeColor({}, "warning");
   const successColor = useThemeColor({}, "success");
 
-  const recapYear = 2025;
+  const recapYear = new Date().getFullYear() - 1;
   const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
 
   const loadAchievements = useCallback(async (): Promise<void> => {
@@ -53,12 +53,12 @@ export default function HomeScreen() {
 
   const loadRecapDismissal = useCallback(async (): Promise<void> => {
     try {
-      const dismissed = await getHomeRecapDismissed();
+      const dismissed = await getHomeRecapDismissed(recapYear);
       setIsRecapDismissed(dismissed);
     } catch (error) {
       console.error("Error loading recap dismissal:", error);
     }
-  }, []);
+  }, [recapYear]);
 
   useFocusEffect(
     useCallback(() => {
@@ -95,11 +95,11 @@ export default function HomeScreen() {
   const handleDismissRecap = useCallback(async (): Promise<void> => {
     try {
       setIsRecapDismissed(true);
-      await setHomeRecapDismissed(true);
+      await setHomeRecapDismissed(recapYear, true);
     } catch (error) {
       console.error("Error dismissing recap:", error);
     }
-  }, []);
+  }, [recapYear]);
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -235,29 +235,52 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {recapEntry && !isRecapDismissed && (
+        {recapEntry && recapEntry.babies > 0 && !isRecapDismissed && (
           <View style={styles.recapBannerContainer}>
             <Link href="/recap" asChild>
               <Pressable
-                accessibilityLabel="View your 2025 recap"
+                accessibilityLabel={`View your ${recapYear} recap`}
                 accessibilityRole="button"
-                style={[styles.recapBanner, { backgroundColor: primaryColor + "15" }]}
+                style={({ pressed }) => [
+                  styles.recapBanner,
+                  pressed && styles.recapBannerPressed,
+                ]}
               >
-                <Ionicons name="sparkles" size={16} color={primaryColor} />
-                <ThemedText style={[styles.recapBannerText, { color: primaryColor }]}>
-                  Your 2025 Wrap is ready
-                </ThemedText>
-                <Ionicons name="chevron-forward" size={14} color={primaryColor} />
+                <LinearGradient
+                  colors={[primaryColor, primaryColor + "DD"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.recapBannerGradient}
+                >
+                  <View style={styles.recapBannerContent}>
+                    <View style={styles.recapIconContainer}>
+                      <Ionicons name="sparkles" size={24} color="white" />
+                    </View>
+                    <View style={styles.recapTextContainer}>
+                      <ThemedText style={styles.recapBannerTitle}>
+                        Your {recapYear} Wrap
+                      </ThemedText>
+                      <ThemedText style={styles.recapBannerSubtitle}>
+                        {recapEntry.babies} {recapEntry.babies === 1 ? "baby" : "babies"} welcomed
+                      </ThemedText>
+                    </View>
+                    <View style={styles.recapArrowContainer}>
+                      <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.8)" />
+                    </View>
+                  </View>
+                </LinearGradient>
               </Pressable>
             </Link>
             <Pressable
               accessibilityLabel="Dismiss recap banner"
               accessibilityRole="button"
               onPress={handleDismissRecap}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={styles.recapDismiss}
             >
-              <Ionicons name="close" size={16} color={textSecondaryColor} />
+              <View style={[styles.recapDismissIcon, { backgroundColor: surfaceColor }]}>
+                <Ionicons name="close" size={14} color={textSecondaryColor} />
+              </View>
             </Pressable>
           </View>
         )}
@@ -559,28 +582,85 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   recapBannerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+    position: "relative",
   },
   recapBanner: {
-    flex: 1,
+    borderRadius: BorderRadius.xl,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        ...Shadows.md,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  recapBannerPressed: {
+    opacity: 0.95,
+    transform: [{ scale: 0.98 }],
+  },
+  recapBannerGradient: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  recapBannerContent: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.full,
-    gap: Spacing.xs,
+    gap: Spacing.md,
   },
-  recapBannerText: {
+  recapIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  recapTextContainer: {
+    flex: 1,
+  },
+  recapBannerTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.bold,
+    color: "white",
+    marginBottom: 2,
+  },
+  recapBannerSubtitle: {
     fontSize: Typography.sm,
-    fontWeight: Typography.weights.semibold,
+    fontWeight: Typography.weights.medium,
+    color: "rgba(255, 255, 255, 0.85)",
+  },
+  recapArrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   recapDismiss: {
-    padding: Spacing.xs,
+    position: "absolute",
+    top: -8,
+    right: Spacing.lg - 4,
+    zIndex: 1,
+  },
+  recapDismissIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.full,
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   ctaContainer: {
     paddingHorizontal: Spacing.lg,
