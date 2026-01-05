@@ -22,7 +22,7 @@ const config: ExpoConfig = {
         fallbackToCacheTimeout: 0,
     },
     runtimeVersion: {
-        policy: "fingerprint",
+        policy: "appVersion",
     },
     extra: {
         eas: {
