@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # MiracleMeter Deployment Script (Improved for Expo SDK 54)
-# Usage: ./deploy.sh [patch|minor|major]
+# Usage: ./deploy.sh [patch|minor|major|--retry]
 #
 # Features:
 # - Uses Expo Fingerprint to detect native code changes
@@ -9,6 +9,7 @@
 # - Full build + TestFlight submission when native code changes
 # - Build numbers managed automatically by EAS (remote source)
 # - Only user-facing version needs manual bumping
+# - Use --retry to retry a failed build without version bump
 
 set -e
 
@@ -18,13 +19,20 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-BUMP_TYPE=${1:-patch}
 FINGERPRINT_FILE=".last-fingerprint"
+RETRY_MODE=false
 
-if [[ ! "$BUMP_TYPE" =~ ^(patch|minor|major)$ ]]; then
-    echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"
-    echo "Usage: ./deploy.sh [patch|minor|major]"
-    exit 1
+# Check for --retry flag
+if [ "$1" = "--retry" ]; then
+    RETRY_MODE=true
+    BUMP_TYPE=""
+else
+    BUMP_TYPE=${1:-patch}
+    if [[ ! "$BUMP_TYPE" =~ ^(patch|minor|major)$ ]]; then
+        echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"
+        echo "Usage: ./deploy.sh [patch|minor|major|--retry]"
+        exit 1
+    fi
 fi
 
 # Get current version from app.config.ts
@@ -35,19 +43,26 @@ if [ -z "$CURRENT_VERSION" ]; then
     exit 1
 fi
 
-# Parse and calculate new version
-IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-
-case $BUMP_TYPE in
-    major) NEW_VERSION="$((MAJOR + 1)).0.0" ;;
-    minor) NEW_VERSION="$MAJOR.$((MINOR + 1)).0" ;;
-    patch) NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))" ;;
-esac
-
 echo -e "${BLUE}MiracleMeter Deploy Script${NC}"
 echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${YELLOW}Current version:${NC} ${CURRENT_VERSION}"
-echo -e "${GREEN}New version:${NC}     ${NEW_VERSION}"
+
+if [ "$RETRY_MODE" = true ]; then
+    NEW_VERSION="$CURRENT_VERSION"
+    echo -e "${YELLOW}Retry mode:${NC} Retrying failed build"
+    echo -e "${GREEN}Version:${NC} ${CURRENT_VERSION}"
+else
+    # Parse and calculate new version
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+    case $BUMP_TYPE in
+        major) NEW_VERSION="$((MAJOR + 1)).0.0" ;;
+        minor) NEW_VERSION="$MAJOR.$((MINOR + 1)).0" ;;
+        patch) NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))" ;;
+    esac
+
+    echo -e "${YELLOW}Current version:${NC} ${CURRENT_VERSION}"
+    echo -e "${GREEN}New version:${NC}     ${NEW_VERSION}"
+fi
 echo ""
 
 # Check for native code changes using Expo Fingerprint
@@ -75,26 +90,31 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
 
-# Update version in app.config.ts only (EAS handles build numbers)
-echo -e "${YELLOW}Updating version in app.config.ts...${NC}"
-sed -i '' "s/version: \"$CURRENT_VERSION\"/version: \"$NEW_VERSION\"/" app.config.ts
+# Skip version bump and git operations in retry mode
+if [ "$RETRY_MODE" = false ]; then
+    # Update version in app.config.ts only (EAS handles build numbers)
+    echo -e "${YELLOW}Updating version in app.config.ts...${NC}"
+    sed -i '' "s/version: \"$CURRENT_VERSION\"/version: \"$NEW_VERSION\"/" app.config.ts
 
-# Update version in package.json
-echo -e "${YELLOW}Updating version in package.json...${NC}"
-sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+    # Update version in package.json
+    echo -e "${YELLOW}Updating version in package.json...${NC}"
+    sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
-# Commit version change
-echo -e "${YELLOW}Committing version bump...${NC}"
-git add app.config.ts package.json
-git commit -m "chore: bump version to $NEW_VERSION"
+    # Commit version change
+    echo -e "${YELLOW}Committing version bump...${NC}"
+    git add app.config.ts package.json
+    git commit -m "chore: bump version to $NEW_VERSION"
 
-# Create git tag
-echo -e "${YELLOW}Creating git tag v$NEW_VERSION...${NC}"
-git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+    # Create git tag
+    echo -e "${YELLOW}Creating git tag v$NEW_VERSION...${NC}"
+    git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
 
-# Push changes and tags
-echo -e "${YELLOW}Pushing to remote...${NC}"
-git push && git push --tags
+    # Push changes and tags
+    echo -e "${YELLOW}Pushing to remote...${NC}"
+    git push && git push --tags
+else
+    echo -e "${YELLOW}Skipping version bump (retry mode)${NC}"
+fi
 
 # Deploy based on fingerprint detection
 if [ "$DEPLOY_TYPE" = "ota" ]; then
