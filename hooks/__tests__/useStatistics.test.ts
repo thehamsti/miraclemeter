@@ -410,4 +410,203 @@ describe('useStatistics', () => {
       consoleError.mockRestore();
     });
   });
+
+  describe('yearlyBabyCounts', () => {
+    it('should group records by year correctly', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2024-08-20'),
+          babies: [{ gender: 'girl', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2023-03-10'),
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.yearlyBabyCounts).toHaveLength(2);
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      const year2023 = result.current.yearlyBabyCounts.find(y => y.year === 2023);
+      expect(year2024?.babies).toBe(2);
+      expect(year2023?.babies).toBe(1);
+    });
+
+    it('should calculate gender breakdown per year', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          babies: [
+            { gender: 'boy', birthOrder: 1 },
+            { gender: 'girl', birthOrder: 2 },
+          ],
+        }),
+        createMockRecord({
+          timestamp: new Date('2024-08-20'),
+          babies: [{ gender: 'angel', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      expect(year2024?.genders.boys).toBe(1);
+      expect(year2024?.genders.girls).toBe(1);
+      expect(year2024?.genders.angels).toBe(1);
+    });
+
+    it('should calculate delivery breakdown per year', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          deliveryType: 'vaginal',
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2024-08-20'),
+          deliveryType: 'c-section',
+          babies: [{ gender: 'girl', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2024-09-10'),
+          deliveryType: 'vaginal',
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      expect(year2024?.deliveries.vaginal).toBe(2);
+      expect(year2024?.deliveries.cSection).toBe(1);
+      expect(year2024?.deliveries.total).toBe(3);
+    });
+
+    it('should skip records without timestamps in yearly calculations', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: undefined,
+          babies: [{ gender: 'girl', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.yearlyBabyCounts).toHaveLength(1);
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      expect(year2024?.babies).toBe(1);
+    });
+
+    it('should default missing deliveryType to unknown', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          deliveryType: undefined,
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      expect(year2024?.deliveries.unknown).toBe(1);
+      expect(year2024?.deliveries.vaginal).toBe(0);
+      expect(year2024?.deliveries.cSection).toBe(0);
+    });
+
+    it('should sort years descending', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2022-06-15'),
+          babies: [{ gender: 'boy', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          babies: [{ gender: 'girl', birthOrder: 1 }],
+        }),
+        createMockRecord({
+          timestamp: new Date('2023-06-15'),
+          babies: [{ gender: 'angel', birthOrder: 1 }],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.yearlyBabyCounts[0].year).toBe(2024);
+      expect(result.current.yearlyBabyCounts[1].year).toBe(2023);
+      expect(result.current.yearlyBabyCounts[2].year).toBe(2022);
+    });
+
+    it('should return empty array when no records exist', async () => {
+      mockGetBirthRecords.mockResolvedValue([]);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.yearlyBabyCounts).toEqual([]);
+    });
+
+    it('should handle records with empty babies array', async () => {
+      const records = [
+        createMockRecord({
+          timestamp: new Date('2024-06-15'),
+          deliveryType: 'vaginal',
+          babies: [],
+        }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const year2024 = result.current.yearlyBabyCounts.find(y => y.year === 2024);
+      expect(year2024?.babies).toBe(0);
+      expect(year2024?.deliveries.total).toBe(1);
+    });
+  });
 });
