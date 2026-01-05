@@ -3,7 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
     name: "miraclemeter",
     slug: "miraclemeter",
-    version: "1.3.1",
+    version: "1.4.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "miraclemeter",
@@ -17,6 +17,13 @@ const config: ExpoConfig = {
         package: "com.hamstico.miraclemeter",
     },
     platforms: ["ios"],
+    updates: {
+        url: "https://u.expo.dev/c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
+        fallbackToCacheTimeout: 0,
+    },
+    runtimeVersion: {
+        policy: "fingerprint",
+    },
     extra: {
         eas: {
             projectId: "c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
@@ -31,6 +38,7 @@ const config: ExpoConfig = {
         "expo-router",
         "expo-font",
         "expo-web-browser",
+        "expo-updates",
         [
             "expo-splash-screen",
             {
