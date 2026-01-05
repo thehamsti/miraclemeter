@@ -28,6 +28,8 @@ export default function SettingsScreen() {
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const primaryColor = useThemeColor({}, 'primary');
   const borderLightColor = useThemeColor({}, 'borderLight');
+
+  const recapYear = new Date().getFullYear() - 1;
   // Profile state
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('');
@@ -253,6 +255,37 @@ export default function SettingsScreen() {
                   style={styles.themeSegment}
                 />
               </View>
+            </View>
+
+            {/* More Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="sparkles-outline" size={22} color={primaryColor} />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  More
+                </ThemedText>
+              </View>
+
+              <Pressable
+                onPress={() => router.push('/recap')}
+                style={({ pressed }) => [
+                  styles.settingItem,
+                  { borderBottomWidth: 0 },
+                  pressed && { opacity: 0.7 }
+                ]}
+              >
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                    View {recapYear} Wrap
+                  </ThemedText>
+                  <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                    See your year in review
+                  </ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </Pressable>
             </View>
 
             {/* Notifications Section */}
