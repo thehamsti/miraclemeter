@@ -17,7 +17,16 @@ const USER_PREFERENCES_KEY = 'user_preferences';
 const APP_VERSION_KEY = 'app_version';
 const getHomeRecapDismissedKey = (year: number) => `home_recap_dismissed_${year}`;
 
-export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
+export interface SaveBirthRecordResult {
+  achievements: string[];
+  streakMilestone: number | null;
+  shieldEarned: boolean;
+  recoveryCompleted: boolean;
+}
+
+export async function saveBirthRecord(record: BirthRecord): Promise<string[]>;
+export async function saveBirthRecord(record: BirthRecord, returnFullResult: true): Promise<SaveBirthRecordResult>;
+export async function saveBirthRecord(record: BirthRecord, returnFullResult?: boolean): Promise<string[] | SaveBirthRecordResult> {
   try {
     const existingRecordsJson = await AsyncStorage.getItem(STORAGE_KEY);
     const existingRecords: BirthRecord[] = existingRecordsJson ? JSON.parse(existingRecordsJson) : [];
@@ -35,8 +44,18 @@ export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
     })));
     await updateWidgetData(todayCount, updatedRecords.length);
     
-    // Update streak
-    await updateStreakOnDelivery();
+    // Update streak and get milestone info
+    const streakResult = await updateStreakOnDelivery();
+    
+    // Return full result if requested
+    if (returnFullResult) {
+      return {
+        achievements: newAchievements,
+        streakMilestone: streakResult.newMilestone,
+        shieldEarned: streakResult.shieldEarned,
+        recoveryCompleted: streakResult.recoveryCompleted,
+      };
+    }
     
     return newAchievements;
   } catch (error) {

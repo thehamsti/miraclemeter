@@ -38,7 +38,7 @@ export async function incrementAchievementCount(): Promise<void> {
 }
 
 export async function shouldShowRatePrompt(
-  trigger: 'recap_viewed' | 'achievement_unlocked' | 'delivery_milestone'
+  trigger: 'recap_viewed' | 'achievement_unlocked' | 'delivery_milestone' | 'streak_milestone'
 ): Promise<boolean> {
   try {
     const data = await getRatePromptData();
@@ -65,6 +65,11 @@ export async function shouldShowRatePrompt(
 
       case 'delivery_milestone':
         // This would be called after 25th delivery
+        return true;
+
+      case 'streak_milestone':
+        // Show after celebrating a streak milestone (4+ weeks)
+        // This is a high-satisfaction moment
         return true;
 
       default:

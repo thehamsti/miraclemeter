@@ -13,9 +13,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
-import { saveBirthRecord } from '@/services/storage';
+import { saveBirthRecord, type SaveBirthRecordResult } from '@/services/storage';
+import { shouldShowRatePrompt, showRatePrompt } from '@/services/ratePrompt';
 import type { Baby, BirthRecord } from '@/types';
 import { AchievementNotification } from '@/components/AchievementNotification';
+import { StreakMilestoneModal } from '@/components/StreakMilestoneModal';
 import { ACHIEVEMENTS } from '@/constants/achievements';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -36,6 +38,8 @@ export default function QuickEntryScreen() {
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [currentAchievementIndex, setCurrentAchievementIndex] = useState(0);
   const [showAchievement, setShowAchievement] = useState(false);
+  const [streakMilestone, setStreakMilestone] = useState<number | null>(null);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   
   // Widget quick-add mode: shows confirmation screen instead of full stepper
   const [isWidgetMode, setIsWidgetMode] = useState(false);
@@ -83,12 +87,17 @@ export default function QuickEntryScreen() {
     };
 
     try {
-      const achievements = await saveBirthRecord(birthRecord);
-      setNewAchievements(achievements);
+      const result = await saveBirthRecord(birthRecord, true);
+      setNewAchievements(result.achievements);
       setShowSuccess(true);
       
-      // Show achievements one by one if any were unlocked
-      if (achievements.length > 0) {
+      // Check if a streak milestone was reached
+      if (result.streakMilestone) {
+        setStreakMilestone(result.streakMilestone);
+        setShowMilestoneModal(true);
+      }
+      // Show achievements one by one if any were unlocked (after milestone if present)
+      else if (result.achievements.length > 0) {
         setCurrentAchievementIndex(0);
         setShowAchievement(true);
       }
@@ -111,6 +120,8 @@ export default function QuickEntryScreen() {
     setCurrentAchievementIndex(0);
     setShowAchievement(false);
     setIsWidgetMode(false);
+    setStreakMilestone(null);
+    setShowMilestoneModal(false);
   }, []);
 
   useFocusEffect(
@@ -408,7 +419,33 @@ export default function QuickEntryScreen() {
     );
   };
 
-  const handleAchievementDismiss = () => {
+  const handleMilestoneDismiss = useCallback(async () => {
+    setShowMilestoneModal(false);
+    
+    // Check if we should show the rate prompt after milestone celebration
+    // This is a high-satisfaction moment - perfect for asking for a review
+    try {
+      const shouldPrompt = await shouldShowRatePrompt('streak_milestone');
+      if (shouldPrompt) {
+        // Small delay to let the modal close smoothly
+        setTimeout(async () => {
+          await showRatePrompt();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error showing rate prompt:', error);
+    }
+    
+    // Show achievements after milestone modal closes (if any)
+    if (newAchievements.length > 0) {
+      setTimeout(() => {
+        setCurrentAchievementIndex(0);
+        setShowAchievement(true);
+      }, 800);
+    }
+  }, [newAchievements]);
+
+  const handleAchievementDismiss = useCallback(async () => {
     setShowAchievement(false);
     
     // Show next achievement if there are more
@@ -417,8 +454,23 @@ export default function QuickEntryScreen() {
         setCurrentAchievementIndex(prev => prev + 1);
         setShowAchievement(true);
       }, 500);
+    } else {
+      // All achievements shown - check if we should show rate prompt
+      // Only if we didn't already show it for a milestone
+      if (!streakMilestone) {
+        try {
+          const shouldPrompt = await shouldShowRatePrompt('achievement_unlocked');
+          if (shouldPrompt) {
+            setTimeout(async () => {
+              await showRatePrompt();
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error showing rate prompt:', error);
+        }
+      }
     }
-  };
+  }, [currentAchievementIndex, newAchievements.length, streakMilestone]);
 
   const currentAchievement = newAchievements[currentAchievementIndex] 
     ? ACHIEVEMENTS.find(a => a.id === newAchievements[currentAchievementIndex])
@@ -437,6 +489,13 @@ export default function QuickEntryScreen() {
             onDismiss={handleAchievementDismiss}
           />
         )}
+
+        {/* Streak Milestone Celebration Modal */}
+        <StreakMilestoneModal
+          visible={showMilestoneModal}
+          milestone={streakMilestone ?? 4}
+          onDismiss={handleMilestoneDismiss}
+        />
 
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
