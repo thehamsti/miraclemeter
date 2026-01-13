@@ -77,4 +77,41 @@ interface YearlyBabyCount {
   };
 }
 
-export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements, YearlyBabyCount };
+interface StreakData {
+  // Core streak tracking (now weekly-based)
+  currentStreak: number; // Consecutive active weeks
+  longestStreak: number;
+  lastLogDate: string | null; // ISO date string (YYYY-MM-DD)
+  
+  // Weekly goal system
+  weeklyGoal: number; // Target logs per week (default: 1)
+  currentWeekLogs: number; // How many times logged this week
+  weekStartDate: string | null; // Start of current tracking week (Monday)
+  
+  // Streak shields (freeze protection)
+  streakShields: number; // Earned tokens that protect streaks (max 3)
+  
+  // Recovery challenge
+  recoveryChallenge: {
+    active: boolean;
+    targetLogs: number; // How many logs needed to recover
+    currentLogs: number; // Progress toward recovery
+    deadline: string | null; // ISO date string
+    originalStreak: number; // The streak being recovered
+  } | null;
+  
+  // Milestones
+  milestonesCelebrated: number[]; // Week milestones already shown (4, 12, 26, 52, etc.)
+  
+  // Legacy field (deprecated, kept for migration)
+  streakSaveUsedAt: string | null;
+}
+
+interface RatePromptData {
+  hasBeenPrompted: boolean;
+  promptedAt: string | null; // ISO date string
+  hasRated: boolean;
+  achievementUnlockCount: number; // Track unlocks to trigger at 3rd
+}
+
+export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements, YearlyBabyCount, StreakData, RatePromptData };

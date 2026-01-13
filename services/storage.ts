@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { BirthRecord, UserPreferences } from '@/types';
 import { checkAchievements } from './achievements';
 import { updateWidgetData, calculateTodayCount } from './widgetBridge';
+import { updateStreakOnDelivery } from './streaks';
 
 export class StorageError extends Error {
   constructor(message: string, public cause?: Error) {
@@ -33,6 +34,9 @@ export async function saveBirthRecord(record: BirthRecord): Promise<string[]> {
       timestamp: r.timestamp ? new Date(r.timestamp) : undefined
     })));
     await updateWidgetData(todayCount, updatedRecords.length);
+    
+    // Update streak
+    await updateStreakOnDelivery();
     
     return newAchievements;
   } catch (error) {
