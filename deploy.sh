@@ -81,7 +81,7 @@ validate_commands() {
 # Validate required files exist
 validate_files() {
     local missing=()
-    local files=("app.config.ts" "package.json" "ios/miraclemeter/Info.plist")
+    local files=("app.config.ts" "package.json" "ios/miraclemeter/Info.plist" "ios/miraclemeter/Supporting/Expo.plist")
     
     for file in "${files[@]}"; do
         if [ ! -f "$file" ]; then
@@ -221,11 +221,18 @@ if [ "$RETRY_MODE" = false ]; then
         exit 1
     fi
 
+    # Update EXUpdatesRuntimeVersion in Expo.plist (native iOS)
+    echo -e "${YELLOW}Updating runtimeVersion in Expo.plist...${NC}"
+    if ! sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" ios/miraclemeter/Supporting/Expo.plist; then
+        echo -e "${RED}Failed to update runtimeVersion in Expo.plist${NC}"
+        exit 1
+    fi
+
     VERSION_BUMPED=true
 
     # Commit version change
     echo -e "${YELLOW}Committing version bump...${NC}"
-    if ! git add app.config.ts package.json ios/miraclemeter/Info.plist; then
+    if ! git add app.config.ts package.json ios/miraclemeter/Info.plist ios/miraclemeter/Supporting/Expo.plist; then
         echo -e "${RED}Failed to stage files${NC}"
         exit 1
     fi
