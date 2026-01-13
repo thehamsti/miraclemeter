@@ -123,15 +123,17 @@ const styles = StyleSheet.create({
     }),
   },
   tabBarItem: {
-    paddingTop: Spacing.xs,
+    paddingTop: Spacing.sm,
+    gap: 4,
   },
   tabBarIcon: {
-    marginBottom: -Spacing.xs,
+    marginBottom: 0,
   },
   tabBarLabel: {
-    fontSize: Typography.xs,
-    fontWeight: Typography.weights.medium,
-    marginBottom: Spacing.xs,
+    fontSize: 11,
+    fontWeight: Typography.weights.semibold,
+    letterSpacing: 0.3,
+    marginTop: 2,
   },
   addButtonContainer: {
     flex: 1,
