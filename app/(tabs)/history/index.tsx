@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Alert, ScrollView, SafeAreaView, View, Platform, Pressable, RefreshControl } from 'react-native';
+import { StyleSheet, Alert, ScrollView, View, Platform, Pressable, RefreshControl } from 'react-native';
 import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { getBirthRecords, deleteBirthRecord } from '@/services/storage';
 import { BirthRecord } from '@/types';

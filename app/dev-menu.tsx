@@ -1,5 +1,6 @@
 import { Stack, router } from 'expo-router';
-import { StyleSheet, SafeAreaView, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Alert, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
