@@ -3,7 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
     name: "miraclemeter",
     slug: "miraclemeter",
-    version: "1.4.1",
+    version: "1.4.2",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "miraclemeter",
@@ -21,7 +21,7 @@ const config: ExpoConfig = {
         url: "https://u.expo.dev/c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
         fallbackToCacheTimeout: 0,
     },
-    runtimeVersion: "1.4.1",
+    runtimeVersion: "1.4.2",
     extra: {
         eas: {
             projectId: "c1ba267b-c55e-4530-9dcd-fbc530c2c76d",
