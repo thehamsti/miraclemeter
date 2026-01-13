@@ -55,7 +55,7 @@ export default function AboutScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <ThemedView style={styles.content}>
           <ThemedText style={styles.description}>
-            Hey there! 👋 This app was created with love for my amazing wife Kelly, who inspired me to build something to help midwives and labor and delivery nurses track births.
+            Built by nurses, for nurses. MiracleMeter was created with love to help L&D professionals track every birth they witness and celebrate their career milestones — all while keeping patient privacy first.
           </ThemedText>
           <TouchableOpacity 
             onPress={handleStarTap} 
