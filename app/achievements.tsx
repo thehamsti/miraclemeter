@@ -1,15 +1,17 @@
-import React, { useState, useCallback } from 'react';
-import { ScrollView, StyleSheet, View, Platform, Pressable, Dimensions } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { ScrollView, StyleSheet, View, Platform, Pressable, Dimensions, Modal, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AchievementBadge } from '@/components/AchievementBadge';
+import { AchievementShareCard } from '@/components/AchievementShareCard';
 import { Achievement, UserAchievements } from '@/types';
 import { ACHIEVEMENTS } from '@/constants/achievements';
 import { getAchievements, checkAchievements } from '@/services/achievements';
 import { getBirthRecords, getUserPreferences } from '@/services/storage';
+import { captureAndShareAchievement } from '@/services/shareCard';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -27,6 +29,9 @@ export default function AchievementsScreen() {
   const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Achievement['category'] | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const shareCardRef = useRef<View>(null!);
 
   const loadAchievements = useCallback(async () => {
     try {
@@ -66,6 +71,31 @@ export default function AchievementsScreen() {
       return () => {}; // Optional cleanup function
     }, [loadAchievements])
   );
+
+  const handleShare = useCallback(async () => {
+    if (!selectedAchievement) return;
+    
+    setIsSharing(true);
+    
+    // Small delay to ensure the card is rendered
+    setTimeout(async () => {
+      try {
+        await captureAndShareAchievement(shareCardRef, selectedAchievement);
+      } catch (error) {
+        console.error('Error sharing achievement:', error);
+        Alert.alert('Sharing Failed', 'Unable to share this achievement. Please try again.');
+      } finally {
+        setIsSharing(false);
+        setSelectedAchievement(null);
+      }
+    }, 100);
+  }, [selectedAchievement]);
+
+  const handleAchievementPress = useCallback((achievement: Achievement) => {
+    if (userAchievements?.unlocked.includes(achievement.id)) {
+      setSelectedAchievement(achievement);
+    }
+  }, [userAchievements]);
 
   const filteredAchievements = selectedCategory === 'all' 
     ? ACHIEVEMENTS 
@@ -221,28 +251,41 @@ export default function AchievementsScreen() {
           {/* Achievements Grid */}
           <View style={styles.achievementsSection}>
             <View style={styles.achievementsGrid}>
-              {filteredAchievements.map((achievement) => (
-                <View key={achievement.id} style={styles.achievementItem}>
-                  <View style={[styles.achievementCard, { backgroundColor: surfaceColor }]}>
-                    <AchievementBadge
-                      achievement={achievement}
-                      userAchievements={userAchievements || {
-                        unlocked: [],
-                        progress: {},
-                        stats: {
-                          totalDeliveries: 0,
-                          currentStreak: 0,
-                          longestStreak: 0,
-                          deliveryTypes: { vaginal: 0, cSection: 0 },
-                          multipleBirths: 0,
-                          angelBabies: 0
-                        }
-                      }}
-                      size="large"
-                    />
-                  </View>
-                </View>
-              ))}
+              {filteredAchievements.map((achievement) => {
+                const isUnlocked = userAchievements?.unlocked.includes(achievement.id);
+                return (
+                  <Pressable 
+                    key={achievement.id} 
+                    style={styles.achievementItem}
+                    onPress={() => handleAchievementPress(achievement)}
+                    disabled={!isUnlocked}
+                  >
+                    <View style={[styles.achievementCard, { backgroundColor: surfaceColor }]}>
+                      <AchievementBadge
+                        achievement={achievement}
+                        userAchievements={userAchievements || {
+                          unlocked: [],
+                          progress: {},
+                          stats: {
+                            totalDeliveries: 0,
+                            currentStreak: 0,
+                            longestStreak: 0,
+                            deliveryTypes: { vaginal: 0, cSection: 0 },
+                            multipleBirths: 0,
+                            angelBabies: 0
+                          }
+                        }}
+                        size="large"
+                      />
+                      {isUnlocked && (
+                        <View style={[styles.shareHint, { backgroundColor: primaryColor }]}>
+                          <Ionicons name="share-outline" size={12} color="white" />
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
@@ -264,6 +307,53 @@ export default function AchievementsScreen() {
           {/* Bottom spacing for safe area */}
           <View style={{ height: 120 }} />
         </ScrollView>
+
+        {/* Share Modal */}
+        <Modal
+          visible={selectedAchievement !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSelectedAchievement(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable 
+              style={styles.modalBackdrop} 
+              onPress={() => !isSharing && setSelectedAchievement(null)}
+            />
+            <View style={styles.modalContent}>
+              {selectedAchievement && (
+                <AchievementShareCard
+                  ref={shareCardRef}
+                  achievement={selectedAchievement}
+                  unlockedAt={new Date()}
+                />
+              )}
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.shareButton, { backgroundColor: primaryColor }]}
+                  onPress={handleShare}
+                  disabled={isSharing}
+                >
+                  {isSharing ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <Ionicons name="share-outline" size={20} color="white" />
+                      <ThemedText style={styles.shareButtonText}>Share</ThemedText>
+                    </>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={[styles.cancelButton, { backgroundColor: surfaceColor }]}
+                  onPress={() => setSelectedAchievement(null)}
+                  disabled={isSharing}
+                >
+                  <ThemedText style={[styles.cancelButtonText, { color: textColor }]}>Cancel</ThemedText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </>
   );
@@ -491,5 +581,56 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: Typography.lineHeights.base,
     maxWidth: 280,
+  },
+  shareHint: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    minWidth: 120,
+  },
+  shareButtonText: {
+    color: 'white',
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  cancelButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+  },
+  cancelButtonText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
   },
 });

@@ -23,6 +23,7 @@ interface Statistics {
   todayCount: number;
   weekCount: number;
   monthCount: number;
+  yearCount: number;
   genderCounts: GenderCounts;
   deliveryCounts: DeliveryCounts;
   yearlyBabyCounts: YearlyBabyCount[];
@@ -36,6 +37,7 @@ export function useStatistics(): Statistics {
   const [todayCount, setTodayCount] = useState(0);
   const [weekCount, setWeekCount] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
+  const [yearCount, setYearCount] = useState(0);
   const [genderCounts, setGenderCounts] = useState<GenderCounts>({ boys: 0, girls: 0, angels: 0 });
   const [deliveryCounts, setDeliveryCounts] = useState<DeliveryCounts>({ vaginal: 0, cSection: 0, unknown: 0 });
   const [yearlyBabyCounts, setYearlyBabyCounts] = useState<YearlyBabyCount[]>([]);
@@ -47,6 +49,9 @@ export function useStatistics(): Statistics {
     let today = 0;
     let week = 0;
     let month = 0;
+    let year = 0;
+
+    const currentYear = now.getFullYear();
 
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -68,11 +73,15 @@ export function useStatistics(): Statistics {
       if (recordDate >= monthAgo) {
         month++;
       }
+      if (recordDate.getFullYear() === currentYear) {
+        year++;
+      }
     }
 
     setTodayCount(today);
     setWeekCount(week);
     setMonthCount(month);
+    setYearCount(year);
 
     // Calculate gender counts
     let boys = 0;
@@ -188,6 +197,7 @@ export function useStatistics(): Statistics {
     todayCount,
     weekCount,
     monthCount,
+    yearCount,
     genderCounts,
     deliveryCounts,
     yearlyBabyCounts,

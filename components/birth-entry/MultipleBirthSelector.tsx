@@ -121,11 +121,12 @@ export function MultipleBirthSelector({ value, onChange }: MultipleBirthSelector
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
+    width: '100%',
   },
   buttonGrid: {
     gap: 12,
+    width: '100%',
   },
   row: {
     flexDirection: 'row',

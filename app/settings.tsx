@@ -12,12 +12,13 @@ import {
   saveNotificationPreferences
 } from '@/utils/notifications';
 import { getUserPreferences, saveUserPreferences } from '@/services/storage';
+import { getStreakData, setWeeklyGoal } from '@/services/streaks';
 import { Stack, router } from 'expo-router';
 import { useTheme } from '@/hooks/ThemeContext';
 import { ThemedSwitch } from '@/components/ThemedSwitch';
 import { ThemedSegmentedButtons } from '@/components/ThemedSegmentedButtons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { UserPreferences } from '@/types';
 
@@ -41,6 +42,9 @@ export default function SettingsScreen() {
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const { theme, setTheme, effectiveTheme } = useTheme();
+  
+  // Streak settings
+  const [weeklyGoalValue, setWeeklyGoalValue] = useState(1);
 
   useEffect(() => {
     loadPreferences();
@@ -63,6 +67,15 @@ export default function SettingsScreen() {
       setUnit(userPrefs.unit || '');
       setShift(userPrefs.shift || 'day');
     }
+    
+    // Load streak settings
+    const streakData = await getStreakData();
+    setWeeklyGoalValue(streakData.weeklyGoal);
+  }
+  
+  async function handleWeeklyGoalChange(goal: number) {
+    setWeeklyGoalValue(goal);
+    await setWeeklyGoal(goal);
   }
 
   async function saveProfileChanges(updates: Partial<UserPreferences>) {
@@ -108,6 +121,7 @@ export default function SettingsScreen() {
             hour: notifTime.getHours(),
             minute: notifTime.getMinutes(),
           },
+          smartNotifications: true,
         });
       }
 
@@ -118,6 +132,7 @@ export default function SettingsScreen() {
           hour: notifTime.getHours(),
           minute: notifTime.getMinutes(),
         },
+        smartNotifications: true,
       });
 
       if (enabled) {
@@ -254,6 +269,46 @@ export default function SettingsScreen() {
                   ]}
                   style={styles.themeSegment}
                 />
+              </View>
+            </View>
+
+            {/* Streak Settings Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: '#FF6B35' + '15' }]}>
+                  <MaterialCommunityIcons name="fire" size={22} color="#FF6B35" />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Weekly Streak
+                </ThemedText>
+              </View>
+              
+              <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                    Weekly Goal
+                  </ThemedText>
+                  <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                    How many days per week to log deliveries
+                  </ThemedText>
+                </View>
+              </View>
+              
+              <View style={styles.weeklyGoalContainer}>
+                <ThemedSegmentedButtons
+                  value={String(weeklyGoalValue)}
+                  onValueChange={(value) => handleWeeklyGoalChange(Number(value))}
+                  buttons={[
+                    { value: '1', label: '1 day' },
+                    { value: '2', label: '2 days' },
+                    { value: '3', label: '3 days' },
+                    { value: '4', label: '4+ days' },
+                  ]}
+                  style={styles.goalSegment}
+                />
+                <ThemedText style={[styles.goalHint, { color: textSecondaryColor }]}>
+                  Meet your goal each week to build your streak
+                </ThemedText>
               </View>
             </View>
 
@@ -519,5 +574,17 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
     marginBottom: Spacing.sm,
     letterSpacing: Typography.letterSpacing.wide,
+  },
+  weeklyGoalContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  goalSegment: {
+    width: '100%',
+  },
+  goalHint: {
+    fontSize: Typography.xs,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
   },
 });

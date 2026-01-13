@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     alignItems: "center",
-    gap: 24,
-    paddingVertical: 16,
+    gap: 16,
+    paddingVertical: 8,
   },
   header: {
     alignItems: "center",
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   content: {
     width: "100%",
     maxWidth: 400,
-    gap: 24,
+    gap: 16,
     alignItems: "center",
   },
   pickerSection: {
     width: "100%",
-    gap: 16,
+    gap: 12,
     paddingHorizontal: 16,
   },
   pickerRow: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     width: "100%",
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 16,
   },
   currentTimeButton: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   adjustButtonGroup: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   adjustButton: {
     flex: 1,
