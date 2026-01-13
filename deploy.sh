@@ -11,8 +11,6 @@
 # - Only user-facing version needs manual bumping
 # - Use --retry to retry a failed build without version bump
 
-set -e
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -21,6 +19,109 @@ NC='\033[0m'
 
 FINGERPRINT_FILE=".last-fingerprint"
 RETRY_MODE=false
+VERSION_BUMPED=false
+
+# Graceful error handler
+cleanup() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo ""
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${RED}Deployment failed!${NC}"
+        
+        if [ "$VERSION_BUMPED" = true ]; then
+            echo ""
+            echo -e "${YELLOW}Version was already bumped to ${NEW_VERSION}.${NC}"
+            echo -e "To retry without re-bumping, run:"
+            echo -e "  ${BLUE}./deploy.sh --retry${NC}"
+        fi
+        
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    fi
+    exit $exit_code
+}
+trap cleanup EXIT
+
+# Validate required commands exist
+validate_commands() {
+    local missing=()
+    local commands=("git" "grep" "sed" "npx" "bun" "eas")
+    
+    echo -e "${YELLOW}Validating required commands...${NC}"
+    
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    
+    if [ ${#missing[@]} -ne 0 ]; then
+        echo -e "${RED}Error: Missing required commands:${NC}"
+        for cmd in "${missing[@]}"; do
+            echo -e "  - ${RED}$cmd${NC}"
+            case "$cmd" in
+                eas)
+                    echo -e "    Install with: ${BLUE}npm install -g eas-cli${NC}"
+                    ;;
+                bun)
+                    echo -e "    Install with: ${BLUE}curl -fsSL https://bun.sh/install | bash${NC}"
+                    ;;
+                npx)
+                    echo -e "    Install Node.js from: ${BLUE}https://nodejs.org${NC}"
+                    ;;
+            esac
+        done
+        exit 1
+    fi
+    
+    echo -e "${GREEN}All required commands available${NC}"
+    echo ""
+}
+
+# Validate required files exist
+validate_files() {
+    local missing=()
+    local files=("app.config.ts" "package.json" "ios/miraclemeter/Info.plist")
+    
+    for file in "${files[@]}"; do
+        if [ ! -f "$file" ]; then
+            missing+=("$file")
+        fi
+    done
+    
+    if [ ${#missing[@]} -ne 0 ]; then
+        echo -e "${RED}Error: Missing required files:${NC}"
+        for file in "${missing[@]}"; do
+            echo -e "  - ${RED}$file${NC}"
+        done
+        exit 1
+    fi
+}
+
+# Validate git state
+validate_git() {
+    if ! git rev-parse --is-inside-work-tree &> /dev/null; then
+        echo -e "${RED}Error: Not inside a git repository${NC}"
+        exit 1
+    fi
+    
+    if [ -n "$(git status --porcelain)" ] && [ "$RETRY_MODE" = false ]; then
+        echo -e "${YELLOW}Warning: You have uncommitted changes${NC}"
+        read -p "Continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${RED}Deployment cancelled${NC}"
+            exit 1
+        fi
+    fi
+}
+
+# Run all validations before starting
+validate_commands
+validate_files
+validate_git
+
+set -e
 
 # Check for --retry flag
 if [ "$1" = "--retry" ]; then
@@ -94,32 +195,62 @@ fi
 if [ "$RETRY_MODE" = false ]; then
     # Update version in app.config.ts only (EAS handles build numbers)
     echo -e "${YELLOW}Updating version in app.config.ts...${NC}"
-    sed -i '' "s/version: \"$CURRENT_VERSION\"/version: \"$NEW_VERSION\"/" app.config.ts
+    if ! sed -i '' "s/version: \"$CURRENT_VERSION\"/version: \"$NEW_VERSION\"/" app.config.ts; then
+        echo -e "${RED}Failed to update version in app.config.ts${NC}"
+        exit 1
+    fi
 
     # Update version in package.json
     echo -e "${YELLOW}Updating version in package.json...${NC}"
-    sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+    if ! sed -i '' "s/\"version\": \"[0-9]*\.[0-9]*\.[0-9]*\"/\"version\": \"$NEW_VERSION\"/" package.json; then
+        echo -e "${RED}Failed to update version in package.json${NC}"
+        exit 1
+    fi
 
     # Update version in Info.plist (native iOS)
     echo -e "${YELLOW}Updating version in Info.plist...${NC}"
-    sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" ios/miraclemeter/Info.plist
+    if ! sed -i '' "s/<string>$CURRENT_VERSION<\/string>/<string>$NEW_VERSION<\/string>/" ios/miraclemeter/Info.plist; then
+        echo -e "${RED}Failed to update version in Info.plist${NC}"
+        exit 1
+    fi
 
     # Update runtimeVersion in app.config.ts (must match version for bare workflow)
     echo -e "${YELLOW}Updating runtimeVersion in app.config.ts...${NC}"
-    sed -i '' "s/runtimeVersion: \"$CURRENT_VERSION\"/runtimeVersion: \"$NEW_VERSION\"/" app.config.ts
+    if ! sed -i '' "s/runtimeVersion: \"$CURRENT_VERSION\"/runtimeVersion: \"$NEW_VERSION\"/" app.config.ts; then
+        echo -e "${RED}Failed to update runtimeVersion in app.config.ts${NC}"
+        exit 1
+    fi
+
+    VERSION_BUMPED=true
 
     # Commit version change
     echo -e "${YELLOW}Committing version bump...${NC}"
-    git add app.config.ts package.json ios/miraclemeter/Info.plist
-    git commit -m "chore: bump version to $NEW_VERSION"
+    if ! git add app.config.ts package.json ios/miraclemeter/Info.plist; then
+        echo -e "${RED}Failed to stage files${NC}"
+        exit 1
+    fi
+    if ! git commit -m "chore: bump version to $NEW_VERSION"; then
+        echo -e "${RED}Failed to commit version bump${NC}"
+        exit 1
+    fi
 
     # Create git tag
     echo -e "${YELLOW}Creating git tag v$NEW_VERSION...${NC}"
-    git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+    if ! git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"; then
+        echo -e "${RED}Failed to create git tag${NC}"
+        exit 1
+    fi
 
     # Push changes and tags
     echo -e "${YELLOW}Pushing to remote...${NC}"
-    git push && git push --tags
+    if ! git push; then
+        echo -e "${RED}Failed to push to remote${NC}"
+        exit 1
+    fi
+    if ! git push --tags; then
+        echo -e "${RED}Failed to push tags${NC}"
+        exit 1
+    fi
 else
     echo -e "${YELLOW}Skipping version bump (retry mode)${NC}"
 fi
@@ -127,13 +258,19 @@ fi
 # Deploy based on fingerprint detection
 if [ "$DEPLOY_TYPE" = "ota" ]; then
     echo -e "${YELLOW}Pushing OTA update...${NC}"
-    eas update --branch production --message "v$NEW_VERSION"
+    if ! eas update --branch production --message "v$NEW_VERSION"; then
+        echo -e "${RED}Failed to push OTA update${NC}"
+        exit 1
+    fi
     echo ""
     echo -e "${GREEN}OTA update published!${NC}"
     echo -e "Users will receive v${NEW_VERSION} on next app launch."
 else
     echo -e "${YELLOW}Building and submitting to TestFlight...${NC}"
-    eas build --platform ios --profile production --auto-submit
+    if ! eas build --platform ios --profile production --auto-submit; then
+        echo -e "${RED}Failed to build and submit to TestFlight${NC}"
+        exit 1
+    fi
 
     # Save fingerprint after successful build
     echo "$CURRENT_FINGERPRINT" > "$FINGERPRINT_FILE"
