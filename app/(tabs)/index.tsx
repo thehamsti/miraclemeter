@@ -1,33 +1,78 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Link } from "expo-router";
+import React, { useCallback, useEffect, useState, useRef } from "react";
+import { Animated } from "react-native";
+import { Platform, Pressable, RefreshControl, StyleSheet, View, Modal, Alert } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
+import { BlurView } from "expo-blur";
+import { Link, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { ACHIEVEMENTS } from "@/constants/achievements";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { BorderRadius, Shadows, Spacing, Typography } from "@/constants/Colors";
 import { ThemedText } from "@/components/ThemedText";
 import { RecordCard } from "@/components/RecordCard";
+import { StatsShareCard, StatsPeriod } from "@/components/StatsShareCard";
+import { StreakProgressCard } from "@/components/StreakProgressCard";
+import { StreakMilestoneModal } from "@/components/StreakMilestoneModal";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useStatistics } from "@/hooks/useStatistics";
-import { getAchievements } from "@/services/achievements";
-import { getHomeRecapDismissed, setHomeRecapDismissed } from "@/services/storage";
-import type { UserAchievements } from "@/types";
+import { useStreaks } from "@/hooks/useStreaks";
+
+import { getHomeRecapDismissed, setHomeRecapDismissed, getBirthRecords } from "@/services/storage";
+import { captureAndShareStats } from "@/services/shareCard";
+import { useMenu } from "./_layout";
+import type { BirthRecord } from "@/types";
+
+// Get dates that had records logged
+function getLoggedDates(records: BirthRecord[]): Set<string> {
+  const dates = new Set<string>();
+  for (const record of records) {
+    if (record.timestamp) {
+      const date = new Date(record.timestamp);
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      dates.add(dateStr);
+    }
+  }
+  return dates;
+}
+
+const HEADER_HEIGHT = 56;
+const SCROLL_THRESHOLD = 100;
 
 export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [userAchievements, setUserAchievements] = useState<UserAchievements | null>(null);
   const [isRecapDismissed, setIsRecapDismissed] = useState(false);
+  const [showSharePicker, setShowSharePicker] = useState(false);
+  const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<StatsPeriod | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [currentMilestone, setCurrentMilestone] = useState<number | null>(null);
+  const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
+  const statsShareCardRef = useRef<View>(null!);
+  
+  // Animated values for smooth header transition
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const headerAnimatedValue = useRef(new Animated.Value(0)).current;
+  const lastScrollY = useRef(0);
+  const isHeaderHidden = useRef(false);
+  
+  const insets = useSafeAreaInsets();
   
   const {
     recentRecords,
-    todayCount,
     weekCount,
     monthCount,
+    yearCount,
+    totalDeliveries,
     genderCounts,
     yearlyBabyCounts,
     refresh,
   } = useStatistics();
+
+  const { streakData, isAtRisk, status, weekProgress, nextMilestone, refresh: refreshStreak } = useStreaks();
+  const { openMenu } = useMenu();
+  const router = useRouter();
 
   const backgroundColor = useThemeColor({}, "background");
   const surfaceColor = useThemeColor({}, "surface");
@@ -37,19 +82,9 @@ export default function HomeScreen() {
   const maleColor = useThemeColor({}, "male");
   const femaleColor = useThemeColor({}, "female");
   const warningColor = useThemeColor({}, "warning");
-  const successColor = useThemeColor({}, "success");
 
   const recapYear = new Date().getFullYear() - 1;
   const recapEntry = yearlyBabyCounts.find((entry) => entry.year === recapYear);
-
-  const loadAchievements = useCallback(async (): Promise<void> => {
-    try {
-      const achievements = await getAchievements();
-      setUserAchievements(achievements);
-    } catch (error) {
-      console.error("Error loading achievements:", error);
-    }
-  }, []);
 
   const loadRecapDismissal = useCallback(async (): Promise<void> => {
     try {
@@ -60,12 +95,22 @@ export default function HomeScreen() {
     }
   }, [recapYear]);
 
+  const loadLoggedDates = useCallback(async () => {
+    try {
+      const records = await getBirthRecords();
+      setLoggedDates(getLoggedDates(records));
+    } catch (error) {
+      console.error("Error loading logged dates:", error);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       refresh();
-      loadAchievements();
       loadRecapDismissal();
-    }, [refresh, loadAchievements, loadRecapDismissal]),
+      refreshStreak();
+      loadLoggedDates();
+    }, [refresh, loadRecapDismissal, refreshStreak, loadLoggedDates]),
   );
 
   useEffect(() => {
@@ -74,11 +119,20 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    // Reset header to visible on refresh
+    isHeaderHidden.current = false;
+    Animated.spring(headerAnimatedValue, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 60,
+      friction: 12,
+    }).start();
     await refresh();
-    await loadAchievements();
     await loadRecapDismissal();
+    await refreshStreak();
+    await loadLoggedDates();
     setRefreshing(false);
-  }, [refresh, loadAchievements, loadRecapDismissal]);
+  }, [refresh, loadRecapDismissal, refreshStreak, loadLoggedDates, headerAnimatedValue]);
 
   const getGreeting = (): string => {
     const hour = new Date().getHours();
@@ -88,7 +142,7 @@ export default function HomeScreen() {
   };
 
   const getEmoji = (): string => {
-    const emojis = ["👶", "🍼", "🎉", "💝", "✨", "🌟"];
+    const emojis = ["🎀", "✨", "💕", "🌸", "👶", "💝"];
     return emojis[Math.floor(Math.random() * emojis.length)];
   };
 
@@ -101,44 +155,185 @@ export default function HomeScreen() {
     }
   }, [recapYear]);
 
+  const getStatsCount = useCallback((period: StatsPeriod): number => {
+    switch (period) {
+      case 'week': return weekCount;
+      case 'month': return monthCount;
+      case 'year': return yearCount;
+      case 'lifetime': return totalDeliveries;
+    }
+  }, [weekCount, monthCount, yearCount, totalDeliveries]);
+
+  const handleShareStats = useCallback(async () => {
+    if (!selectedStatsPeriod) return;
+    
+    setIsSharing(true);
+    
+    setTimeout(async () => {
+      try {
+        await captureAndShareStats(statsShareCardRef, selectedStatsPeriod);
+      } catch (error) {
+        console.error('Error sharing stats:', error);
+        Alert.alert('Sharing Failed', 'Unable to share stats. Please try again.');
+      } finally {
+        setIsSharing(false);
+        setSelectedStatsPeriod(null);
+      }
+    }, 100);
+  }, [selectedStatsPeriod]);
+
+  // Handle scroll with smooth spring animations
+  const handleScroll = useCallback((event: { nativeEvent: { contentOffset: { y: number } } }) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const shouldHide = currentY > SCROLL_THRESHOLD;
+    
+    if (shouldHide !== isHeaderHidden.current) {
+      isHeaderHidden.current = shouldHide;
+      Animated.spring(headerAnimatedValue, {
+        toValue: shouldHide ? 1 : 0,
+        useNativeDriver: true,
+        tension: 60,
+        friction: 12,
+      }).start();
+    }
+    
+    lastScrollY.current = currentY;
+  }, [headerAnimatedValue]);
+
+  // Animated header values - spring-based for smoothness
+  const headerOpacity = headerAnimatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
+  const headerTranslateY = headerAnimatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -(HEADER_HEIGHT + insets.top + 30)],
+  });
+
+  const compactHeaderOpacity = headerAnimatedValue.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const headerTop = insets.top;
+
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScrollView
+      {/* Compact Header - appears on scroll */}
+      <Animated.View
+        style={[
+          styles.compactHeader,
+          { opacity: compactHeaderOpacity },
+        ]}
+        pointerEvents="box-none"
+      >
+        <BlurView intensity={80} tint="light" style={styles.blurContainer}>
+          <View style={[styles.compactHeaderContent, { backgroundColor: primaryColor + "E8", paddingTop: headerTop + Spacing.xs }]}>
+            <ThemedText style={styles.compactTitle} numberOfLines={1}>
+              Your Birth Tracker
+            </ThemedText>
+            <View style={styles.compactActions}>
+              {streakData.currentStreak > 0 && (
+                <View style={styles.compactStreakBadge}>
+                  <MaterialCommunityIcons 
+                    name="fire" 
+                    size={16} 
+                    color={isAtRisk ? "#FCD34D" : "#FF6B35"} 
+                  />
+                  <ThemedText style={styles.compactStreakCount}>
+                    {streakData.currentStreak}
+                  </ThemedText>
+                </View>
+              )}
+              <Pressable
+                onPress={openMenu}
+                style={({ pressed }) => [
+                  styles.compactMenuButton,
+                  pressed && styles.menuButtonPressed,
+                ]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="menu" size={20} color="white" />
+              </Pressable>
+            </View>
+          </View>
+        </BlurView>
+      </Animated.View>
+
+      {/* Main Header - visible at top */}
+      <Animated.View
+        style={[
+          styles.mainHeader,
+          { 
+            opacity: headerOpacity,
+            transform: [{ translateY: headerTranslateY }],
+          },
+        ]}
+        pointerEvents="box-none"
+      >
+        <LinearGradient
+          colors={[primaryColor, primaryColor + "90"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerGradient, { paddingTop: headerTop + Spacing.sm }]}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.headerTextContainer}>
+              <ThemedText style={styles.greeting} numberOfLines={1}>
+                {getGreeting()} {getEmoji()}
+              </ThemedText>
+              <ThemedText
+                style={styles.headerTitle}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                Your Birth Tracker
+              </ThemedText>
+            </View>
+            <View style={styles.headerActions}>
+              {streakData.currentStreak > 0 && (
+                <View style={[styles.streakBadge, isAtRisk && styles.streakBadgeAtRisk]}>
+                  <MaterialCommunityIcons 
+                    name="fire" 
+                    size={18} 
+                    color={isAtRisk ? "#FCD34D" : "#FF6B35"} 
+                  />
+                  <ThemedText style={styles.streakCount}>
+                    {streakData.currentStreak}
+                  </ThemedText>
+                </View>
+              )}
+              <Pressable
+                onPress={openMenu}
+                style={({ pressed }) => [
+                  styles.menuButton,
+                  pressed && styles.menuButtonPressed,
+                ]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="menu" size={22} color="white" />
+              </Pressable>
+            </View>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={[styles.scrollContentContainer, { paddingTop: headerTop + 140 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={primaryColor}
+            progressViewOffset={headerTop + 100}
           />
         }
       >
-        {/* Header Section with Gradient */}
-        <LinearGradient
-          colors={[primaryColor, primaryColor + "95"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.header}>
-            <View style={styles.headerTextContainer}>
-              <ThemedText
-                style={[styles.greeting, { color: "white" }]}
-                numberOfLines={1}
-              >
-                {getGreeting()} {getEmoji()}
-              </ThemedText>
-              <ThemedText
-                style={[styles.headerTitle, { color: "white" }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                Your Birth Tracker
-              </ThemedText>
-            </View>
-          </View>
-        </LinearGradient>
 
         {/* Quick Stats Overview */}
         <View style={styles.quickStatsContainer}>
@@ -149,43 +344,11 @@ export default function HomeScreen() {
               style={[
                 styles.quickStatIconContainer,
                 {
-                  backgroundColor: successColor + "20",
+                  backgroundColor: '#3B82F6' + "20",
                 },
               ]}
             >
-              <Ionicons name="today-outline" size={24} color={successColor} />
-            </View>
-            <ThemedText
-              style={[styles.quickStatValue, { color: textColor }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              {todayCount}
-            </ThemedText>
-            <ThemedText
-              style={[styles.quickStatLabel, { color: textSecondaryColor }]}
-              numberOfLines={1}
-            >
-              Today
-            </ThemedText>
-          </View>
-
-          <View
-            style={[styles.quickStatCard, { backgroundColor: surfaceColor }]}
-          >
-            <View
-              style={[
-                styles.quickStatIconContainer,
-                {
-                  backgroundColor: primaryColor + "20",
-                },
-              ]}
-            >
-              <Ionicons
-                name="calendar-outline"
-                size={24}
-                color={primaryColor}
-              />
+              <Ionicons name="calendar-outline" size={24} color="#3B82F6" />
             </View>
             <ThemedText
               style={[styles.quickStatValue, { color: textColor }]}
@@ -209,14 +372,14 @@ export default function HomeScreen() {
               style={[
                 styles.quickStatIconContainer,
                 {
-                  backgroundColor: warningColor + "20",
+                  backgroundColor: '#8B5CF6' + "20",
                 },
               ]}
             >
               <Ionicons
-                name="trending-up-outline"
+                name="calendar"
                 size={24}
-                color={warningColor}
+                color="#8B5CF6"
               />
             </View>
             <ThemedText
@@ -233,6 +396,50 @@ export default function HomeScreen() {
               This Month
             </ThemedText>
           </View>
+
+          <View
+            style={[styles.quickStatCard, { backgroundColor: surfaceColor }]}
+          >
+            <View
+              style={[
+                styles.quickStatIconContainer,
+                {
+                  backgroundColor: '#10B981' + "20",
+                },
+              ]}
+            >
+              <Ionicons
+                name="stats-chart"
+                size={24}
+                color="#10B981"
+              />
+            </View>
+            <ThemedText
+              style={[styles.quickStatValue, { color: textColor }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {yearCount}
+            </ThemedText>
+            <ThemedText
+              style={[styles.quickStatLabel, { color: textSecondaryColor }]}
+              numberOfLines={1}
+            >
+              This Year
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Streak Progress Card */}
+        <View style={styles.streakCardContainer}>
+          <StreakProgressCard
+            streakData={streakData}
+            status={status}
+            weekProgress={weekProgress}
+            nextMilestone={nextMilestone}
+            loggedDates={loggedDates}
+            onPress={() => router.push("/streaks")}
+          />
         </View>
 
         {recapEntry && recapEntry.babies > 0 && !isRecapDismissed && (
@@ -316,39 +523,48 @@ export default function HomeScreen() {
             </Pressable>
           </Link>
           
-          {/* Achievements Button */}
-          <Link href="/achievements" asChild>
+          {/* Secondary Actions Row */}
+          <View style={styles.secondaryActionsRow}>
+            {/* Achievements Button */}
             <Pressable
               accessibilityLabel="View achievements and progress"
               accessibilityRole="button"
+              onPress={() => router.push("/achievements")}
               style={({ pressed }) => [
-                styles.achievementCtaButton,
-                { backgroundColor: surfaceColor },
-                pressed && styles.achievementCtaButtonPressed,
+                styles.secondaryActionButton,
+                { backgroundColor: primaryColor + "15" },
+                pressed && styles.secondaryActionButtonPressed,
               ]}
             >
-              <View style={styles.achievementCtaContent}>
-                <View style={[styles.achievementIconWrapper, { backgroundColor: primaryColor + "20" }]}>
-                  <Ionicons name="trophy" size={24} color={primaryColor} />
-                </View>
-                <View style={styles.achievementTextWrapper}>
-                  <ThemedText
-                    style={[styles.achievementCtaTitle, { color: textColor }]}
-                    numberOfLines={1}
-                  >
-                    Achievements
-                  </ThemedText>
-                  <ThemedText
-                    style={[styles.achievementCtaSubtitle, { color: textSecondaryColor }]}
-                    numberOfLines={1}
-                  >
-                    {userAchievements ? `${userAchievements.unlocked.length}/${ACHIEVEMENTS.length} unlocked` : 'View your progress'}
-                  </ThemedText>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
-              </View>
+              <Ionicons name="trophy" size={20} color={primaryColor} />
+              <ThemedText
+                style={[styles.secondaryActionLabel, { color: primaryColor }]}
+                numberOfLines={1}
+              >
+                Achievements
+              </ThemedText>
             </Pressable>
-          </Link>
+
+            {/* Share Stats Button */}
+            <Pressable
+              accessibilityLabel="Share your stats"
+              accessibilityRole="button"
+              onPress={() => setShowSharePicker(true)}
+              style={({ pressed }) => [
+                styles.secondaryActionButton,
+                { backgroundColor: "#8B5CF6" + "15" },
+                pressed && styles.secondaryActionButtonPressed,
+              ]}
+            >
+              <Ionicons name="share-social" size={20} color="#8B5CF6" />
+              <ThemedText
+                style={[styles.secondaryActionLabel, { color: "#8B5CF6" }]}
+                numberOfLines={1}
+              >
+                Share Stats
+              </ThemedText>
+            </Pressable>
+          </View>
         </View>
 
         {/* Gender Distribution */}
@@ -501,7 +717,168 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Share Stats Picker Modal */}
+      <Modal
+        visible={showSharePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSharePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable 
+            style={styles.modalBackdrop} 
+            onPress={() => setShowSharePicker(false)}
+          />
+          <View style={[styles.pickerModalContent, { backgroundColor: surfaceColor }]}>
+            <ThemedText style={[styles.pickerTitle, { color: textColor }]}>
+              Share Your Stats
+            </ThemedText>
+            <ThemedText style={[styles.pickerSubtitle, { color: textSecondaryColor }]}>
+              Choose a time period to share
+            </ThemedText>
+            
+            <View style={styles.pickerOptions}>
+              <Pressable
+                style={[styles.pickerOption, { backgroundColor: '#3B82F6' + '15' }]}
+                onPress={() => {
+                  setShowSharePicker(false);
+                  setSelectedStatsPeriod('week');
+                }}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: '#3B82F6' + '25' }]}>
+                  <Ionicons name="calendar-outline" size={24} color="#3B82F6" />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Week</ThemedText>
+                  <ThemedText style={[styles.pickerOptionValue, { color: '#3B82F6' }]}>{weekCount} babies</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </Pressable>
+
+              <Pressable
+                style={[styles.pickerOption, { backgroundColor: '#8B5CF6' + '15' }]}
+                onPress={() => {
+                  setShowSharePicker(false);
+                  setSelectedStatsPeriod('month');
+                }}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: '#8B5CF6' + '25' }]}>
+                  <Ionicons name="calendar" size={24} color="#8B5CF6" />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Month</ThemedText>
+                  <ThemedText style={[styles.pickerOptionValue, { color: '#8B5CF6' }]}>{monthCount} babies</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </Pressable>
+
+              <Pressable
+                style={[styles.pickerOption, { backgroundColor: '#10B981' + '15' }]}
+                onPress={() => {
+                  setShowSharePicker(false);
+                  setSelectedStatsPeriod('year');
+                }}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: '#10B981' + '25' }]}>
+                  <Ionicons name="stats-chart" size={24} color="#10B981" />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Year</ThemedText>
+                  <ThemedText style={[styles.pickerOptionValue, { color: '#10B981' }]}>{yearCount} babies</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </Pressable>
+
+              <Pressable
+                style={[styles.pickerOption, { backgroundColor: '#F59E0B' + '15' }]}
+                onPress={() => {
+                  setShowSharePicker(false);
+                  setSelectedStatsPeriod('lifetime');
+                }}
+              >
+                <View style={[styles.pickerOptionIcon, { backgroundColor: '#F59E0B' + '25' }]}>
+                  <MaterialCommunityIcons name="infinity" size={24} color="#F59E0B" />
+                </View>
+                <View style={styles.pickerOptionText}>
+                  <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>Lifetime</ThemedText>
+                  <ThemedText style={[styles.pickerOptionValue, { color: '#F59E0B' }]}>{totalDeliveries} babies</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={[styles.pickerCancelButton, { backgroundColor: backgroundColor }]}
+              onPress={() => setShowSharePicker(false)}
+            >
+              <ThemedText style={[styles.pickerCancelText, { color: textSecondaryColor }]}>Cancel</ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Stats Share Preview Modal */}
+      <Modal
+        visible={selectedStatsPeriod !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedStatsPeriod(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable 
+            style={styles.modalBackdrop} 
+            onPress={() => !isSharing && setSelectedStatsPeriod(null)}
+          />
+          <View style={styles.modalContent}>
+            {selectedStatsPeriod && (
+              <StatsShareCard
+                ref={statsShareCardRef}
+                count={getStatsCount(selectedStatsPeriod)}
+                period={selectedStatsPeriod}
+              />
+            )}
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.shareButton, { backgroundColor: primaryColor }]}
+                onPress={handleShareStats}
+                disabled={isSharing}
+              >
+                {isSharing ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="share-outline" size={20} color="white" />
+                    <ThemedText style={styles.shareButtonText}>Share</ThemedText>
+                  </>
+                )}
+              </Pressable>
+              <Pressable
+                style={[styles.cancelButton, { backgroundColor: surfaceColor }]}
+                onPress={() => setSelectedStatsPeriod(null)}
+                disabled={isSharing}
+              >
+                <ThemedText style={[styles.cancelButtonText, { color: textColor }]}>Cancel</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Streak Milestone Celebration Modal */}
+      <StreakMilestoneModal
+        visible={showMilestoneModal}
+        milestone={currentMilestone ?? 4}
+        onDismiss={() => {
+          setShowMilestoneModal(false);
+          setCurrentMilestone(null);
+        }}
+        onShare={() => {
+          // TODO: Implement share streak milestone
+          setShowMilestoneModal(false);
+        }}
+      />
     </View>
   );
 }
@@ -510,37 +887,122 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  
+  // Compact header (appears on scroll)
+  compactHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+  },
+  blurContainer: {
+    overflow: 'hidden',
+  },
+  compactHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm + 2,
+  },
+  compactTitle: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.weights.semibold,
+    color: 'white',
+    letterSpacing: Typography.letterSpacing.tight,
+  },
+  compactActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  compactStreakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    gap: 3,
+  },
+  compactStreakCount: {
+    color: 'white',
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.bold,
+  },
+  compactMenuButton: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Main header (visible at top)
+  mainHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
   headerGradient: {
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
     paddingBottom: Spacing.xl + Spacing.sm,
+    paddingHorizontal: Spacing.lg,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTextContainer: {
     flex: 1,
     marginRight: Spacing.md,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   greeting: {
     fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
+    color: 'rgba(255, 255, 255, 0.9)',
     marginBottom: Spacing.xs,
-    letterSpacing: Typography.letterSpacing.wide,
   },
   headerTitle: {
-    fontSize: Typography["2xl"],
+    fontSize: Typography['2xl'],
     fontWeight: Typography.weights.bold,
+    color: 'white',
     letterSpacing: Typography.letterSpacing.tight,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuButtonPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    transform: [{ scale: 0.95 }],
+  },
+  
+  scrollContentContainer: {
+    paddingBottom: 120,
+  },
+  streakCardContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
   },
   quickStatsContainer: {
     flexDirection: "row",
     paddingHorizontal: Spacing.lg,
-    marginTop: -Spacing.xl,
     gap: Spacing.sm,
   },
   quickStatCard: {
@@ -787,44 +1249,144 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: Typography.lineHeights.sm,
   },
-  achievementCtaButton: {
+  secondaryActionsRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  secondaryActionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.xl,
-    overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        ...Shadows.sm,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    gap: Spacing.sm,
   },
-  achievementCtaButtonPressed: {
-    opacity: 0.95,
-    transform: [{ scale: 0.98 }],
+  secondaryActionButtonPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
-  achievementCtaContent: {
+  secondaryActionLabel: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.semibold,
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.sm + 4,
+    borderRadius: BorderRadius.full,
+    gap: 4,
+    height: 36,
+  },
+  streakBadgeAtRisk: {
+    backgroundColor: 'rgba(251, 191, 36, 0.25)',
+  },
+  streakCount: {
+    color: 'white',
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.bold,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    alignItems: "center",
+    gap: Spacing.lg,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    minWidth: 120,
+  },
+  shareButtonText: {
+    color: "white",
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  cancelButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+  },
+  cancelButtonText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
+  },
+  pickerModalContent: {
+    backgroundColor: "white",
+    borderRadius: BorderRadius.xxl,
+    padding: Spacing.xl,
+    marginHorizontal: Spacing.lg,
+    width: "90%",
+    maxWidth: 400,
+  },
+  pickerTitle: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.weights.bold,
+    textAlign: "center",
+    marginBottom: Spacing.xs,
+  },
+  pickerSubtitle: {
+    fontSize: Typography.sm,
+    textAlign: "center",
+    marginBottom: Spacing.lg,
+  },
+  pickerOptions: {
+    gap: Spacing.sm,
+  },
+  pickerOption: {
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
     gap: Spacing.md,
   },
-  achievementIconWrapper: {
+  pickerOptionIcon: {
     width: 48,
     height: 48,
     borderRadius: BorderRadius.lg,
     justifyContent: "center",
     alignItems: "center",
   },
-  achievementTextWrapper: {
+  pickerOptionText: {
     flex: 1,
   },
-  achievementCtaTitle: {
+  pickerOptionTitle: {
     fontSize: Typography.base,
     fontWeight: Typography.weights.semibold,
-    marginBottom: Spacing.xs / 2,
   },
-  achievementCtaSubtitle: {
+  pickerOptionValue: {
     fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    marginTop: 2,
+  },
+  pickerCancelButton: {
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+  },
+  pickerCancelText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
   },
 });

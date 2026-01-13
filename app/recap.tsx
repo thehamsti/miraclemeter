@@ -18,6 +18,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { BorderRadius, Spacing, Typography } from '@/constants/Colors';
+import { shouldShowRatePrompt, showRatePrompt } from '@/services/ratePrompt';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -195,6 +196,25 @@ export default function RecapScreen() {
         setHasTriggeredConfetti((prev) => ({ ...prev, [page]: true }));
         confettiRef.current?.start();
       }
+
+      // Trigger rate prompt when reaching the finale card
+      if (card?.id === 'finale') {
+        triggerRatePrompt();
+      }
+    }
+  };
+
+  const triggerRatePrompt = async () => {
+    try {
+      const shouldShow = await shouldShowRatePrompt('recap_viewed');
+      if (shouldShow) {
+        // Small delay to let the user enjoy the finale card first
+        setTimeout(async () => {
+          await showRatePrompt();
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error triggering rate prompt:', error);
     }
   };
 

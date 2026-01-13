@@ -3,6 +3,7 @@ import { AppState, Linking } from 'react-native';
 import { Stack, SplashScreen, useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Provider as PaperProvider, DefaultTheme, MD3DarkTheme } from 'react-native-paper';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ToastProvider, useToastContext } from '@/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '@/hooks/ThemeContext';
 import { ToastContainer } from '@/components/Toast';
@@ -34,7 +35,7 @@ function RootLayoutContent() {
       if (pending) {
         // Navigate to quick entry with pre-filled gender
         router.push({
-          pathname: '/(tabs)/quick-entry',
+          pathname: '/quick-entry',
           params: { widgetGender: pending.gender }
         });
       }
@@ -54,11 +55,11 @@ function RootLayoutContent() {
         const gender = parsedUrl.searchParams.get('gender');
         if (gender) {
           router.push({
-            pathname: '/(tabs)/quick-entry',
+            pathname: '/quick-entry',
             params: { widgetGender: gender }
           });
         } else {
-          router.push('/(tabs)/quick-entry');
+          router.push('/quick-entry');
         }
       }
     } catch {
@@ -147,6 +148,7 @@ function RootLayoutContent() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="(auth)/onboarding" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="quick-entry" options={{ presentation: 'modal' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
           <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
           <Stack.Screen name="stats" options={{ presentation: 'modal' }} />
@@ -163,10 +165,12 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <RootLayoutContent />
-      </ToastProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <ToastProvider>
+          <RootLayoutContent />
+        </ToastProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

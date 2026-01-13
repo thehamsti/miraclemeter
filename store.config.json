@@ -3,18 +3,11 @@
   "apple": {
     "info": {
       "en-US": {
-        "title": "Miracle Meter",
-        "subtitle": "Tracker for L&D nurses",
-        "description": "A privacy-focused mobile app for labor and delivery nurses to anonymously track births they assist with. Features quick data entry, meaningful statistics and analytics, customizable preferences, and an intuitive interface designed for busy healthcare professionals.",
-        "keywords": [
-          "birth tracking",
-          "labor and delivery",
-          "nurse",
-          "statistics",
-          "delivery records",
-          "birth statistics",
-          "nurse tools"
-        ],
+        "title": "MiracleMeter: Birth Tracker",
+        "subtitle": "L&D Nurse Delivery Counter",
+        "description": "Every birth you witness matters. MiracleMeter helps L&D nurses track deliveries, build meaningful streaks, and celebrate career milestones - all while respecting patient privacy.\n\nDESIGNED FOR L&D NURSES\nBuilt specifically for labor and delivery professionals who want to honor every birth they attend. Whether you work day shift, night shift, or rotating schedules, MiracleMeter adapts to your workflow.\n\nWEEKLY STREAK SYSTEM\nUnlike daily trackers that don't fit nursing schedules, our nurse-friendly weekly goal system lets you maintain streaks based on your actual work patterns. Miss a busy week? Streak shields protect your progress.\n\nKEY FEATURES:\n- Quick birth logging with one tap\n- Track delivery types (vaginal, c-section)\n- Gender and multiple birth tracking\n- Weekly goals that fit shift work\n- Streak shields for busy weeks\n- Recovery challenges to restore streaks\n- Milestone celebrations (1 month, 3 months, 1 year+)\n- Beautiful shareable stats cards\n- Achievement badges for career milestones\n- Annual year-in-review recap\n- Dark mode support\n- Widget for quick logging\n\nCELEBRATE YOUR CAREER\nUnlock achievements as you reach delivery milestones. Share your stats with colleagues. See your annual recap of every baby you've welcomed into the world.\n\nPRIVACY FIRST\nMiracleMeter stores all data locally on your device. No patient information is ever collected - just your personal delivery count and career statistics.\n\nBuilt by nurses, for nurses. Start tracking your legacy today.",
+        "keywords": "labor,delivery,nurse,birth,tracker,baby,counter,obstetric,midwife,hospital,shift,contraction,L&D",
+        "promotionalText": "Track every delivery. Build weekly streaks. Celebrate your nursing milestones. The birth tracking app designed specifically for L&D nurses.",
         "marketingUrl": "https://miraclemeter.app",
         "supportUrl": "https://miraclemeter.app/support",
         "privacyPolicyUrl": "https://miraclemeter.app/privacy"

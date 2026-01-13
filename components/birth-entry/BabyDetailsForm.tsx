@@ -65,10 +65,12 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
 const styles = StyleSheet.create({
   container: {
     gap: 8,
+    width: '100%',
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 8,
+    width: '100%',
   },
   button: {
     flex: 1,

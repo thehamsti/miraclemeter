@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserAchievements, BirthRecord, UserPreferences } from "../types";
 import { ACHIEVEMENTS } from "../constants/achievements";
+import { incrementAchievementCount } from "./ratePrompt";
 
 const ACHIEVEMENTS_KEY = "userAchievements";
 
@@ -247,6 +248,15 @@ export const checkAchievements = async (
     if (shouldUnlock) {
       achievements.unlocked.push(achievement.id);
       newlyUnlocked.push(achievement.id);
+    }
+  }
+
+  // Increment achievement count for rate prompt (for newly unlocked)
+  for (const _id of newlyUnlocked) {
+    try {
+      await incrementAchievementCount();
+    } catch (error) {
+      console.error('Error incrementing achievement count:', error);
     }
   }
 

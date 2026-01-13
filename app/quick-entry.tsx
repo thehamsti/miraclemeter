@@ -1,6 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, SafeAreaView, Alert, View, ScrollView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
+import { StyleSheet, Alert, View, KeyboardAvoidingView, Platform, Animated, ScrollView } from 'react-native';
+import { Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Stepper } from '@/components/Stepper';
 import { DateTimePicker } from '@/components/birth-entry/DateTimePicker';
 import { DeliveryTypeSelector } from '@/components/birth-entry/DeliveryTypeSelector';
@@ -10,17 +13,18 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
-import { saveBirthRecord } from '@/services/storage';
-import type { Baby, BirthRecord, Achievement } from '@/types';
-import { useNavigation, useLocalSearchParams } from 'expo-router';
+import { saveBirthRecord, type SaveBirthRecordResult } from '@/services/storage';
+import { shouldShowRatePrompt, showRatePrompt } from '@/services/ratePrompt';
+import type { Baby, BirthRecord } from '@/types';
 import { AchievementNotification } from '@/components/AchievementNotification';
+import { StreakMilestoneModal } from '@/components/StreakMilestoneModal';
 import { ACHIEVEMENTS } from '@/constants/achievements';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { Spacing, BorderRadius, Typography } from '@/constants/Colors';
 
 export default function QuickEntryScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const { widgetGender } = useLocalSearchParams<{ widgetGender?: string }>();
   
   const [currentStep, setCurrentStep] = useState(0);
@@ -34,6 +38,8 @@ export default function QuickEntryScreen() {
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [currentAchievementIndex, setCurrentAchievementIndex] = useState(0);
   const [showAchievement, setShowAchievement] = useState(false);
+  const [streakMilestone, setStreakMilestone] = useState<number | null>(null);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   
   // Widget quick-add mode: shows confirmation screen instead of full stepper
   const [isWidgetMode, setIsWidgetMode] = useState(false);
@@ -81,12 +87,17 @@ export default function QuickEntryScreen() {
     };
 
     try {
-      const achievements = await saveBirthRecord(birthRecord);
-      setNewAchievements(achievements);
+      const result = await saveBirthRecord(birthRecord, true);
+      setNewAchievements(result.achievements);
       setShowSuccess(true);
       
-      // Show achievements one by one if any were unlocked
-      if (achievements.length > 0) {
+      // Check if a streak milestone was reached
+      if (result.streakMilestone) {
+        setStreakMilestone(result.streakMilestone);
+        setShowMilestoneModal(true);
+      }
+      // Show achievements one by one if any were unlocked (after milestone if present)
+      else if (result.achievements.length > 0) {
         setCurrentAchievementIndex(0);
         setShowAchievement(true);
       }
@@ -109,6 +120,8 @@ export default function QuickEntryScreen() {
     setCurrentAchievementIndex(0);
     setShowAchievement(false);
     setIsWidgetMode(false);
+    setStreakMilestone(null);
+    setShowMilestoneModal(false);
   }, []);
 
   useFocusEffect(
@@ -152,19 +165,6 @@ export default function QuickEntryScreen() {
       ]
     );
   }, [currentStep, timestamp, numberOfBabies, babies, deliveryType, eventType, notes, resetForm, showSuccess]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          title="Reset"
-          onPress={handleReset}
-          variant="secondary"
-          size="normal"
-        />
-      ),
-    });
-  }, [navigation, handleReset]);
 
   // Get icon and color for gender display
   const getGenderDisplay = (gender: Baby['gender']) => {
@@ -419,7 +419,33 @@ export default function QuickEntryScreen() {
     );
   };
 
-  const handleAchievementDismiss = () => {
+  const handleMilestoneDismiss = useCallback(async () => {
+    setShowMilestoneModal(false);
+    
+    // Check if we should show the rate prompt after milestone celebration
+    // This is a high-satisfaction moment - perfect for asking for a review
+    try {
+      const shouldPrompt = await shouldShowRatePrompt('streak_milestone');
+      if (shouldPrompt) {
+        // Small delay to let the modal close smoothly
+        setTimeout(async () => {
+          await showRatePrompt();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error showing rate prompt:', error);
+    }
+    
+    // Show achievements after milestone modal closes (if any)
+    if (newAchievements.length > 0) {
+      setTimeout(() => {
+        setCurrentAchievementIndex(0);
+        setShowAchievement(true);
+      }, 800);
+    }
+  }, [newAchievements]);
+
+  const handleAchievementDismiss = useCallback(async () => {
     setShowAchievement(false);
     
     // Show next achievement if there are more
@@ -428,90 +454,118 @@ export default function QuickEntryScreen() {
         setCurrentAchievementIndex(prev => prev + 1);
         setShowAchievement(true);
       }, 500);
+    } else {
+      // All achievements shown - check if we should show rate prompt
+      // Only if we didn't already show it for a milestone
+      if (!streakMilestone) {
+        try {
+          const shouldPrompt = await shouldShowRatePrompt('achievement_unlocked');
+          if (shouldPrompt) {
+            setTimeout(async () => {
+              await showRatePrompt();
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error showing rate prompt:', error);
+        }
+      }
     }
-  };
+  }, [currentAchievementIndex, newAchievements.length, streakMilestone]);
 
   const currentAchievement = newAchievements[currentAchievementIndex] 
     ? ACHIEVEMENTS.find(a => a.id === newAchievements[currentAchievementIndex])
     : null;
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      {currentAchievement && (
-        <AchievementNotification
-          achievement={currentAchievement}
-          visible={showAchievement}
-          onDismiss={handleAchievementDismiss}
-        />
-      )}
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        {!showSuccess && !isWidgetMode && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
-        
-        <ScrollView 
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStep()}
-        </ScrollView>
+  const insets = useSafeAreaInsets();
 
-        <View style={[styles.buttonContainer, { backgroundColor: surfaceColor }]}>
-          {showSuccess ? (
-            <Button
-              title="Add Another Record"
-              onPress={resetForm}
-              size="large"
-              style={styles.button}
-              icon={<Ionicons name="add-circle-outline" size={24} color="white" />}
-            />
-          ) : isWidgetMode ? (
-            <Button
-              title="Save"
-              onPress={handleSubmit}
-              size="large"
-              style={styles.button}
-              fullWidth
-              icon={<Ionicons name="checkmark-circle" size={24} color="white" />}
-            />
-          ) : (
-            <>
-              {currentStep > 0 && (
-                <Button
-                  title="Back"
-                  onPress={() => setCurrentStep(curr => curr - 1)}
-                  variant="secondary"
-                  size="large"
-                  style={styles.button}
-                  icon={<Ionicons name="arrow-back" size={20} color={textColor} />}
-                />
-              )}
+  return (
+    <>
+      <Stack.Screen options={{ presentation: 'modal', headerShown: false }} />
+      <View style={[styles.container, { backgroundColor }]}>
+        {currentAchievement && (
+          <AchievementNotification
+            achievement={currentAchievement}
+            visible={showAchievement}
+            onDismiss={handleAchievementDismiss}
+          />
+        )}
+
+        {/* Streak Milestone Celebration Modal */}
+        <StreakMilestoneModal
+          visible={showMilestoneModal}
+          milestone={streakMilestone ?? 4}
+          onDismiss={handleMilestoneDismiss}
+        />
+
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          {!showSuccess && !isWidgetMode && <Stepper currentStep={currentStep} totalSteps={totalSteps} />}
+          
+          <ScrollView 
+            style={styles.scrollContent}
+            contentContainerStyle={styles.scrollContentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {renderStep()}
+          </ScrollView>
+
+          <View style={[styles.buttonContainer, { backgroundColor: surfaceColor, paddingBottom: Math.max(insets.bottom, Spacing.lg) }]}>
+            {showSuccess ? (
               <Button
-                title={currentStep === totalSteps - 1 ? "Save" : "Next"}
-                onPress={() => {
-                  if (currentStep === totalSteps - 1) {
-                    handleSubmit();
-                  } else {
-                    setCurrentStep(curr => curr + 1);
-                  }
-                }}
+                title="Add Another Record"
+                onPress={resetForm}
                 size="large"
                 style={styles.button}
-                fullWidth={currentStep === 0}
-                icon={<Ionicons 
-                  name={currentStep === totalSteps - 1 ? "checkmark-circle" : "arrow-forward"} 
-                  size={20} 
-                  color="white" 
-                />}
+                icon={<Ionicons name="add-circle-outline" size={24} color="white" />}
               />
-            </>
-          )}
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            ) : isWidgetMode ? (
+              <Button
+                title="Save"
+                onPress={handleSubmit}
+                size="large"
+                style={styles.button}
+                fullWidth
+                icon={<Ionicons name="checkmark-circle" size={24} color="white" />}
+              />
+            ) : (
+              <>
+                {currentStep > 0 && (
+                  <Button
+                    title="Back"
+                    onPress={() => setCurrentStep(curr => curr - 1)}
+                    variant="secondary"
+                    size="large"
+                    style={styles.button}
+                    icon={<Ionicons name="arrow-back" size={20} color={textColor} />}
+                  />
+                )}
+                <Button
+                  title={currentStep === totalSteps - 1 ? "Save" : "Next"}
+                  onPress={() => {
+                    if (currentStep === totalSteps - 1) {
+                      handleSubmit();
+                    } else {
+                      setCurrentStep(curr => curr + 1);
+                    }
+                  }}
+                  size="large"
+                  style={styles.button}
+                  fullWidth={currentStep === 0}
+                  icon={<Ionicons 
+                    name={currentStep === totalSteps - 1 ? "checkmark-circle" : "arrow-forward"} 
+                    size={20} 
+                    color="white" 
+                  />}
+                />
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </>
   );
 }
 
@@ -522,17 +576,18 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  content: {
+  scrollContent: {
     flex: 1,
   },
-  contentContainer: {
+  scrollContentContainer: {
     flexGrow: 1,
-    padding: Spacing.lg,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
   },
   step: {
-    flex: 1,
     justifyContent: 'center',
-    paddingVertical: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
   stepContent: {
     marginTop: Spacing.lg,
@@ -546,7 +601,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     padding: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 80,
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(0,0,0,0.1)',
     ...Platform.select({
@@ -601,7 +655,7 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   skipButton: {
-    marginTop: Spacing.xl,
+    marginTop: Spacing.md,
     alignSelf: 'center',
   },
   widgetHeader: {

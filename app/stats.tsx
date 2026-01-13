@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable } from 'react-native';
+import React, { useCallback, useState, useRef } from 'react';
+import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable, Modal, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
 import { Stack, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart, PieChart } from 'react-native-chart-kit';
@@ -7,12 +8,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
+import { StatsShareCard, StatsPeriod } from '@/components/StatsShareCard';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useStatistics } from '@/hooks/useStatistics';
+import { captureAndShareStats } from '@/services/shareCard';
 
 export default function StatsScreen() {
+  const [showSharePicker, setShowSharePicker] = useState(false);
+  const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<StatsPeriod | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const statsShareCardRef = useRef<View>(null!);
+
   const {
     totalDeliveries,
+    weekCount,
+    monthCount,
+    yearCount,
     genderCounts: genderStats,
     deliveryCounts: deliveryStats,
     yearlyBabyCounts,
@@ -35,6 +46,33 @@ export default function StatsScreen() {
       return () => {}; // Optional cleanup function
     }, [])
   );
+
+  const getStatsCount = useCallback((period: StatsPeriod): number => {
+    switch (period) {
+      case 'week': return weekCount;
+      case 'month': return monthCount;
+      case 'year': return yearCount;
+      case 'lifetime': return totalDeliveries;
+    }
+  }, [weekCount, monthCount, yearCount, totalDeliveries]);
+
+  const handleShareStats = useCallback(async () => {
+    if (!selectedStatsPeriod) return;
+    
+    setIsSharing(true);
+    
+    setTimeout(async () => {
+      try {
+        await captureAndShareStats(statsShareCardRef, selectedStatsPeriod);
+      } catch (error) {
+        console.error('Error sharing stats:', error);
+        Alert.alert('Sharing Failed', 'Unable to share stats. Please try again.');
+      } finally {
+        setIsSharing(false);
+        setSelectedStatsPeriod(null);
+      }
+    }, 100);
+  }, [selectedStatsPeriod]);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -101,7 +139,7 @@ export default function StatsScreen() {
         }} 
       />
       <View style={[styles.container, { backgroundColor }]}>
-        <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={true} contentContainerStyle={{ paddingTop: 60 }}>
           {/* Header Section with Gradient */}
           <LinearGradient
             colors={[primaryColor, primaryColor + '95']}
@@ -165,6 +203,29 @@ export default function StatsScreen() {
                 </ThemedText>
               </View>
             </View>
+          </View>
+
+          {/* Share Stats Button */}
+          <View style={styles.shareStatsContainer}>
+            <Pressable
+              style={[styles.shareStatsButton, { backgroundColor: surfaceColor }]}
+              onPress={() => setShowSharePicker(true)}
+              accessibilityLabel="Share your stats"
+              accessibilityRole="button"
+            >
+              <View style={[styles.shareStatsIcon, { backgroundColor: '#8B5CF6' + '20' }]}>
+                <Ionicons name="share-social" size={22} color="#8B5CF6" />
+              </View>
+              <View style={styles.shareStatsText}>
+                <ThemedText style={[styles.shareStatsTitle, { color: textColor }]}>
+                  Share Your Stats
+                </ThemedText>
+                <ThemedText style={[styles.shareStatsSubtitle, { color: textSecondaryColor }]}>
+                  Create a shareable image of your stats
+                </ThemedText>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+            </Pressable>
           </View>
 
           {yearlyBabyCounts.length > 0 && (
@@ -403,6 +464,153 @@ export default function StatsScreen() {
           {/* Bottom spacing for safe area */}
           <View style={{ height: 120 }} />
         </ScrollView>
+
+        {/* Share Stats Picker Modal */}
+        <Modal
+          visible={showSharePicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSharePicker(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable 
+              style={styles.modalBackdrop} 
+              onPress={() => setShowSharePicker(false)}
+            />
+            <View style={[styles.pickerModalContent, { backgroundColor: surfaceColor }]}>
+              <ThemedText style={[styles.pickerTitle, { color: textColor }]}>
+                Share Your Stats
+              </ThemedText>
+              <ThemedText style={[styles.pickerSubtitle, { color: textSecondaryColor }]}>
+                Choose a time period to share
+              </ThemedText>
+              
+              <View style={styles.pickerOptions}>
+                <Pressable
+                  style={[styles.pickerOption, { backgroundColor: '#3B82F6' + '15' }]}
+                  onPress={() => {
+                    setShowSharePicker(false);
+                    setSelectedStatsPeriod('week');
+                  }}
+                >
+                  <View style={[styles.pickerOptionIcon, { backgroundColor: '#3B82F6' + '25' }]}>
+                    <Ionicons name="calendar-outline" size={24} color="#3B82F6" />
+                  </View>
+                  <View style={styles.pickerOptionText}>
+                    <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Week</ThemedText>
+                    <ThemedText style={[styles.pickerOptionValue, { color: '#3B82F6' }]}>{weekCount} babies</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+                </Pressable>
+
+                <Pressable
+                  style={[styles.pickerOption, { backgroundColor: '#8B5CF6' + '15' }]}
+                  onPress={() => {
+                    setShowSharePicker(false);
+                    setSelectedStatsPeriod('month');
+                  }}
+                >
+                  <View style={[styles.pickerOptionIcon, { backgroundColor: '#8B5CF6' + '25' }]}>
+                    <Ionicons name="calendar" size={24} color="#8B5CF6" />
+                  </View>
+                  <View style={styles.pickerOptionText}>
+                    <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Month</ThemedText>
+                    <ThemedText style={[styles.pickerOptionValue, { color: '#8B5CF6' }]}>{monthCount} babies</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+                </Pressable>
+
+                <Pressable
+                  style={[styles.pickerOption, { backgroundColor: '#10B981' + '15' }]}
+                  onPress={() => {
+                    setShowSharePicker(false);
+                    setSelectedStatsPeriod('year');
+                  }}
+                >
+                  <View style={[styles.pickerOptionIcon, { backgroundColor: '#10B981' + '25' }]}>
+                    <Ionicons name="stats-chart" size={24} color="#10B981" />
+                  </View>
+                  <View style={styles.pickerOptionText}>
+                    <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>This Year</ThemedText>
+                    <ThemedText style={[styles.pickerOptionValue, { color: '#10B981' }]}>{yearCount} babies</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+                </Pressable>
+
+                <Pressable
+                  style={[styles.pickerOption, { backgroundColor: '#F59E0B' + '15' }]}
+                  onPress={() => {
+                    setShowSharePicker(false);
+                    setSelectedStatsPeriod('lifetime');
+                  }}
+                >
+                  <View style={[styles.pickerOptionIcon, { backgroundColor: '#F59E0B' + '25' }]}>
+                    <Ionicons name="infinite" size={24} color="#F59E0B" />
+                  </View>
+                  <View style={styles.pickerOptionText}>
+                    <ThemedText style={[styles.pickerOptionTitle, { color: textColor }]}>Lifetime</ThemedText>
+                    <ThemedText style={[styles.pickerOptionValue, { color: '#F59E0B' }]}>{totalDeliveries} babies</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+                </Pressable>
+              </View>
+
+              <Pressable
+                style={[styles.pickerCancelButton, { backgroundColor }]}
+                onPress={() => setShowSharePicker(false)}
+              >
+                <ThemedText style={[styles.pickerCancelText, { color: textSecondaryColor }]}>Cancel</ThemedText>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Stats Share Preview Modal */}
+        <Modal
+          visible={selectedStatsPeriod !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSelectedStatsPeriod(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable 
+              style={styles.modalBackdrop} 
+              onPress={() => !isSharing && setSelectedStatsPeriod(null)}
+            />
+            <View style={styles.modalContent}>
+              {selectedStatsPeriod && (
+                <StatsShareCard
+                  ref={statsShareCardRef}
+                  count={getStatsCount(selectedStatsPeriod)}
+                  period={selectedStatsPeriod}
+                />
+              )}
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={[styles.shareButton, { backgroundColor: primaryColor }]}
+                  onPress={handleShareStats}
+                  disabled={isSharing}
+                >
+                  {isSharing ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <Ionicons name="share-outline" size={20} color="white" />
+                      <ThemedText style={styles.shareButtonText}>Share</ThemedText>
+                    </>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={[styles.cancelButton, { backgroundColor: surfaceColor }]}
+                  onPress={() => setSelectedStatsPeriod(null)}
+                  disabled={isSharing}
+                >
+                  <ThemedText style={[styles.cancelButtonText, { color: textColor }]}>Cancel</ThemedText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </>
   );
@@ -413,7 +621,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerGradient: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 80 : 56,
     paddingBottom: Spacing.xl + Spacing.sm,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
@@ -705,5 +913,140 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: Typography.lineHeights.base,
     maxWidth: 280,
+  },
+  shareStatsContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+  },
+  shareStatsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+    ...Platform.select({
+      ios: {
+        ...Shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  shareStatsIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shareStatsText: {
+    flex: 1,
+  },
+  shareStatsTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  shareStatsSubtitle: {
+    fontSize: Typography.sm,
+    marginTop: 2,
+  },
+  pickerModalContent: {
+    borderRadius: BorderRadius.xxl,
+    padding: Spacing.xl,
+    marginHorizontal: Spacing.lg,
+    width: '90%',
+    maxWidth: 400,
+  },
+  pickerTitle: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.weights.bold,
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
+  pickerSubtitle: {
+    fontSize: Typography.sm,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  pickerOptions: {
+    gap: Spacing.sm,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+  },
+  pickerOptionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerOptionText: {
+    flex: 1,
+  },
+  pickerOptionTitle: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  pickerOptionValue: {
+    fontSize: Typography.sm,
+    fontWeight: Typography.weights.medium,
+    marginTop: 2,
+  },
+  pickerCancelButton: {
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+  pickerCancelText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    minWidth: 120,
+  },
+  shareButtonText: {
+    color: 'white',
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.semibold,
+  },
+  cancelButton: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+  },
+  cancelButtonText: {
+    fontSize: Typography.base,
+    fontWeight: Typography.weights.medium,
   },
 });

@@ -44,8 +44,8 @@ interface OnboardingStep {
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to\nMiracleMeter',
-    subtitle: 'Track every precious miracle you help bring into the world',
+    title: 'Every Birth\nMatters',
+    subtitle: 'Track deliveries, build streaks, and celebrate your career milestones',
     icon: 'heart',
     gradient: ['#643872', '#9B7EBD'],
     decorations: [
@@ -57,8 +57,8 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'track',
-    title: 'Record\nEvery Birth',
-    subtitle: 'Quick entry for busy shifts — capture the details that matter in seconds',
+    title: 'Log Births\nin Seconds',
+    subtitle: 'One-tap delivery tracking designed for busy L&D shifts',
     icon: 'add-circle',
     gradient: ['#2563EB', '#60A5FA'],
     decorations: [
@@ -70,8 +70,8 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'achievements',
-    title: 'Earn\nAchievements',
-    subtitle: 'Celebrate milestones and track your journey as a healthcare hero',
+    title: 'Build Your\nStreak',
+    subtitle: 'Weekly goals that fit your schedule — shields protect your progress',
     icon: 'trophy',
     gradient: ['#F59E0B', '#FCD34D'],
     decorations: [
