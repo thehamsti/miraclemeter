@@ -8,14 +8,13 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from './ThemedText';
-import { useThemeColor, useShadowOpacity } from '@/hooks/useThemeColor';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
+import { Spacing, BorderRadius, Typography } from '@/constants/Colors';
 
 interface MenuProps {
   isVisible: boolean;
@@ -27,143 +26,105 @@ interface MenuItemData {
   label: string;
   description: string;
   href: '/stats' | '/settings' | '/about' | '/feedback';
-  accentColor: 'primary' | 'success' | 'warning' | 'info';
+  color: string;
 }
 
-const menuItems: MenuItemData[] = [
-  {
-    icon: 'analytics-outline',
-    label: 'Statistics',
-    description: 'View detailed insights',
-    href: '/stats',
-    accentColor: 'primary',
-  },
-  {
-    icon: 'settings-outline',
-    label: 'Settings',
-    description: 'Customize your experience',
-    href: '/settings',
-    accentColor: 'info',
-  },
-  {
-    icon: 'information-circle-outline',
-    label: 'About',
-    description: 'Learn more about the app',
-    href: '/about',
-    accentColor: 'success',
-  },
-  {
-    icon: 'chatbox-outline',
-    label: 'Feedback',
-    description: 'Share your thoughts',
-    href: '/feedback',
-    accentColor: 'warning',
-  },
-];
-
-const MENU_WIDTH = 280;
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function Menu({ isVisible, onClose }: MenuProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
+  const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
   const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const primaryColor = useThemeColor({}, 'primary');
-  const successColor = useThemeColor({}, 'success');
-  const warningColor = useThemeColor({}, 'warning');
-  const infoColor = useThemeColor({}, 'info');
-  const borderColor = useThemeColor({}, 'border');
-  const borderLightColor = useThemeColor({}, 'borderLight');
-  const shadowColor = useThemeColor({}, 'shadowColor');
-  const shadowOpacity = useShadowOpacity();
-  const insets = useSafeAreaInsets();
+  const borderColor = useThemeColor({}, 'borderLight');
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(-20)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const menuItems: MenuItemData[] = [
+    {
+      icon: 'stats-chart',
+      label: 'Statistics',
+      description: 'View detailed insights',
+      href: '/stats',
+      color: primaryColor,
+    },
+    {
+      icon: 'settings',
+      label: 'Settings',
+      description: 'Customize your experience',
+      href: '/settings',
+      color: '#8B5CF6',
+    },
+    {
+      icon: 'information-circle',
+      label: 'About',
+      description: 'Learn more about the app',
+      href: '/about',
+      color: '#10B981',
+    },
+    {
+      icon: 'chatbubble-ellipses',
+      label: 'Feedback',
+      description: 'Share your thoughts',
+      href: '/feedback',
+      color: '#F59E0B',
+    },
+  ];
+
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const itemAnims = useRef(menuItems.map(() => new Animated.Value(0))).current;
-
-  const getAccentColor = (accent: string): string => {
-    switch (accent) {
-      case 'primary':
-        return primaryColor;
-      case 'success':
-        return successColor;
-      case 'warning':
-        return warningColor;
-      case 'info':
-        return infoColor;
-      default:
-        return primaryColor;
-    }
-  };
 
   useEffect(() => {
     if (isVisible) {
-      fadeAnim.setValue(0);
-      slideAnim.setValue(-20);
-      scaleAnim.setValue(0.95);
+      // Reset animations
+      backdropOpacity.setValue(0);
+      slideAnim.setValue(SCREEN_HEIGHT);
       for (const anim of itemAnims) {
         anim.setValue(0);
       }
 
+      // Animate in
       Animated.parallel([
-        Animated.timing(fadeAnim, {
+        Animated.timing(backdropOpacity, {
           toValue: 1,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.spring(slideAnim, {
           toValue: 0,
-          friction: 8,
-          tension: 100,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 100,
+          tension: 65,
+          friction: 11,
           useNativeDriver: true,
         }),
       ]).start();
 
-      const staggerDelay = 50;
+      // Stagger menu items
+      const staggerDelay = 60;
       for (const [index, anim] of itemAnims.entries()) {
-        Animated.timing(anim, {
+        Animated.spring(anim, {
           toValue: 1,
-          duration: 200,
-          delay: 100 + index * staggerDelay,
+          tension: 100,
+          friction: 10,
+          delay: 150 + index * staggerDelay,
           useNativeDriver: true,
         }).start();
       }
     }
-  }, [isVisible, fadeAnim, slideAnim, scaleAnim, itemAnims]);
+  }, [isVisible, backdropOpacity, slideAnim, itemAnims]);
 
   const handleClose = () => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
+      Animated.timing(backdropOpacity, {
         toValue: 0,
-        duration: 150,
+        duration: 200,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
-        toValue: -10,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 150,
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -171,9 +132,21 @@ export function Menu({ isVisible, onClose }: MenuProps) {
     });
   };
 
+  const handleItemPress = (href: MenuItemData['href']) => {
+    handleClose();
+    setTimeout(() => {
+      router.push(href);
+    }, 200);
+  };
+
+  const handleLicensesPress = () => {
+    handleClose();
+    setTimeout(() => {
+      router.push('/licenses');
+    }, 200);
+  };
+
   const renderMenuItem = (item: MenuItemData, index: number) => {
-    const accentColor = getAccentColor(item.accentColor);
-    const iconBgColor = hexToRgba(accentColor, 0.12);
     const itemAnim = itemAnims[index];
 
     return (
@@ -183,45 +156,35 @@ export function Menu({ isVisible, onClose }: MenuProps) {
           opacity: itemAnim,
           transform: [
             {
-              translateX: itemAnim.interpolate({
+              translateY: itemAnim.interpolate({
                 inputRange: [0, 1],
-                outputRange: [20, 0],
+                outputRange: [30, 0],
               }),
             },
           ],
         }}
       >
-        <Link href={item.href} asChild onPress={handleClose}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.menuItemPressable,
-              pressed && { backgroundColor: borderLightColor },
-            ]}
-          >
-            <View style={styles.menuItemRow}>
-              <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-                <Ionicons name={item.icon} size={22} color={accentColor} />
-              </View>
-              <View style={styles.menuItemContent}>
-                <ThemedText style={[styles.menuItemLabel, { color: textColor }]}>
-                  {item.label}
-                </ThemedText>
-                <ThemedText
-                  style={[styles.menuItemDescription, { color: textSecondaryColor }]}
-                  numberOfLines={1}
-                >
-                  {item.description}
-                </ThemedText>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={textSecondaryColor}
-                style={styles.chevron}
-              />
-            </View>
-          </Pressable>
-        </Link>
+        <Pressable
+          onPress={() => handleItemPress(item.href)}
+          style={({ pressed }) => [
+            styles.menuItem,
+            { backgroundColor: surfaceColor },
+            pressed && styles.menuItemPressed,
+          ]}
+        >
+          <View style={[styles.menuItemIcon, { backgroundColor: item.color + '15' }]}>
+            <Ionicons name={item.icon} size={24} color={item.color} />
+          </View>
+          <View style={styles.menuItemContent}>
+            <ThemedText style={[styles.menuItemLabel, { color: textColor }]}>
+              {item.label}
+            </ThemedText>
+            <ThemedText style={[styles.menuItemDescription, { color: textSecondaryColor }]}>
+              {item.description}
+            </ThemedText>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
+        </Pressable>
       </Animated.View>
     );
   };
@@ -234,81 +197,72 @@ export function Menu({ isVisible, onClose }: MenuProps) {
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      <View style={styles.modalContainer}>
+      <View style={styles.container}>
         {/* Backdrop */}
-        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
-          <Pressable style={styles.backdropPressable} onPress={handleClose}>
-            {Platform.OS === 'ios' ? (
-              <BlurView
-                intensity={isDark ? 40 : 30}
-                tint={isDark ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)' },
-                ]}
-              />
-            )}
-          </Pressable>
-        </Animated.View>
-
-        {/* Menu Container */}
         <Animated.View
           style={[
-            styles.menuContainer,
+            styles.backdrop,
+            { opacity: backdropOpacity },
+          ]}
+        >
+          <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+        </Animated.View>
+
+        {/* Drawer */}
+        <Animated.View
+          style={[
+            styles.drawer,
             {
-              backgroundColor: surfaceColor,
-              shadowColor,
-              shadowOpacity: shadowOpacity * 1.5,
-              borderColor: isDark ? borderColor : 'transparent',
-              top: insets.top + 60,
-              right: Math.min(Spacing.lg, SCREEN_WIDTH - MENU_WIDTH - Spacing.lg),
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+              backgroundColor,
+              paddingBottom: insets.bottom + Spacing.lg,
+              transform: [{ translateY: slideAnim }],
             },
           ]}
         >
-          {/* Menu Header */}
-          <View style={[styles.menuHeader, { borderBottomColor: borderLightColor }]}>
-            <View style={styles.menuHeaderRow}>
-              <View
-                style={[
-                  styles.menuHeaderIcon,
-                  { backgroundColor: hexToRgba(primaryColor, 0.12) },
+          {/* Handle */}
+          <View style={styles.handleContainer}>
+            <View style={[styles.handle, { backgroundColor: borderColor }]} />
+          </View>
+
+          {/* Header */}
+          <LinearGradient
+            colors={[primaryColor, primaryColor + 'DD']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            <View style={styles.headerContent}>
+              <View>
+                <ThemedText style={styles.headerTitle}>Menu</ThemedText>
+                <ThemedText style={styles.headerSubtitle}>Miracle Meter</ThemedText>
+              </View>
+              <Pressable
+                onPress={handleClose}
+                style={({ pressed }) => [
+                  styles.closeButton,
+                  pressed && styles.closeButtonPressed,
                 ]}
               >
-                <Ionicons name="apps" size={18} color={primaryColor} />
-              </View>
-              <ThemedText style={[styles.menuHeaderTitle, { color: textColor }]}>
-                Menu
-              </ThemedText>
+                <Ionicons name="close" size={24} color="white" />
+              </Pressable>
             </View>
-            <Pressable
-              style={({ pressed }) => [
-                styles.closeButton,
-                { backgroundColor: borderLightColor },
-                pressed && styles.closeButtonPressed,
-              ]}
-              onPress={handleClose}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close" size={16} color={textSecondaryColor} />
-            </Pressable>
-          </View>
+          </LinearGradient>
 
           {/* Menu Items */}
           <View style={styles.menuItems}>
             {menuItems.map((item, index) => renderMenuItem(item, index))}
           </View>
 
-          {/* Menu Footer */}
-          <View style={[styles.menuFooter, { borderTopColor: borderLightColor }]}>
+          {/* Footer */}
+          <View style={styles.footer}>
             <ThemedText style={[styles.footerText, { color: textSecondaryColor }]}>
-              Miracle Meter
+              Made with love for healthcare heroes
             </ThemedText>
+            <Pressable onPress={handleLicensesPress} style={styles.licensesLink}>
+              <ThemedText style={[styles.licensesText, { color: textSecondaryColor }]}>
+                Open Source Licenses
+              </ThemedText>
+            </Pressable>
           </View>
         </Animated.View>
       </View>
@@ -317,111 +271,121 @@ export function Menu({ isVisible, onClose }: MenuProps) {
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  container: {
     flex: 1,
+    justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  backdropPressable: {
-    flex: 1,
-  },
-  menuContainer: {
-    position: 'absolute',
-    width: MENU_WIDTH,
-    borderRadius: BorderRadius.xxl,
-    borderWidth: Platform.OS === 'android' ? 0 : 0.5,
+  drawer: {
+    borderTopLeftRadius: BorderRadius.xxl + 8,
+    borderTopRightRadius: BorderRadius.xxl + 8,
+    minHeight: SCREEN_HEIGHT * 0.6,
     ...Platform.select({
       ios: {
-        ...Shadows.xl,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
       },
       android: {
-        elevation: 16,
+        elevation: 24,
       },
     }),
   },
-  menuHeader: {
-    flexDirection: 'row',
+  handleContainer: {
     alignItems: 'center',
+    paddingVertical: Spacing.sm + 4,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+  },
+  header: {
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md + 4,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-  },
-  menuHeaderRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    padding: Spacing.lg,
   },
-  menuHeaderIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
+  headerTitle: {
+    fontSize: Typography['2xl'],
+    fontWeight: Typography.weights.bold,
+    color: 'white',
+    marginBottom: 2,
   },
-  menuHeaderTitle: {
-    fontSize: Typography.base,
-    fontWeight: Typography.weights.semibold,
-    letterSpacing: Typography.letterSpacing.wide,
+  headerSubtitle: {
+    fontSize: Typography.sm,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   closeButton: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
     borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonPressed: {
-    opacity: 0.7,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     transform: [{ scale: 0.95 }],
   },
   menuItems: {
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
-  },
-  menuItemPressable: {
-    paddingVertical: Spacing.md - 2,
     paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
-  menuItemRow: {
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
+  menuItemPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
+  },
+  menuItemIcon: {
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.md,
   },
   menuItemContent: {
     flex: 1,
   },
   menuItemLabel: {
     fontSize: Typography.base,
-    fontWeight: Typography.weights.medium,
+    fontWeight: Typography.weights.semibold,
     marginBottom: 2,
   },
   menuItemDescription: {
-    fontSize: Typography.xs,
-    lineHeight: Typography.lineHeights.xs,
+    fontSize: Typography.sm,
   },
-  chevron: {
-    opacity: 0.4,
-    marginLeft: Spacing.sm,
-  },
-  menuFooter: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderTopWidth: 1,
+  footer: {
     alignItems: 'center',
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
   footerText: {
     fontSize: Typography.xs,
-    fontWeight: Typography.weights.medium,
-    letterSpacing: Typography.letterSpacing.wide,
+    textAlign: 'center',
+  },
+  licensesLink: {
+    paddingVertical: Spacing.xs,
+  },
+  licensesText: {
+    fontSize: Typography.xs,
+    textDecorationLine: 'underline',
   },
 });

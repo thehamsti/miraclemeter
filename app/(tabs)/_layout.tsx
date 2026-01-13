@@ -1,50 +1,36 @@
-import { Tabs, usePathname } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Platform, View } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import React, { useState, createContext, useContext } from 'react';
+import { StyleSheet, Platform, Pressable, View } from 'react-native';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useThemeColor, useShadowOpacity } from '@/hooks/useThemeColor';
-import { Ionicons } from '@expo/vector-icons';
 import { Menu } from '@/components/Menu';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import { Spacing, Typography, BorderRadius } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+
+type MenuContextType = {
+  openMenu: () => void;
+};
+
+const MenuContext = createContext<MenuContextType>({ openMenu: () => {} });
+
+export function useMenu() {
+  return useContext(MenuContext);
+}
 
 export default function TabLayout() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const router = useRouter();
   const tintColor = useThemeColor({}, 'tint');
-  const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = useThemeColor({}, 'surface');
-  const textColor = useThemeColor({}, 'text');
   const textSecondaryColor = useThemeColor({}, 'textSecondary');
   const tabIconDefault = useThemeColor({}, 'tabIconDefault');
   const borderColor = useThemeColor({}, 'border');
   const shadowColor = useThemeColor({}, 'shadowColor');
   const shadowOpacity = useShadowOpacity();
-  const insets = useSafeAreaInsets();
-  const pathname = usePathname();
-
-  const showMenu = !pathname.includes('quick-entry');
-
-  const MenuButton = () => (
-    <Pressable 
-      onPress={() => setIsMenuVisible(true)}
-      style={({ pressed }) => [
-        styles.menuButton,
-        { 
-          top: insets.top + 8,
-          backgroundColor: surfaceColor,
-          shadowColor,
-          shadowOpacity: pressed ? shadowOpacity * 0.5 : shadowOpacity,
-        },
-        pressed && styles.menuButtonPressed
-      ]}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-    >
-      <Ionicons name="menu" size={24} color={textColor} />
-    </Pressable>
-  );
+  const primaryColor = useThemeColor({}, 'primary');
 
   return (
-    <>
+    <MenuContext.Provider value={{ openMenu: () => setIsMenuVisible(true) }}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: tintColor,
@@ -56,7 +42,7 @@ export default function TabLayout() {
               borderTopColor: borderColor,
               shadowColor,
               shadowOpacity,
-            }
+            },
           ],
           headerShown: false,
           tabBarLabelStyle: [
@@ -76,12 +62,29 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="quick-entry/index"
+          name="quick-entry-placeholder"
           options={{
             title: 'Quick Entry',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'add-circle' : 'add-circle-outline'} color={color} />
+            tabBarButton: () => (
+              <View style={styles.addButtonContainer}>
+                <Pressable
+                  onPress={() => router.push('/quick-entry')}
+                  style={({ pressed }) => [
+                    styles.addButton,
+                    { backgroundColor: primaryColor },
+                    pressed && styles.addButtonPressed,
+                  ]}
+                >
+                  <Ionicons name="add" size={28} color="white" />
+                </Pressable>
+              </View>
             ),
+          }}
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              router.push('/quick-entry');
+            },
           }}
         />
         <Tabs.Screen
@@ -94,16 +97,11 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      {showMenu && (
-        <>
-          <MenuButton />
-          <Menu 
-            isVisible={isMenuVisible} 
-            onClose={() => setIsMenuVisible(false)} 
-          />
-        </>
-      )}
-    </>
+      <Menu 
+        isVisible={isMenuVisible} 
+        onClose={() => setIsMenuVisible(false)} 
+      />
+    </MenuContext.Provider>
   );
 }
 
@@ -135,27 +133,32 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
     marginBottom: Spacing.xs,
   },
-  menuButton: {
-    position: 'absolute',
-    right: Spacing.lg,
-    width: 44,
-    height: 44,
+  addButtonContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButton: {
+    width: 56,
+    height: 56,
     borderRadius: BorderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
+    marginTop: -20,
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 8,
       },
     }),
   },
-  menuButtonPressed: {
-    opacity: 0.9,
+  addButtonPressed: {
+    opacity: 0.8,
     transform: [{ scale: 0.95 }],
   },
 });
