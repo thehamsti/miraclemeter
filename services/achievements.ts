@@ -251,6 +251,8 @@ export const checkAchievements = async (
     }
   }
 
+  await saveAchievements(achievements);
+
   // Increment achievement count for rate prompt (for newly unlocked)
   for (const _id of newlyUnlocked) {
     try {
@@ -259,8 +261,6 @@ export const checkAchievements = async (
       console.error('Error incrementing achievement count:', error);
     }
   }
-
-  await saveAchievements(achievements);
   return newlyUnlocked;
 };
 

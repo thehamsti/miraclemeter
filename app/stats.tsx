@@ -1,8 +1,7 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable, Modal, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
-import { Stack, router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +25,7 @@ export default function StatsScreen() {
     yearCount,
     genderCounts: genderStats,
     deliveryCounts: deliveryStats,
+    eventCounts: eventStats,
     yearlyBabyCounts,
   } = useStatistics();
 
@@ -77,6 +77,8 @@ export default function StatsScreen() {
   const screenWidth = Dimensions.get('window').width;
 
   const totalBabies = genderStats.boys + genderStats.girls + genderStats.angels;
+  const deliveryEventPercentage = totalDeliveries > 0 ? Math.round((eventStats.delivery / totalDeliveries) * 100) : 0;
+  const transitionEventPercentage = totalDeliveries > 0 ? Math.round((eventStats.transition / totalDeliveries) * 100) : 0;
 
   const genderData = [
     { 
@@ -227,6 +229,47 @@ export default function StatsScreen() {
               <Ionicons name="chevron-forward" size={20} color={textSecondaryColor} />
             </Pressable>
           </View>
+
+          {totalDeliveries > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Delivery vs Transition
+                </ThemedText>
+                <View style={[styles.totalBadge, { backgroundColor: primaryColor + '15' }]}>
+                  <ThemedText style={[styles.totalBadgeText, { color: primaryColor }]}>
+                    {totalDeliveries} {totalDeliveries === 1 ? 'record' : 'records'}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.deliveryStatsGrid}>
+                <View style={[styles.deliveryStatCard, { backgroundColor: surfaceColor, borderLeftColor: successColor }]}>
+                  <Ionicons name="fitness-outline" size={24} color={successColor} />
+                  <View style={styles.deliveryStatContent}>
+                    <ThemedText style={[styles.deliveryStatValue, { color: textColor }]}>
+                      {eventStats.delivery}
+                    </ThemedText>
+                    <ThemedText style={[styles.deliveryStatLabel, { color: textSecondaryColor }]}>
+                      Delivery ({deliveryEventPercentage}%)
+                    </ThemedText>
+                  </View>
+                </View>
+
+                <View style={[styles.deliveryStatCard, { backgroundColor: surfaceColor, borderLeftColor: primaryColor }]}>
+                  <Ionicons name="swap-horizontal-outline" size={24} color={primaryColor} />
+                  <View style={styles.deliveryStatContent}>
+                    <ThemedText style={[styles.deliveryStatValue, { color: textColor }]}>
+                      {eventStats.transition}
+                    </ThemedText>
+                    <ThemedText style={[styles.deliveryStatLabel, { color: textSecondaryColor }]}>
+                      Transition ({transitionEventPercentage}%)
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
 
           {yearlyBabyCounts.length > 0 && (
             <View style={styles.section}>
@@ -1014,7 +1057,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {

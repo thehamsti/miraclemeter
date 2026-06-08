@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { ScrollView, StyleSheet, View, Platform, Pressable, Dimensions, Modal, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
-import { Stack, router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AchievementBadge } from '@/components/AchievementBadge';
@@ -598,7 +597,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {

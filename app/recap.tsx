@@ -274,12 +274,12 @@ export default function RecapScreen() {
       </FadeInView>
       <FadeInView delay={600}>
         <ThemedText style={styles.heroSubtitle}>
-          Let's celebrate the lives you helped bring into this world
+          {"Let's celebrate the lives you helped bring into this world"}
         </ThemedText>
       </FadeInView>
       <FadeInView delay={800}>
         <Pressable style={styles.startButton} onPress={() => goToPage(1)}>
-          <ThemedText style={styles.startButtonText}>Let's Go</ThemedText>
+          <ThemedText style={styles.startButtonText}>{"Let's Go"}</ThemedText>
           <Ionicons name="arrow-forward" size={20} color="white" />
         </Pressable>
       </FadeInView>
@@ -427,7 +427,9 @@ export default function RecapScreen() {
       {totalBabies > 0 && (
         <FadeInView delay={800}>
           <ThemedText style={styles.noDataSubtext}>
-            But don't worry — you have {totalBabies} babies recorded overall. Swipe to see your all-time title!
+            {"But don't worry — you have "}
+            {totalBabies}
+            {" babies recorded overall. Swipe to see your all-time title!"}
           </ThemedText>
         </FadeInView>
       )}
@@ -475,7 +477,9 @@ export default function RecapScreen() {
       </FadeInView>
       <FadeInView delay={600}>
         <ThemedText style={styles.finaleText} numberOfLines={4}>
-          For every life you've welcomed, every family you've helped create, and every moment of care you've given.
+          {
+            "For every life you've welcomed, every family you've helped create, and every moment of care you've given."
+          }
         </ThemedText>
       </FadeInView>
       <FadeInView delay={1000}>

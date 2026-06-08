@@ -37,6 +37,9 @@ const config: ExpoConfig = {
         "expo-font",
         "expo-web-browser",
         "expo-updates",
+        "@react-native-community/datetimepicker",
+        "expo-sharing",
+        "expo-status-bar",
         [
             "expo-splash-screen",
             {

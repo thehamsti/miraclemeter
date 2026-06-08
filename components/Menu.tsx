@@ -8,7 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from './ThemedText';
@@ -142,7 +142,7 @@ export function Menu({ isVisible, onClose }: MenuProps) {
   const handleLicensesPress = () => {
     handleClose();
     setTimeout(() => {
-      router.push('/licenses');
+      router.push('/licenses' as Href);
     }, 200);
   };
 
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   drawer: {

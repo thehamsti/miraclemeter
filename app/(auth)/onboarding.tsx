@@ -338,7 +338,7 @@ export default function OnboardingScreen() {
                 pressed && styles.buttonPressed,
               ]}
             >
-              <ThemedText style={styles.nextButtonText}>Let's Go!</ThemedText>
+              <ThemedText style={styles.nextButtonText}>{"Let's Go!"}</ThemedText>
               <Ionicons name="checkmark-circle" size={24} color="white" />
             </Pressable>
           </View>

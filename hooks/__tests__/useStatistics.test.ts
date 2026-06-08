@@ -9,7 +9,7 @@ jest.mock('@/services/storage', () => ({
 }));
 
 // Mock useFocusEffect to call the callback in useEffect style
-jest.mock('@react-navigation/native', () => ({
+jest.mock('expo-router', () => ({
   useFocusEffect: (callback: () => (() => void) | void) => {
     const React = require('react');
     React.useEffect(() => {
@@ -54,6 +54,8 @@ describe('useStatistics', () => {
       expect(result.current.todayCount).toBe(0);
       expect(result.current.weekCount).toBe(0);
       expect(result.current.monthCount).toBe(0);
+      expect(result.current.eventCounts.delivery).toBe(0);
+      expect(result.current.eventCounts.transition).toBe(0);
     });
   });
 
@@ -306,6 +308,44 @@ describe('useStatistics', () => {
       });
 
       expect(result.current.deliveryCounts.cSection).toBe(2);
+    });
+  });
+
+  describe('eventCounts', () => {
+    it('should count delivery and transition events', async () => {
+      const records = [
+        createMockRecord({ eventType: 'delivery' }),
+        createMockRecord({ eventType: 'transition' }),
+        createMockRecord({ eventType: 'transition' }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.eventCounts.delivery).toBe(1);
+      expect(result.current.eventCounts.transition).toBe(2);
+    });
+
+    it('should count missing legacy event types as deliveries', async () => {
+      const records = [
+        createMockRecord({ eventType: undefined }),
+        createMockRecord({ eventType: 'delivery' }),
+        createMockRecord({ eventType: 'transition' }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.eventCounts.delivery).toBe(2);
+      expect(result.current.eventCounts.transition).toBe(1);
     });
   });
 

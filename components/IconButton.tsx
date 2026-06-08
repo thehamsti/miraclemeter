@@ -16,10 +16,10 @@ export function IconButton({ name, size = 24, color, style, accessibilityLabel, 
 
   return (
     <Pressable
-      style={({ pressed }) => [
+      style={(state) => [
         styles.button,
-        pressed && { ...styles.pressed, backgroundColor: pressedOverlay },
-        style
+        state.pressed && { ...styles.pressed, backgroundColor: pressedOverlay },
+        typeof style === 'function' ? style(state) : style,
       ]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}

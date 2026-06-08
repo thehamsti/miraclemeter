@@ -26,7 +26,8 @@ export function ThemedText({
 
   // Enable font size adjustment for long text to prevent clipping
   // Only auto-adjust if adjustsFontSizeToFit is not explicitly set to false
-  const shouldAdjustFontSize = adjustsFontSizeToFit === true || (adjustsFontSizeToFit !== false && numberOfLines && numberOfLines > 0);
+  const shouldAdjustFontSize =
+    adjustsFontSizeToFit === true || Boolean(adjustsFontSizeToFit !== false && numberOfLines && numberOfLines > 0);
 
   return (
     <Text

@@ -303,10 +303,7 @@ const styles = StyleSheet.create({
   section: {
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
-    ...Platform.select({
-      ios: Shadows.sm,
-      android: { elevation: 2 },
-    }),
+    ...(Platform.OS === 'ios' ? Shadows.sm : { elevation: 2 }),
   },
   sectionHeader: {
     flexDirection: 'row',

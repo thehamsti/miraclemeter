@@ -8,8 +8,7 @@ import {
   Dimensions,
   Modal,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
@@ -523,7 +522,7 @@ export default function StreaksScreen() {
               <View style={[styles.shieldStatusBar, { backgroundColor: '#3B82F6' + '15' }]}>
                 <MaterialCommunityIcons name="shield-star" size={16} color="#3B82F6" />
                 <ThemedText style={[styles.shieldStatusText, { color: '#3B82F6' }]}>
-                  Max shields! You're fully protected.
+                  {"Max shields! You're fully protected."}
                 </ThemedText>
               </View>
             ) : streakData.streakShields === 0 ? (
@@ -965,7 +964,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {

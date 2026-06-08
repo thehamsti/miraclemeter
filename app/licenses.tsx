@@ -141,7 +141,9 @@ export default function LicensesScreen() {
         <View style={[styles.introCard, { backgroundColor: primaryColor + '10' }]}>
           <Ionicons name="heart" size={24} color={primaryColor} />
           <ThemedText style={[styles.introText, { color: textColor }]}>
-            Miracle Meter is built with amazing open source software. We're grateful to the developers and communities behind these projects.
+            {
+              "Miracle Meter is built with amazing open source software. We're grateful to the developers and communities behind these projects."
+            }
           </ThemedText>
         </View>
 

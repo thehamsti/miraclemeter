@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { getBirthRecords } from '@/services/storage';
 import type { BirthRecord, YearlyBabyCount } from '@/types';
 
@@ -15,6 +15,11 @@ interface DeliveryCounts {
   unknown: number;
 }
 
+interface EventCounts {
+  delivery: number;
+  transition: number;
+}
+
 interface Statistics {
   records: BirthRecord[];
   recentRecords: BirthRecord[];
@@ -26,6 +31,7 @@ interface Statistics {
   yearCount: number;
   genderCounts: GenderCounts;
   deliveryCounts: DeliveryCounts;
+  eventCounts: EventCounts;
   yearlyBabyCounts: YearlyBabyCount[];
   loading: boolean;
   refresh: () => Promise<void>;
@@ -40,6 +46,7 @@ export function useStatistics(): Statistics {
   const [yearCount, setYearCount] = useState(0);
   const [genderCounts, setGenderCounts] = useState<GenderCounts>({ boys: 0, girls: 0, angels: 0 });
   const [deliveryCounts, setDeliveryCounts] = useState<DeliveryCounts>({ vaginal: 0, cSection: 0, unknown: 0 });
+  const [eventCounts, setEventCounts] = useState<EventCounts>({ delivery: 0, transition: 0 });
   const [yearlyBabyCounts, setYearlyBabyCounts] = useState<YearlyBabyCount[]>([]);
 
   const calculateStats = useCallback((birthRecords: BirthRecord[]) => {
@@ -145,6 +152,8 @@ export function useStatistics(): Statistics {
     let vaginal = 0;
     let cSection = 0;
     let unknown = 0;
+    let delivery = 0;
+    let transition = 0;
 
     for (const record of birthRecords) {
       if (record.deliveryType === 'vaginal') {
@@ -154,9 +163,16 @@ export function useStatistics(): Statistics {
       } else {
         unknown++;
       }
+
+      if (record.eventType === 'transition') {
+        transition++;
+      } else {
+        delivery++;
+      }
     }
 
     setDeliveryCounts({ vaginal, cSection, unknown });
+    setEventCounts({ delivery, transition });
   }, []);
 
   const loadStats = useCallback(async () => {
@@ -200,6 +216,7 @@ export function useStatistics(): Statistics {
     yearCount,
     genderCounts,
     deliveryCounts,
+    eventCounts,
     yearlyBabyCounts,
     loading,
     refresh: loadStats,

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, Alert, ScrollView, View, Platform, Pressable, RefreshControl } from 'react-native';
-import { useIsFocused, useFocusEffect } from '@react-navigation/native';
+import { Link, router, useFocusEffect, useIsFocused } from 'expo-router';
 import { getBirthRecords, deleteBirthRecord } from '@/services/storage';
 import { BirthRecord } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
@@ -9,7 +9,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { TextInput as RNTextInput } from 'react-native';
 import { IconButton } from '@/components/IconButton';
 import { FlatList } from 'react-native';
-import { router, Link } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';

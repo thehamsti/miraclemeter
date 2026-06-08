@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, ScrollView, View, Alert } from 'react-native';
-import { Stack, router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { getBirthRecords } from '@/services/storage';
 import { shareExport, getExportSummary, ExportError } from '@/services/export';
 import { ThemedText } from '@/components/ThemedText';

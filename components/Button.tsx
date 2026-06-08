@@ -149,10 +149,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonSecondary: {
-    ...Platform.select({
-      ios: Shadows.sm,
-      android: { elevation: 1 },
-    }),
+    ...(Platform.OS === 'ios' ? Shadows.sm : { elevation: 1 }),
   },
   buttonTertiary: {
     backgroundColor: 'transparent',

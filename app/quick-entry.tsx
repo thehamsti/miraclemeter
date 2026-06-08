@@ -1,9 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { StyleSheet, Alert, View, KeyboardAvoidingView, Platform, Animated, ScrollView } from 'react-native';
-import { Stack } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Stepper } from '@/components/Stepper';
 import { DateTimePicker } from '@/components/birth-entry/DateTimePicker';
 import { DeliveryTypeSelector } from '@/components/birth-entry/DeliveryTypeSelector';

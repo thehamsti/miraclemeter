@@ -3,8 +3,7 @@ import { Animated } from "react-native";
 import { Platform, Pressable, RefreshControl, StyleSheet, View, Modal, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { BlurView } from "expo-blur";
-import { Link, useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -438,7 +437,7 @@ export default function HomeScreen() {
             weekProgress={weekProgress}
             nextMilestone={nextMilestone}
             loggedDates={loggedDates}
-            onPress={() => router.push("/streaks")}
+            onPress={() => router.push("../streaks")}
           />
         </View>
 
@@ -1296,7 +1295,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContent: {

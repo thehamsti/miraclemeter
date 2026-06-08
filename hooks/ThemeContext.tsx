@@ -30,8 +30,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem('themePreference', newTheme);
   };
 
-  const effectiveTheme = theme === 'system' 
-    ? (systemColorScheme ?? 'light')
+  const effectiveTheme: 'light' | 'dark' = theme === 'system'
+    ? systemColorScheme === 'dark' ? 'dark' : 'light'
     : theme;
 
   return (
