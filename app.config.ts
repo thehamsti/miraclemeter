@@ -40,6 +40,7 @@ const config: ExpoConfig = {
         "@react-native-community/datetimepicker",
         "expo-sharing",
         "expo-status-bar",
+        "./plugins/withIcloudSync",
         [
             "expo-splash-screen",
             {

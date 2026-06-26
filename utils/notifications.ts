@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getStreakData, getStreakStatus } from '@/services/streaks';
+import { markCloudDirty } from '@/services/cloudSync';
 
 // Configure notification handling
 Notifications.setNotificationHandler({
@@ -40,7 +41,8 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
 // Save notification preferences
 export async function saveNotificationPreferences(prefs: NotificationPreferences) {
   await AsyncStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
-  
+  markCloudDirty();
+
   if (prefs.enabled) {
     await scheduleSmartReminders(prefs);
   } else {

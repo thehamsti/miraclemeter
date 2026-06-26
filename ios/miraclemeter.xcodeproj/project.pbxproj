@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		371ACE7C327F4570910C0407 /* ICloudSyncBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 6191854F9E19406596EE8C30 /* ICloudSyncBridge.m */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		A0BF5B781CC74F27A50ADB50 /* ICloudSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72EF33BFB50546E4B5294BC2 /* ICloudSyncBridge.swift */; };
 		APPINTENTS0001 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPINTENTS0002 /* AppIntents.swift */; };
 		B3AE728887B66C38FF98CB8B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
@@ -53,6 +55,8 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = miraclemeter/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = miraclemeter/Info.plist; sourceTree = "<group>"; };
 		234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = miraclemeter/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		6191854F9E19406596EE8C30 /* ICloudSyncBridge.m */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.objc; name = ICloudSyncBridge.m; path = miraclemeter/ICloudSyncBridge.m; sourceTree = "<group>"; };
+		72EF33BFB50546E4B5294BC2 /* ICloudSyncBridge.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ICloudSyncBridge.swift; path = miraclemeter/ICloudSyncBridge.swift; sourceTree = "<group>"; };
 		7B2CE91D6F6B789C35146B6A /* libPods-miraclemeter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-miraclemeter.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9405AF5599A0B66ED9DB5FA3 /* Pods-miraclemeter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-miraclemeter.debug.xcconfig"; path = "Target Support Files/Pods-miraclemeter/Pods-miraclemeter.debug.xcconfig"; sourceTree = "<group>"; };
 		A90B560F9EFC884EF69CD210 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-miraclemeter/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -104,6 +108,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				234211D554F064ED9FE94124 /* PrivacyInfo.xcprivacy */,
+				72EF33BFB50546E4B5294BC2 /* ICloudSyncBridge.swift */,
+				6191854F9E19406596EE8C30 /* ICloudSyncBridge.m */,
 			);
 			name = miraclemeter;
 			sourceTree = "<group>";
@@ -414,25 +420,25 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Feather.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Fontisto.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Foundation.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Ionicons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Octicons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
-				"${PODS_ROOT}/../../node_modules/.pnpm/react-native-vector-icons@10.3.0/node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Entypo.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Feather.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Brands.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Solid.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Foundation.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Octicons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf",
+				"${PODS_ROOT}/../../node_modules/react-native-vector-icons/Fonts/Zocial.ttf",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift/ReachabilitySwift.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
@@ -494,6 +500,8 @@
 				F701BC494DE062A0CE7D07E6 /* ExpoModulesProvider.swift in Sources */,
 				WIDGET001D0001 /* WidgetBridge.swift in Sources */,
 				WIDGET001D0002 /* WidgetBridge.m in Sources */,
+				A0BF5B781CC74F27A50ADB50 /* ICloudSyncBridge.swift in Sources */,
+				371ACE7C327F4570910C0407 /* ICloudSyncBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -654,7 +662,7 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/.pnpm/react-native@0.85.3_@babel+core@7.29.7_@react-native-community+cli@20.1.3_typescript@6._7cc5e9e54bb9db2f22e0f53cec483a61/node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
@@ -721,7 +729,7 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/.pnpm/react-native@0.85.3_@babel+core@7.29.7_@react-native-community+cli@20.1.3_typescript@6._7cc5e9e54bb9db2f22e0f53cec483a61/node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;

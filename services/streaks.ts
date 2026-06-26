@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { StreakData } from '@/types';
+import { markCloudDirty } from './cloudSync';
 
 const STREAK_STORAGE_KEY = 'streak_data';
 const MAX_SHIELDS = 3;
@@ -104,6 +105,7 @@ function migrateStreakData(data: Partial<StreakData>): StreakData {
 export async function saveStreakData(data: StreakData): Promise<void> {
   try {
     await AsyncStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(data));
+    markCloudDirty();
   } catch (error) {
     console.error('Error saving streak data:', error);
     throw error;

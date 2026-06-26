@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserAchievements, BirthRecord, UserPreferences } from "../types";
 import { ACHIEVEMENTS } from "../constants/achievements";
 import { incrementAchievementCount } from "./ratePrompt";
+import { markCloudDirty } from "./cloudSync";
 
 const ACHIEVEMENTS_KEY = "userAchievements";
 
@@ -61,6 +62,7 @@ export const saveAchievements = async (
 ): Promise<void> => {
   try {
     await AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+    markCloudDirty();
   } catch (error) {
     console.error("Error saving achievements:", error);
   }

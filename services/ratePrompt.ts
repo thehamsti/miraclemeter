@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import type { RatePromptData } from '@/types';
+import { markCloudDirty } from './cloudSync';
 
 const RATE_PROMPT_KEY = 'rate_prompt_data';
 
@@ -25,6 +26,7 @@ export async function getRatePromptData(): Promise<RatePromptData> {
 async function saveRatePromptData(data: RatePromptData): Promise<void> {
   try {
     await AsyncStorage.setItem(RATE_PROMPT_KEY, JSON.stringify(data));
+    markCloudDirty();
   } catch (error) {
     console.error('Error saving rate prompt data:', error);
     throw error;

@@ -10,6 +10,10 @@ interface BirthRecord {
   deliveryType?: 'vaginal' | 'c-section' | 'unknown';
   eventType?: 'delivery' | 'transition';
   notes?: string;
+  // Cloud sync metadata (ISO strings). updatedAt tracks the last edit for
+  // multi-device merge; deletedAt marks a tombstone so deletions propagate.
+  updatedAt?: string;
+  deletedAt?: string;
 }
 
 interface UserPreferences {

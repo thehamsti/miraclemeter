@@ -64,7 +64,7 @@ CELEBRATE YOUR CAREER
 Unlock achievements as you reach delivery milestones. Share your stats with colleagues. See your annual recap of every baby you've welcomed into the world.
 
 PRIVACY FIRST
-MiracleMeter stores all data locally on your device. No patient information is ever collected - just your personal delivery count and career statistics.
+MiracleMeter keeps your data on your device and in your own private iCloud — it syncs only between your devices and never to us. No patient information is ever collected - just your personal delivery count and career statistics.
 
 Built by nurses, for nurses. Start tracking your legacy today.
 ```
