@@ -8,8 +8,10 @@ import { ToastProvider, useToastContext } from '@/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '@/hooks/ThemeContext';
 import { ToastContainer } from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { isOnboardingComplete, getBirthRecords, getStoredAppVersion, setStoredAppVersion } from '@/services/storage';
+import { isOnboardingComplete, getBirthRecords, getUserPreferences, getStoredAppVersion, setStoredAppVersion } from '@/services/storage';
 import { getPendingWidgetRecord, updateWidgetData, calculateTodayCount } from '@/services/widgetBridge';
+import { checkAchievements } from '@/services/achievements';
+import { bootstrapCloudSync, registerMergeSideEffects } from '@/services/cloudSync';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -133,6 +135,25 @@ function RootLayoutContent() {
     if (!isReady) return;
     checkForAppUpdate();
   }, [isReady, checkForAppUpdate]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    // Recompute achievements + widget counts after a cloud merge pulls in records.
+    registerMergeSideEffects(async () => {
+      const records = await getBirthRecords();
+      const prefs = await getUserPreferences();
+      await checkAchievements(records, prefs ?? { tutorialCompleted: true });
+      const todayCount = calculateTodayCount(records.map(r => ({
+        timestamp: r.timestamp ? new Date(r.timestamp) : undefined
+      })));
+      await updateWidgetData(todayCount, records.length);
+    });
+
+    bootstrapCloudSync().catch((error) => {
+      console.error('iCloud sync bootstrap failed:', error);
+    });
+  }, [isReady]);
 
   useEffect(() => {
     if (isReady) {

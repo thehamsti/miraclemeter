@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme as useNativeColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { markCloudDirty } from '@/services/cloudSync';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 
@@ -28,6 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = async (newTheme: ThemePreference) => {
     setThemeState(newTheme);
     await AsyncStorage.setItem('themePreference', newTheme);
+    markCloudDirty();
   };
 
   const effectiveTheme: 'light' | 'dark' = theme === 'system'

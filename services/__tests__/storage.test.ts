@@ -25,6 +25,11 @@ jest.mock('../achievements', () => ({
   checkAchievements: jest.fn().mockResolvedValue(['achievement-1']),
 }));
 
+// Mock cloud sync (write-path trigger); never hits native/storage in tests
+jest.mock('../cloudSync', () => ({
+  markCloudDirty: jest.fn(),
+}));
+
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 
 describe('Storage Service', () => {
@@ -61,10 +66,11 @@ describe('Storage Service', () => {
 
       const result = await saveBirthRecord(mockRecord);
 
-      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
-        'birth_records',
-        JSON.stringify([mockRecord])
+      const recordCall = mockAsyncStorage.setItem.mock.calls.find(
+        ([key]) => key === 'birth_records'
       );
+      expect(recordCall).toBeDefined();
+      expect(recordCall![1]).toContain('"updatedAt"');
       expect(result).toEqual(['achievement-1']);
     });
 
@@ -82,10 +88,14 @@ describe('Storage Service', () => {
 
       await saveBirthRecord(mockRecord);
 
-      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
-        'birth_records',
-        JSON.stringify([existingRecord, mockRecord])
+      const recordCall = mockAsyncStorage.setItem.mock.calls.find(
+        ([key]) => key === 'birth_records'
       );
+      expect(recordCall).toBeDefined();
+      const stored = JSON.parse(recordCall![1] as string);
+      expect(stored).toHaveLength(2);
+      expect(stored[1].id).toBe('test-id-1');
+      expect(stored[1].updatedAt).toBeTruthy();
     });
 
     it('should throw error when save fails', async () => {
@@ -272,25 +282,30 @@ describe('Storage Service', () => {
   });
 
   describe('deleteBirthRecord', () => {
-    it('should delete the specified record', async () => {
+    it('should soft-delete the specified record (tombstone)', async () => {
       const recordToDelete = { ...mockRecord, id: 'delete-me' };
       const recordToKeep = { ...mockRecord, id: 'keep-me' };
-      
+
       mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify([recordToDelete, recordToKeep]));
       mockAsyncStorage.setItem.mockResolvedValueOnce(undefined);
 
       await deleteBirthRecord('delete-me');
 
-      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
-        'birth_records',
-        JSON.stringify([recordToKeep])
+      const recordCall = mockAsyncStorage.setItem.mock.calls.find(
+        ([key]) => key === 'birth_records'
       );
+      expect(recordCall).toBeDefined();
+      const stored = JSON.parse(recordCall![1] as string) as Array<BirthRecord & { deletedAt?: string }>;
+      // Tombstone preserved in storage so deletes can propagate to the cloud.
+      expect(stored).toHaveLength(2);
+      expect(stored.find((r) => r.id === 'delete-me')?.deletedAt).toBeTruthy();
+      expect(stored.find((r) => r.id === 'keep-me')?.deletedAt).toBeUndefined();
     });
 
     it('should throw error when delete fails', async () => {
       mockAsyncStorage.getItem.mockRejectedValueOnce(new Error('Read error'));
 
-      await expect(deleteBirthRecord('test-id')).rejects.toThrow('Failed to load birth records');
+      await expect(deleteBirthRecord('test-id')).rejects.toThrow('Read error');
     });
   });
 
@@ -298,24 +313,25 @@ describe('Storage Service', () => {
     it('should update the specified record', async () => {
       const originalRecord = { ...mockRecord, notes: 'Original notes' };
       const updatedRecord = { ...mockRecord, notes: 'Updated notes' };
-      
+
       mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify([originalRecord]));
       mockAsyncStorage.setItem.mockResolvedValueOnce(undefined);
       mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(mockPreferences));
 
       const result = await updateBirthRecord(updatedRecord);
 
-      expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
-        'birth_records',
-        JSON.stringify([updatedRecord])
+      const recordCall = mockAsyncStorage.setItem.mock.calls.find(
+        ([key]) => key === 'birth_records'
       );
+      expect(recordCall).toBeDefined();
+      expect(recordCall![1]).toContain('"updatedAt"');
       expect(result).toEqual(['achievement-1']);
     });
 
     it('should throw error when update fails', async () => {
       mockAsyncStorage.getItem.mockRejectedValueOnce(new Error('Read error'));
 
-      await expect(updateBirthRecord(mockRecord)).rejects.toThrow('Failed to load birth records');
+      await expect(updateBirthRecord(mockRecord)).rejects.toThrow('Read error');
     });
   });
 });

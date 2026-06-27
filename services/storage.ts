@@ -3,6 +3,7 @@ import type { BirthRecord, UserPreferences } from '@/types';
 import { checkAchievements } from './achievements';
 import { updateWidgetData, calculateTodayCount } from './widgetBridge';
 import { updateStreakOnDelivery } from './streaks';
+import { markCloudDirty } from './cloudSync';
 
 export class StorageError extends Error {
   constructor(message: string, public cause?: Error) {
@@ -31,21 +32,26 @@ export async function saveBirthRecord(record: BirthRecord, returnFullResult?: bo
     const existingRecordsJson = await AsyncStorage.getItem(STORAGE_KEY);
     const existingRecords: BirthRecord[] = existingRecordsJson ? JSON.parse(existingRecordsJson) : [];
     
-    const updatedRecords = [...existingRecords, record];
+    const stamped: BirthRecord = { ...record, updatedAt: new Date().toISOString() };
+    const updatedRecords = [...existingRecords, stamped];
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
     
+    const visibleRecords = updatedRecords.filter(r => !r.deletedAt);
+
     // Check for new achievements
     const preferences = await getUserPreferences();
-    const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
+    const newAchievements = await checkAchievements(visibleRecords, preferences || { tutorialCompleted: true });
     
     // Sync with widget
-    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+    const todayCount = calculateTodayCount(visibleRecords.map(r => ({
       timestamp: r.timestamp ? new Date(r.timestamp) : undefined
     })));
-    await updateWidgetData(todayCount, updatedRecords.length);
+    await updateWidgetData(todayCount, visibleRecords.length);
     
     // Update streak and get milestone info
     const streakResult = await updateStreakOnDelivery();
+
+    markCloudDirty();
     
     // Return full result if requested
     if (returnFullResult) {
@@ -70,11 +76,13 @@ export async function getBirthRecords(): Promise<BirthRecord[]> {
     if (!recordsJson) return [];
     
     const records: BirthRecord[] = JSON.parse(recordsJson);
-    // Convert stored date strings back to Date objects
-    return records.map(record => ({
-      ...record,
-      timestamp: record.timestamp ? new Date(record.timestamp) : undefined
-    }));
+    // Drop tombstones (soft-deleted records) and reconstitute date strings.
+    return records
+      .filter(record => !record.deletedAt)
+      .map(record => ({
+        ...record,
+        timestamp: record.timestamp ? new Date(record.timestamp) : undefined
+      }));
   } catch (error) {
     console.error('Error loading birth records:', error);
     throw new StorageError('Failed to load birth records', error instanceof Error ? error : undefined);
@@ -105,6 +113,7 @@ export async function isOnboardingComplete(): Promise<boolean> {
 export async function completeOnboarding(): Promise<void> {
   try {
     await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+    markCloudDirty();
   } catch (error) {
     console.error('Error completing onboarding:', error);
     throw new StorageError('Failed to complete onboarding', error instanceof Error ? error : undefined);
@@ -114,6 +123,7 @@ export async function completeOnboarding(): Promise<void> {
 export async function saveUserPreferences(preferences: UserPreferences): Promise<void> {
   try {
     await AsyncStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(preferences));
+    markCloudDirty();
   } catch (error) {
     console.error('Error saving user preferences:', error);
     throw new StorageError('Failed to save user preferences', error instanceof Error ? error : undefined);
@@ -133,6 +143,9 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
 export async function resetStorage(): Promise<void> {
   try {
     await AsyncStorage.clear();
+    // NOTE: this clears local state only. With iCloud sync enabled, data will
+    // re-download from iCloud on the next bootstrap. A cloud-clear needs a
+    // native delete capability (follow-up).
     console.log('Storage successfully cleared');
   } catch (error) {
     console.error('Error clearing storage:', error);
@@ -171,6 +184,7 @@ export async function getHomeRecapDismissed(year: number): Promise<boolean> {
 export async function setHomeRecapDismissed(year: number, dismissed: boolean): Promise<void> {
   try {
     await AsyncStorage.setItem(getHomeRecapDismissedKey(year), dismissed ? 'true' : 'false');
+    markCloudDirty();
   } catch (error) {
     console.error('Error saving recap dismissal status:', error);
     throw new StorageError('Failed to save recap dismissal status', error instanceof Error ? error : undefined);
@@ -179,15 +193,24 @@ export async function setHomeRecapDismissed(year: number, dismissed: boolean): P
 
 export async function deleteBirthRecord(id: string): Promise<void> {
   try {
-    const records = await getBirthRecords();
-    const updatedRecords = records.filter(record => record.id !== id);
+    // Read raw (including any existing tombstones) and soft-delete so the
+    // tombstone can propagate to other devices during cloud merge.
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const records: BirthRecord[] = raw ? JSON.parse(raw) : [];
+    const updatedRecords = records.map(record =>
+      record.id === id ? { ...record, deletedAt: new Date().toISOString() } : record
+    );
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
-    
+
+    const visibleRecords = updatedRecords.filter(r => !r.deletedAt);
+
     // Sync with widget
-    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+    const todayCount = calculateTodayCount(visibleRecords.map(r => ({
       timestamp: r.timestamp ? new Date(r.timestamp) : undefined
     })));
-    await updateWidgetData(todayCount, updatedRecords.length);
+    await updateWidgetData(todayCount, visibleRecords.length);
+
+    markCloudDirty();
   } catch (error) {
     console.error('Error deleting birth record:', error);
     throw error;
@@ -196,22 +219,29 @@ export async function deleteBirthRecord(id: string): Promise<void> {
 
 export async function updateBirthRecord(updatedRecord: BirthRecord): Promise<string[]> {
   try {
-    const records = await getBirthRecords();
-    const updatedRecords = records.map(record => 
-      record.id === updatedRecord.id ? updatedRecord : record
+    // Read raw to preserve tombstones while replacing the target record.
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const records: BirthRecord[] = raw ? JSON.parse(raw) : [];
+    const stamped: BirthRecord = { ...updatedRecord, updatedAt: new Date().toISOString() };
+    const updatedRecords = records.map(record =>
+      record.id === stamped.id ? stamped : record
     );
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRecords));
-    
+
+    const visibleRecords = updatedRecords.filter(r => !r.deletedAt);
+
     // Check for new achievements
     const preferences = await getUserPreferences();
-    const newAchievements = await checkAchievements(updatedRecords, preferences || { tutorialCompleted: true });
-    
+    const newAchievements = await checkAchievements(visibleRecords, preferences || { tutorialCompleted: true });
+
     // Sync with widget
-    const todayCount = calculateTodayCount(updatedRecords.map(r => ({
+    const todayCount = calculateTodayCount(visibleRecords.map(r => ({
       timestamp: r.timestamp ? new Date(r.timestamp) : undefined
     })));
-    await updateWidgetData(todayCount, updatedRecords.length);
-    
+    await updateWidgetData(todayCount, visibleRecords.length);
+
+    markCloudDirty();
+
     return newAchievements;
   } catch (error) {
     console.error('Error updating birth record:', error);

@@ -15,6 +15,7 @@ import { getUserPreferences, saveUserPreferences } from '@/services/storage';
 import { getStreakData, setWeeklyGoal } from '@/services/streaks';
 import { Stack, router } from 'expo-router';
 import { useTheme } from '@/hooks/ThemeContext';
+import { useCloudSync } from '@/hooks/useCloudSync';
 import { ThemedSwitch } from '@/components/ThemedSwitch';
 import { ThemedSegmentedButtons } from '@/components/ThemedSegmentedButtons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
@@ -42,6 +43,40 @@ export default function SettingsScreen() {
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const { theme, setTheme, effectiveTheme } = useTheme();
+  const {
+    status: syncStatus,
+    lastSyncedAt,
+    enabled: syncEnabled,
+    setEnabled: setSyncEnabled,
+    syncNow,
+  } = useCloudSync();
+
+  const lastSyncedLabel = lastSyncedAt
+    ? `Last synced ${lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    : null;
+
+  const syncStatusLabel = (() => {
+    switch (syncStatus) {
+      case 'syncing':
+        return 'Syncing…';
+      case 'synced':
+        return lastSyncedLabel ?? 'Up to date';
+      case 'no-icloud':
+        return 'iCloud unavailable';
+      case 'error':
+        return 'Sync error — try again';
+      case 'unknown':
+        return 'Starting up…';
+      default:
+        return '';
+    }
+  })();
+
+  const syncDescription = !syncEnabled
+    ? 'Save your records to iCloud so they transfer to a new phone'
+    : syncStatus === 'no-icloud'
+      ? 'Sign in to iCloud to sync your records'
+      : 'Your records sync privately through your own iCloud';
   
   // Streak settings
   const [weeklyGoalValue, setWeeklyGoalValue] = useState(1);
@@ -416,6 +451,55 @@ export default function SettingsScreen() {
                     )}
                   </View>
                 </>
+              )}
+            </View>
+
+            {/* iCloud Sync Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="cloud-outline" size={22} color={primaryColor} />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  iCloud Sync
+                </ThemedText>
+              </View>
+
+              <View style={[styles.settingItem, { borderBottomColor: borderLightColor }]}>
+                <View style={styles.settingTextContainer}>
+                  <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                    Sync Across Devices
+                  </ThemedText>
+                  <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                    {syncDescription}
+                  </ThemedText>
+                </View>
+                <ThemedSwitch
+                  value={syncEnabled}
+                  onValueChange={(value) => setSyncEnabled(value)}
+                />
+              </View>
+
+              {syncEnabled && (
+                <Pressable
+                  onPress={() => syncNow()}
+                  disabled={syncStatus === 'syncing'}
+                  style={({ pressed }) => [
+                    styles.settingItem,
+                    { borderBottomWidth: 0 },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <View style={styles.settingTextContainer}>
+                    <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                      Sync Now
+                    </ThemedText>
+                    <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                      {syncStatusLabel}
+                    </ThemedText>
+                  </View>
+                  <Ionicons name="sync-outline" size={20} color={textSecondaryColor} />
+                </Pressable>
               )}
             </View>
           </View>
