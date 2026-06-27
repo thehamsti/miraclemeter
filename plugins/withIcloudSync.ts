@@ -8,11 +8,14 @@ import fs from "fs";
 import path from "path";
 
 const ICLOUD_SERVICES_KEY = "com.apple.developer.icloud-services";
+const ICLOUD_CONTAINER_IDENTIFIERS_KEY =
+    "com.apple.developer.icloud-container-identifiers";
 const UBIQUITY_CONTAINER_IDENTIFIERS_KEY =
     "com.apple.developer.ubiquity-container-identifiers";
 
 const ICLOUD_SERVICES = ["CloudDocuments"];
-const UBIQUITY_CONTAINER_IDENTIFIERS = ["iCloud.com.hamstico.miraclemeter"];
+const ICLOUD_CONTAINER_IDENTIFIERS = ["iCloud.com.hamstico.miraclemeter"];
+const UBIQUITY_CONTAINER_IDENTIFIERS = ICLOUD_CONTAINER_IDENTIFIERS;
 
 // RCTEventEmitter is needed in the bridging header because ICloudSyncBridge
 // extends it to emit "onChange" events. Expo regenerates the bridging header on
@@ -60,6 +63,8 @@ const withIcloudEntitlements: ConfigPlugin = (config) => {
         // Merge (do not replace) — leaves aps-environment, associated-domains and
         // application-groups intact.
         entitlements[ICLOUD_SERVICES_KEY] = ICLOUD_SERVICES;
+        entitlements[ICLOUD_CONTAINER_IDENTIFIERS_KEY] =
+            ICLOUD_CONTAINER_IDENTIFIERS;
         entitlements[UBIQUITY_CONTAINER_IDENTIFIERS_KEY] =
             UBIQUITY_CONTAINER_IDENTIFIERS;
         return newConfig;
