@@ -43,6 +43,11 @@ For a native iOS release, run the `EAS Production Build` workflow from GitHub
 Actions. Leave `submit` enabled to send the build to TestFlight after EAS
 finishes the archive.
 
+Native EAS build profiles set `EXPO_USE_PRECOMPILED_MODULES=0` so CocoaPods uses
+the project dependencies from `node_modules`. Keep that override unless Expo's
+precompiled external module scripts are confirmed to handle this project's pod
+layout.
+
 For a JavaScript-only change that is safe for the current runtime version, run
 the `EAS Production Update` workflow. Start with a smaller rollout percentage
 when the change has meaningful product or data risk.

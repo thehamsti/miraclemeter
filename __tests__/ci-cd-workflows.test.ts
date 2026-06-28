@@ -53,4 +53,16 @@ describe("CI/CD workflows", () => {
 
         expect(easWorkflow).not.toContain("type: fingerprint");
     });
+
+    it("uses source-built external pods for native EAS builds", () => {
+        const easConfig = JSON.parse(readFile("eas.json")) as {
+            build: Record<string, { env?: Record<string, string> }>;
+        };
+
+        for (const profile of ["development", "preview", "production"]) {
+            expect(easConfig.build[profile]?.env).toMatchObject({
+                EXPO_USE_PRECOMPILED_MODULES: "0",
+            });
+        }
+    });
 });
