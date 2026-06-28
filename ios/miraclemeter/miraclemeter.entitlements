@@ -6,7 +6,7 @@
     <string>development</string>
     <key>com.apple.developer.associated-domains</key>
     <array>
-      <string>applinks:miraclemeter</string>
+      <string>applinks:miraclemeter.app</string>
     </array>
     <key>com.apple.developer.icloud-services</key>
     <array>

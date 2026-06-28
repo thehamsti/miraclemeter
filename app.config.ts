@@ -11,7 +11,7 @@ const config: ExpoConfig = {
     ios: {
         supportsTablet: true,
         bundleIdentifier: "com.hamstico.miraclemeter",
-        associatedDomains: ["applinks:miraclemeter"],
+        associatedDomains: ["applinks:miraclemeter.app"],
     },
     android: {
         package: "com.hamstico.miraclemeter",

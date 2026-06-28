@@ -1,0 +1,88 @@
+name: EAS Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: Submit the completed iOS build to TestFlight
+        required: true
+        type: boolean
+        default: true
+      clear_cache:
+        description: Clear the EAS build cache before building
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: eas-production-build
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build iOS production
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: production
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require Expo token
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Add the EXPO_TOKEN repository secret before running EAS builds."
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test:ci
+
+      - name: Build
+        run: |
+          command=(eas build --platform ios --profile production --non-interactive --wait)
+
+          if [ "${{ inputs.submit }}" = "true" ]; then
+            command+=(--auto-submit)
+          fi
+
+          if [ "${{ inputs.clear_cache }}" = "true" ]; then
+            command+=(--clear-cache)
+          fi
+
+          "${command[@]}"
