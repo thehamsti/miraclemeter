@@ -21,7 +21,38 @@ import { ThemedSegmentedButtons } from '@/components/ThemedSegmentedButtons';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { UserPreferences } from '@/types';
+import type { BirthEventType, UserPreferences } from '@/types';
+import {
+  DEFAULT_ENABLED_EVENT_TYPES,
+  getEnabledEventTypes,
+  type EnabledEventTypes,
+} from '@/utils/eventTypes';
+
+const EVENT_TYPE_SETTINGS = [
+  {
+    type: 'delivery',
+    title: 'Delivery',
+    description: 'Show Delivery in the event type picker',
+    icon: 'fitness-outline',
+  },
+  {
+    type: 'transition',
+    title: 'Transition',
+    description: 'Show Transition in the event type picker',
+    icon: 'swap-horizontal-outline',
+  },
+  {
+    type: 'charge-nurse',
+    title: 'Charge Nurse',
+    description: 'Show Charge Nurse in the event type picker',
+    icon: 'people-outline',
+  },
+] as const satisfies readonly {
+  type: BirthEventType;
+  title: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[];
 
 export default function SettingsScreen() {
   const backgroundColor = useThemeColor({}, 'background');
@@ -80,6 +111,7 @@ export default function SettingsScreen() {
   
   // Streak settings
   const [weeklyGoalValue, setWeeklyGoalValue] = useState(1);
+  const [enabledEventTypes, setEnabledEventTypes] = useState<EnabledEventTypes>(DEFAULT_ENABLED_EVENT_TYPES);
 
   useEffect(() => {
     loadPreferences();
@@ -101,6 +133,7 @@ export default function SettingsScreen() {
       setName(userPrefs.name || '');
       setUnit(userPrefs.unit || '');
       setShift(userPrefs.shift || 'day');
+      setEnabledEventTypes(getEnabledEventTypes(userPrefs));
     }
     
     // Load streak settings
@@ -111,6 +144,15 @@ export default function SettingsScreen() {
   async function handleWeeklyGoalChange(goal: number) {
     setWeeklyGoalValue(goal);
     await setWeeklyGoal(goal);
+  }
+
+  async function handleEventTypeToggle(eventType: BirthEventType) {
+    const updatedEventTypes = {
+      ...enabledEventTypes,
+      [eventType]: !enabledEventTypes[eventType],
+    };
+    setEnabledEventTypes(updatedEventTypes);
+    await saveProfileChanges({ enabledEventTypes: updatedEventTypes });
   }
 
   async function saveProfileChanges(updates: Partial<UserPreferences>) {
@@ -305,6 +347,46 @@ export default function SettingsScreen() {
                   style={styles.themeSegment}
                 />
               </View>
+            </View>
+
+            {/* Event Type Settings Section */}
+            <View style={[styles.section, { backgroundColor: surfaceColor }]}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: primaryColor + '15' }]}>
+                  <Ionicons name="list-outline" size={22} color={primaryColor} />
+                </View>
+                <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
+                  Event Types
+                </ThemedText>
+              </View>
+
+              {EVENT_TYPE_SETTINGS.map((eventTypeSetting, index) => (
+                <View
+                  key={eventTypeSetting.type}
+                  style={[
+                    styles.settingItem,
+                    index === EVENT_TYPE_SETTINGS.length - 1
+                      ? { borderBottomWidth: 0 }
+                      : { borderBottomColor: borderLightColor },
+                  ]}
+                >
+                  <View style={styles.settingTextContainer}>
+                    <View style={styles.eventTypeSettingTitle}>
+                      <Ionicons name={eventTypeSetting.icon} size={18} color={primaryColor} />
+                      <ThemedText style={[styles.settingTitle, { color: textColor }]}>
+                        {eventTypeSetting.title}
+                      </ThemedText>
+                    </View>
+                    <ThemedText style={[styles.settingDescription, { color: textSecondaryColor }]}>
+                      {eventTypeSetting.description}
+                    </ThemedText>
+                  </View>
+                  <ThemedSwitch
+                    value={enabledEventTypes[eventTypeSetting.type]}
+                    onValueChange={() => handleEventTypeToggle(eventTypeSetting.type)}
+                  />
+                </View>
+              ))}
             </View>
 
             {/* Streak Settings Section */}
@@ -623,6 +705,11 @@ const styles = StyleSheet.create({
   settingDescription: {
     fontSize: Typography.sm,
     lineHeight: Typography.lineHeights.sm,
+  },
+  eventTypeSettingTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   settingLabel: {
     fontSize: Typography.base,

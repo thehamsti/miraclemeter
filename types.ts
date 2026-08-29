@@ -30,6 +30,7 @@ interface UserPreferences {
   theme?: Theme;
   language?: Language;
   notifications?: boolean;
+  enabledEventTypes?: Partial<Record<BirthEventType, boolean>>;
 }
 
 type Theme = 'light' | 'dark' | 'system';

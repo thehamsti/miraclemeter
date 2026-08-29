@@ -11,7 +11,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
-import { saveBirthRecord, type SaveBirthRecordResult } from '@/services/storage';
+import { getUserPreferences, saveBirthRecord, type SaveBirthRecordResult } from '@/services/storage';
 import { shouldShowRatePrompt, showRatePrompt } from '@/services/ratePrompt';
 import type { Baby, BirthEventType, BirthRecord } from '@/types';
 import { AchievementNotification } from '@/components/AchievementNotification';
@@ -20,6 +20,11 @@ import { ACHIEVEMENTS } from '@/constants/achievements';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Spacing, BorderRadius, Typography } from '@/constants/Colors';
+import {
+  DEFAULT_ENABLED_EVENT_TYPES,
+  getEnabledEventTypes,
+  type EnabledEventTypes,
+} from '@/utils/eventTypes';
 
 export default function QuickEntryScreen() {
   const router = useRouter();
@@ -31,6 +36,7 @@ export default function QuickEntryScreen() {
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown' | undefined>(undefined);
   const [eventType, setEventType] = useState<BirthEventType | undefined>(undefined);
+  const [enabledEventTypes, setEnabledEventTypes] = useState<EnabledEventTypes>(DEFAULT_ENABLED_EVENT_TYPES);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
@@ -122,9 +128,19 @@ export default function QuickEntryScreen() {
     setShowMilestoneModal(false);
   }, []);
 
+  const loadEnabledEventTypes = useCallback(async () => {
+    try {
+      const preferences = await getUserPreferences();
+      setEnabledEventTypes(getEnabledEventTypes(preferences));
+    } catch (error) {
+      console.error('Failed to load event type settings:', error);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       resetForm();
+      void loadEnabledEventTypes();
       
       // Handle widget gender parameter - pre-fill and enter widget mode
       if (widgetGender && (widgetGender === 'boy' || widgetGender === 'girl' || widgetGender === 'angel')) {
@@ -134,7 +150,7 @@ export default function QuickEntryScreen() {
       }
       
       return () => {};
-    }, [resetForm, widgetGender])
+    }, [loadEnabledEventTypes, resetForm, widgetGender])
   );
 
   const handleReset = useCallback(() => {
@@ -360,27 +376,27 @@ export default function QuickEntryScreen() {
             Event Type?
           </ThemedText>
           <View style={[styles.stepContent, styles.selectorContainer]}>
-            <Button
+            {enabledEventTypes.delivery && <Button
               title="Delivery"
               onPress={() => setEventType('delivery')}
               variant={eventType === 'delivery' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
               icon={<Ionicons name="fitness-outline" size={20} color={eventType === 'delivery' ? 'white' : textColor} />}
-            />
-            <Button
+            />}
+            {enabledEventTypes.transition && <Button
               title="Transition"
               onPress={() => setEventType('transition')}
               variant={eventType === 'transition' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
               icon={<Ionicons name="swap-horizontal-outline" size={20} color={eventType === 'transition' ? 'white' : textColor} />}
-            />
-            <Button
+            />}
+            {enabledEventTypes['charge-nurse'] && <Button
               title="Charge Nurse"
               onPress={() => setEventType('charge-nurse')}
               variant={eventType === 'charge-nurse' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
               icon={<Ionicons name="people-outline" size={20} color={eventType === 'charge-nurse' ? 'white' : textColor} />}
-            />
+            />}
           </View>
           <Button
             title="Skip"

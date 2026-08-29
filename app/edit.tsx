@@ -7,11 +7,16 @@ import { BabyDetailsForm } from '@/components/birth-entry/BabyDetailsForm';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
-import { updateBirthRecord, getBirthRecordById, deleteBirthRecord } from '@/services/storage';
+import { getUserPreferences, updateBirthRecord, getBirthRecordById, deleteBirthRecord } from '@/services/storage';
 import type { BirthEventType, BirthRecord, Baby } from '@/types';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  DEFAULT_ENABLED_EVENT_TYPES,
+  getEnabledEventTypes,
+  type EnabledEventTypes,
+} from '@/utils/eventTypes';
 
 // Module-level cache to prevent duplicate fetches across component instances
 const recordCache: Record<string, BirthRecord> = {};
@@ -26,6 +31,7 @@ export default function EditBirthScreen() {
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown'>('unknown');
   const [eventType, setEventType] = useState<BirthEventType>('delivery');
+  const [enabledEventTypes, setEnabledEventTypes] = useState<EnabledEventTypes>(DEFAULT_ENABLED_EVENT_TYPES);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -36,6 +42,19 @@ export default function EditBirthScreen() {
   const primaryColor = useThemeColor({}, 'primary');
   const errorColor = useThemeColor({}, 'error');
   const borderColor = useThemeColor({}, 'border');
+
+  useEffect(() => {
+    async function loadEnabledEventTypes() {
+      try {
+        const preferences = await getUserPreferences();
+        setEnabledEventTypes(getEnabledEventTypes(preferences));
+      } catch (error) {
+        console.error('Failed to load event type settings:', error);
+      }
+    }
+
+    void loadEnabledEventTypes();
+  }, []);
 
   useEffect(() => {
     // Skip if no id or already have record loaded
@@ -172,7 +191,7 @@ export default function EditBirthScreen() {
               </ThemedText>
             </View>
             <View style={styles.eventTypeRow}>
-              <Pressable
+              {enabledEventTypes.delivery && <Pressable
                 style={[
                   styles.eventTypeButton,
                   { borderColor: eventType === 'delivery' ? primaryColor : borderColor },
@@ -193,8 +212,8 @@ export default function EditBirthScreen() {
                 >
                   Delivery
                 </ThemedText>
-              </Pressable>
-              <Pressable
+              </Pressable>}
+              {enabledEventTypes.transition && <Pressable
                 style={[
                   styles.eventTypeButton,
                   { borderColor: eventType === 'transition' ? primaryColor : borderColor },
@@ -215,8 +234,8 @@ export default function EditBirthScreen() {
                 >
                   Transition
                 </ThemedText>
-              </Pressable>
-              <Pressable
+              </Pressable>}
+              {enabledEventTypes['charge-nurse'] && <Pressable
                 style={[
                   styles.eventTypeButton,
                   { borderColor: eventType === 'charge-nurse' ? primaryColor : borderColor },
@@ -237,7 +256,7 @@ export default function EditBirthScreen() {
                 >
                   Charge Nurse
                 </ThemedText>
-              </Pressable>
+              </Pressable>}
             </View>
           </View>
 
