@@ -4,6 +4,7 @@ import { Link, router, useFocusEffect, useIsFocused } from 'expo-router';
 import { getBirthRecords, deleteBirthRecord } from '@/services/storage';
 import { BirthRecord } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
+import { getEventTypeLabel } from '@/utils/eventTypes';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput as RNTextInput } from 'react-native';
@@ -69,10 +70,12 @@ export default function HistoryScreen() {
       const deliveryStr = record.deliveryType === 'vaginal' ? 'Vaginal' : 
                          record.deliveryType === 'c-section' ? 'C-Section' : 
                          'Unknown';
+      const eventStr = record.eventType ? getEventTypeLabel(record.eventType) : '';
       return (
         record.notes?.toLowerCase().includes(query.toLowerCase()) ||
         dateStr.toLowerCase().includes(query.toLowerCase()) ||
         deliveryStr.toLowerCase().includes(query.toLowerCase()) ||
+        eventStr.toLowerCase().includes(query.toLowerCase()) ||
         record.babies.some(baby => baby.gender?.toLowerCase().includes(query.toLowerCase()))
       );
     });
@@ -111,7 +114,7 @@ export default function HistoryScreen() {
     const deliveryStr = item.deliveryType === 'vaginal' ? 'Vaginal' : 
                        item.deliveryType === 'c-section' ? 'C-Section' : 
                        'Unknown';
-    const eventStr = item.eventType ? (item.eventType === 'delivery' ? 'Delivery' : 'Transition') : '';
+    const eventStr = item.eventType ? getEventTypeLabel(item.eventType) : '';
 
     const getDeliveryIcon = () => {
       if (item.deliveryType === 'vaginal') return 'fitness-outline';

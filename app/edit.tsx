@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
 import { updateBirthRecord, getBirthRecordById, deleteBirthRecord } from '@/services/storage';
-import type { BirthRecord, Baby } from '@/types';
+import type { BirthEventType, BirthRecord, Baby } from '@/types';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ export default function EditBirthScreen() {
   const [timestamp, setTimestamp] = useState(new Date());
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown'>('unknown');
-  const [eventType, setEventType] = useState<'delivery' | 'transition'>('delivery');
+  const [eventType, setEventType] = useState<BirthEventType>('delivery');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -216,6 +216,28 @@ export default function EditBirthScreen() {
                   Transition
                 </ThemedText>
               </Pressable>
+              <Pressable
+                style={[
+                  styles.eventTypeButton,
+                  { borderColor: eventType === 'charge-nurse' ? primaryColor : borderColor },
+                  eventType === 'charge-nurse' && { backgroundColor: primaryColor + '15' },
+                ]}
+                onPress={() => setEventType('charge-nurse')}
+              >
+                <Ionicons
+                  name="people-outline"
+                  size={20}
+                  color={eventType === 'charge-nurse' ? primaryColor : textSecondaryColor}
+                />
+                <ThemedText
+                  style={[
+                    styles.eventTypeText,
+                    { color: eventType === 'charge-nurse' ? primaryColor : textSecondaryColor },
+                  ]}
+                >
+                  Charge Nurse
+                </ThemedText>
+              </Pressable>
             </View>
           </View>
 
@@ -332,6 +354,8 @@ const styles = StyleSheet.create({
   eventTypeText: {
     fontSize: Typography.sm,
     fontWeight: Typography.weights.medium,
+    flexShrink: 1,
+    textAlign: 'center',
   },
   babySection: {
     marginTop: Spacing.sm,

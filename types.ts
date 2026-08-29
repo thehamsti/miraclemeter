@@ -8,13 +8,15 @@ interface BirthRecord {
   timestamp?: Date;
   babies: Baby[];
   deliveryType?: 'vaginal' | 'c-section' | 'unknown';
-  eventType?: 'delivery' | 'transition';
+  eventType?: BirthEventType;
   notes?: string;
   // Cloud sync metadata (ISO strings). updatedAt tracks the last edit for
   // multi-device merge; deletedAt marks a tombstone so deletions propagate.
   updatedAt?: string;
   deletedAt?: string;
 }
+
+type BirthEventType = 'delivery' | 'transition' | 'charge-nurse';
 
 interface UserPreferences {
   name?: string;
@@ -118,4 +120,4 @@ interface RatePromptData {
   achievementUnlockCount: number; // Track unlocks to trigger at 3rd
 }
 
-export type { Theme, Language, UserPreferences, BirthRecord, Baby, Achievement, UserAchievements, YearlyBabyCount, StreakData, RatePromptData };
+export type { Theme, Language, UserPreferences, BirthRecord, BirthEventType, Baby, Achievement, UserAchievements, YearlyBabyCount, StreakData, RatePromptData };

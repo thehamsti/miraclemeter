@@ -56,6 +56,7 @@ describe('useStatistics', () => {
       expect(result.current.monthCount).toBe(0);
       expect(result.current.eventCounts.delivery).toBe(0);
       expect(result.current.eventCounts.transition).toBe(0);
+      expect(result.current.eventCounts.chargeNurse).toBe(0);
     });
   });
 
@@ -328,6 +329,26 @@ describe('useStatistics', () => {
 
       expect(result.current.eventCounts.delivery).toBe(1);
       expect(result.current.eventCounts.transition).toBe(2);
+      expect(result.current.eventCounts.chargeNurse).toBe(0);
+    });
+
+    it('should count charge nurse events separately from deliveries', async () => {
+      const records = [
+        createMockRecord({ eventType: 'charge-nurse' }),
+        createMockRecord({ eventType: 'delivery' }),
+        createMockRecord({ eventType: 'transition' }),
+      ];
+      mockGetBirthRecords.mockResolvedValue(records);
+
+      const { result } = renderHook(() => useStatistics());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.eventCounts.delivery).toBe(1);
+      expect(result.current.eventCounts.transition).toBe(1);
+      expect(result.current.eventCounts.chargeNurse).toBe(1);
     });
 
     it('should count missing legacy event types as deliveries', async () => {

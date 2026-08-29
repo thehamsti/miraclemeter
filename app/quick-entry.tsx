@@ -13,7 +13,7 @@ import { Button } from '@/components/Button';
 import { TextInput } from '@/components/TextInput';
 import { saveBirthRecord, type SaveBirthRecordResult } from '@/services/storage';
 import { shouldShowRatePrompt, showRatePrompt } from '@/services/ratePrompt';
-import type { Baby, BirthRecord } from '@/types';
+import type { Baby, BirthEventType, BirthRecord } from '@/types';
 import { AchievementNotification } from '@/components/AchievementNotification';
 import { StreakMilestoneModal } from '@/components/StreakMilestoneModal';
 import { ACHIEVEMENTS } from '@/constants/achievements';
@@ -30,7 +30,7 @@ export default function QuickEntryScreen() {
   const [numberOfBabies, setNumberOfBabies] = useState(1);
   const [babies, setBabies] = useState<Baby[]>([{ gender: 'boy', birthOrder: 1 }]);
   const [deliveryType, setDeliveryType] = useState<'vaginal' | 'c-section' | 'unknown' | undefined>(undefined);
-  const [eventType, setEventType] = useState<'delivery' | 'transition' | undefined>(undefined);
+  const [eventType, setEventType] = useState<BirthEventType | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
@@ -346,7 +346,7 @@ export default function QuickEntryScreen() {
       );
     }
 
-    // Event Type (Delivery or Transition) - New Step
+    // Event type is optional because older records may not have one.
     const eventTypeStep = deliveryTypeStep + 1;
     if (currentStep === eventTypeStep) {
       return (
@@ -373,6 +373,13 @@ export default function QuickEntryScreen() {
               variant={eventType === 'transition' ? 'primary' : 'secondary'}
               style={styles.selectorButton}
               icon={<Ionicons name="swap-horizontal-outline" size={20} color={eventType === 'transition' ? 'white' : textColor} />}
+            />
+            <Button
+              title="Charge Nurse"
+              onPress={() => setEventType('charge-nurse')}
+              variant={eventType === 'charge-nurse' ? 'primary' : 'secondary'}
+              style={styles.selectorButton}
+              icon={<Ionicons name="people-outline" size={20} color={eventType === 'charge-nurse' ? 'white' : textColor} />}
             />
           </View>
           <Button

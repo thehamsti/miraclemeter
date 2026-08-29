@@ -18,6 +18,7 @@ interface DeliveryCounts {
 interface EventCounts {
   delivery: number;
   transition: number;
+  chargeNurse: number;
 }
 
 interface Statistics {
@@ -46,7 +47,7 @@ export function useStatistics(): Statistics {
   const [yearCount, setYearCount] = useState(0);
   const [genderCounts, setGenderCounts] = useState<GenderCounts>({ boys: 0, girls: 0, angels: 0 });
   const [deliveryCounts, setDeliveryCounts] = useState<DeliveryCounts>({ vaginal: 0, cSection: 0, unknown: 0 });
-  const [eventCounts, setEventCounts] = useState<EventCounts>({ delivery: 0, transition: 0 });
+  const [eventCounts, setEventCounts] = useState<EventCounts>({ delivery: 0, transition: 0, chargeNurse: 0 });
   const [yearlyBabyCounts, setYearlyBabyCounts] = useState<YearlyBabyCount[]>([]);
 
   const calculateStats = useCallback((birthRecords: BirthRecord[]) => {
@@ -154,6 +155,7 @@ export function useStatistics(): Statistics {
     let unknown = 0;
     let delivery = 0;
     let transition = 0;
+    let chargeNurse = 0;
 
     for (const record of birthRecords) {
       if (record.deliveryType === 'vaginal') {
@@ -166,13 +168,15 @@ export function useStatistics(): Statistics {
 
       if (record.eventType === 'transition') {
         transition++;
+      } else if (record.eventType === 'charge-nurse') {
+        chargeNurse++;
       } else {
         delivery++;
       }
     }
 
     setDeliveryCounts({ vaginal, cSection, unknown });
-    setEventCounts({ delivery, transition });
+    setEventCounts({ delivery, transition, chargeNurse });
   }, []);
 
   const loadStats = useCallback(async () => {

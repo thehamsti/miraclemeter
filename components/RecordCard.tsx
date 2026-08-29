@@ -8,6 +8,7 @@ import { usePressAnimation } from '@/hooks/usePressAnimation';
 import { BirthRecord } from '@/types';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Colors';
 import { formatDistanceToNow } from '@/utils/dateUtils';
+import { getEventTypeLabel } from '@/utils/eventTypes';
 import { useRouter } from 'expo-router';
 
 interface RecordCardProps {
@@ -108,7 +109,7 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
           day: 'numeric',
           year: 'numeric'
         }) : 'unknown date'}. ${record.deliveryType === 'vaginal' ? 'Vaginal' : 
-          record.deliveryType === 'c-section' ? 'C-Section' : 'Unknown'} delivery. ${record.babies.length} ${record.babies.length === 1 ? 'baby' : 'babies'}. Tap to view details.`}
+          record.deliveryType === 'c-section' ? 'C-Section' : 'Unknown'} delivery. ${record.eventType ? `${getEventTypeLabel(record.eventType)} event. ` : ''}${record.babies.length} ${record.babies.length === 1 ? 'baby' : 'babies'}. Tap to view details.`}
         accessibilityRole="button"
         style={({ pressed }) => [
           styles.card,
@@ -187,7 +188,7 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
           {record.eventType && (
             <View style={[styles.infoItem, styles.infoItemWithBg, { backgroundColor: borderLightColor }]}>
               <Ionicons 
-                name={record.eventType === 'delivery' ? 'fitness-outline' : 'swap-horizontal-outline'} 
+                name={record.eventType === 'delivery' ? 'fitness-outline' : record.eventType === 'transition' ? 'swap-horizontal-outline' : 'people-outline'}
                 size={18} 
                 color={textSecondaryColor} 
               />
@@ -196,7 +197,7 @@ export function RecordCard({ record, placeholder, style, onPress, showActions = 
                 numberOfLines={1}
                 adjustsFontSizeToFit
               >
-                {record.eventType === 'delivery' ? 'Delivery' : 'Transition'}
+                {getEventTypeLabel(record.eventType)}
               </ThemedText>
             </View>
           )}

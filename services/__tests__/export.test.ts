@@ -73,6 +73,13 @@ describe('Export Service', () => {
       expect(csv).toContain('C-section');
     });
 
+    it('should format charge nurse event type', async () => {
+      const chargeNurseRecord = { ...mockRecord, eventType: 'charge-nurse' as const };
+      const csv = await exportToCSV([chargeNurseRecord]);
+
+      expect(csv).toContain('Charge Nurse');
+    });
+
     it('should handle multiple babies in a record', async () => {
       const twinRecord: BirthRecord = {
         ...mockRecord,

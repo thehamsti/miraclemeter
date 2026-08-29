@@ -13,6 +13,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedText } from './ThemedText';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Colors';
 import type { BirthRecord, Baby } from '@/types';
+import { getEventTypeLabel } from '@/utils/eventTypes';
 
 interface DayDetailModalProps {
   visible: boolean;
@@ -302,7 +303,7 @@ export function DayDetailModal({
                                 <ThemedText
                                   style={[styles.recordTagText, { color: successColor }]}
                                 >
-                                  {record.eventType === 'delivery' ? 'Delivery' : 'Transition'}
+                                  {getEventTypeLabel(record.eventType)}
                                 </ThemedText>
                               </View>
                             )}

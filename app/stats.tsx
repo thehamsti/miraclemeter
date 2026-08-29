@@ -79,6 +79,7 @@ export default function StatsScreen() {
   const totalBabies = genderStats.boys + genderStats.girls + genderStats.angels;
   const deliveryEventPercentage = totalDeliveries > 0 ? Math.round((eventStats.delivery / totalDeliveries) * 100) : 0;
   const transitionEventPercentage = totalDeliveries > 0 ? Math.round((eventStats.transition / totalDeliveries) * 100) : 0;
+  const chargeNurseEventPercentage = totalDeliveries > 0 ? Math.round((eventStats.chargeNurse / totalDeliveries) * 100) : 0;
 
   const genderData = [
     { 
@@ -234,7 +235,7 @@ export default function StatsScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <ThemedText style={[styles.sectionTitle, { color: textColor }]}>
-                  Delivery vs Transition
+                  Event Types
                 </ThemedText>
                 <View style={[styles.totalBadge, { backgroundColor: primaryColor + '15' }]}>
                   <ThemedText style={[styles.totalBadgeText, { color: primaryColor }]}>
@@ -264,6 +265,18 @@ export default function StatsScreen() {
                     </ThemedText>
                     <ThemedText style={[styles.deliveryStatLabel, { color: textSecondaryColor }]}>
                       Transition ({transitionEventPercentage}%)
+                    </ThemedText>
+                  </View>
+                </View>
+
+                <View style={[styles.deliveryStatCard, { backgroundColor: surfaceColor, borderLeftColor: warningColor }]}>
+                  <Ionicons name="people-outline" size={24} color={warningColor} />
+                  <View style={styles.deliveryStatContent}>
+                    <ThemedText style={[styles.deliveryStatValue, { color: textColor }]}>
+                      {eventStats.chargeNurse}
+                    </ThemedText>
+                    <ThemedText style={[styles.deliveryStatLabel, { color: textSecondaryColor }]}>
+                      Charge Nurse ({chargeNurseEventPercentage}%)
                     </ThemedText>
                   </View>
                 </View>

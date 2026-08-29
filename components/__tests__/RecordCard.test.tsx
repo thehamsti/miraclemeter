@@ -111,6 +111,14 @@ describe('RecordCard', () => {
       expect(getByText('C-Section')).toBeTruthy();
     });
 
+    it('should display charge nurse event type', () => {
+      const chargeNurseRecord = { ...mockRecord, eventType: 'charge-nurse' as const };
+
+      const { getByText } = render(<RecordCard record={chargeNurseRecord} />);
+
+      expect(getByText('Charge Nurse')).toBeTruthy();
+    });
+
     it('should display single birth text for one baby', () => {
       const { getByText } = render(<RecordCard record={mockRecord} />);
 

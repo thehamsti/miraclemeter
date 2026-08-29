@@ -1,4 +1,5 @@
-import { BirthRecord } from '@/types';
+import type { BirthRecord } from '@/types';
+import { getEventTypeLabel } from '@/utils/eventTypes';
 
 export interface ExportOptions {
   format: 'csv' | 'pdf';
@@ -73,9 +74,7 @@ export async function exportToCSV(
         ? record.deliveryType.charAt(0).toUpperCase() + record.deliveryType.slice(1)
         : 'Unknown';
 
-      const eventType = record.eventType 
-        ? record.eventType.charAt(0).toUpperCase() + record.eventType.slice(1)
-        : 'Unknown';
+      const eventType = getEventTypeLabel(record.eventType);
 
       const genders = record.babies
         .map(baby => baby.gender.charAt(0).toUpperCase() + baby.gender.slice(1))
