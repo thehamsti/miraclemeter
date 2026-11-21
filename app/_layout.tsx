@@ -47,7 +47,7 @@ function RootLayoutContent() {
   }, [router]);
 
   // Handle deep links from widget
-  const handleDeepLink = useCallback((url: string | null) => {
+  const handleDeepLink = useCallback((url: string | null | undefined) => {
     if (!url) return;
     
     try {

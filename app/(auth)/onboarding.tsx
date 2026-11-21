@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
@@ -99,7 +100,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentPage, setCurrentPage] = useState(0);
   
@@ -282,6 +283,7 @@ export default function OnboardingScreen() {
               value={name}
               onChangeText={setName}
               leftIcon="person-outline"
+              testID="onboarding-name-input"
             />
             
             <TextInput

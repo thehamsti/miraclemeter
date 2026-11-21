@@ -1,0 +1,25 @@
+# Record one vaginal delivery from the Quick Entry tab and confirm the
+# success state, then see it in History.
+appId: com.hamstico.miraclemeter
+name: 002 - Add a birth record
+tags:
+  - quick-entry
+  - records
+---
+- launchApp
+- runFlow: 001-launch-onboarding.yml
+
+- tapOn: "Quick Entry"
+- assertVisible: "Delivery"
+- tapOn: "Delivery"
+
+# Optional details step
+- tapOn: "Skip"
+- tapOn: "Save"
+
+- assertVisible: "Birth Record Saved!"
+- screenshot: quick_entry_saved
+
+- tapOn: "History"
+- assertVisible: "Vaginal"
+- screenshot: history_with_record

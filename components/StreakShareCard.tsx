@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, type ViewInstance, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemedText } from './ThemedText';
@@ -35,7 +35,7 @@ function getIcon(weeks: number): keyof typeof MaterialCommunityIcons.glyphMap {
   return 'fire';
 }
 
-export const StreakShareCard = forwardRef<View, StreakShareCardProps>(
+export const StreakShareCard = forwardRef<ViewInstance, StreakShareCardProps>(
   ({ streakWeeks, shieldCount = 0 }, ref) => {
     const gradient = getGradient(streakWeeks);
     const icon = getIcon(streakWeeks);

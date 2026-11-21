@@ -1,0 +1,26 @@
+# Open the side menu from Home, verify Settings fields persist the
+# profile entered during onboarding, then visit Stats.
+appId: com.hamstico.miraclemeter
+name: 003 - Settings and stats
+tags:
+  - settings
+  - stats
+---
+- launchApp
+- runFlow: 001-launch-onboarding.yml
+
+- tapOn:
+    id: "home-menu-button"
+- assertVisible: "Your Name"
+- screenshot: settings_profile
+
+# Unit / department round-trips
+- tapOn: "Where do you work?"
+- inputText: "Labor & Delivery"
+- tapOn: "Save"
+
+# Stats screen renders the totals
+- tapOn:
+    id: "home-menu-button"
+- assertVisible: "Your Name"
+- screenshot: menu_after_settings

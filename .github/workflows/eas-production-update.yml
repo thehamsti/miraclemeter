@@ -58,7 +58,7 @@ jobs:
       - name: Setup pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@10.24.0 --activate
+          corepack prepare pnpm@12.22.0 --activate
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8

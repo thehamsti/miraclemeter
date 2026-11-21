@@ -1,0 +1,25 @@
+# Data must survive a full app relaunch: add a record, kill the app,
+# relaunch, and confirm it is still in History.
+appId: com.hamstico.miraclemeter
+name: 004 - Data persists across relaunch
+tags:
+  - persistence
+---
+- launchApp
+- runFlow: 001-launch-onboarding.yml
+
+- tapOn: "Quick Entry"
+- tapOn: "Delivery"
+- tapOn: "Skip"
+- tapOn: "Save"
+- assertVisible: "Birth Record Saved!"
+
+- stopApp
+- launchApp
+
+# Onboarding must NOT reappear and the record must still exist
+- assertVisible:
+    id: "home-menu-button"
+- tapOn: "History"
+- assertVisible: "Vaginal"
+- screenshot: history_after_relaunch

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef } from 'react';
-import { StyleSheet, ScrollView, Dimensions, View, Platform, Pressable, Modal, Alert } from 'react-native';
+import { StyleSheet, ScrollView, Dimensions, View, type ViewInstance, Platform, Pressable, Modal, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { BarChart, PieChart } from 'react-native-chart-kit';
@@ -16,7 +16,7 @@ export default function StatsScreen() {
   const [showSharePicker, setShowSharePicker] = useState(false);
   const [selectedStatsPeriod, setSelectedStatsPeriod] = useState<StatsPeriod | null>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const statsShareCardRef = useRef<View>(null!);
+  const statsShareCardRef = useRef<ViewInstance>(null!);
 
   const {
     totalDeliveries,

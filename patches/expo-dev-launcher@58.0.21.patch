@@ -1,0 +1,20 @@
+diff --git a/ios/SwiftUI/Navigation/DevLauncherToolbar.swift b/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
+index 23e857f2f23489abee417c94a90c52288860e9bb..5732ccd86c22ff351913d76011c4fb9757f5c867 100644
+--- a/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
++++ b/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
+@@ -16,15 +16,7 @@ extension View {
+ extension ToolbarContent {
+   @ToolbarContentBuilder
+   func verticalBarPreferred() -> some ToolbarContent {
+-#if os(iOS) && compiler(>=6.4)
+-    if #available(iOS 27.1, *) {
+-      axisBehavior(.verticalPreferred)
+-    } else {
+-      self
+-    }
+-#else
+     self
+-#endif
+   }
+ 
+   @ToolbarContentBuilder
