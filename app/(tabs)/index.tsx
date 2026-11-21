@@ -252,6 +252,9 @@ export default function HomeScreen() {
                   pressed && styles.menuButtonPressed,
                 ]}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Open menu"
+                accessibilityRole="button"
+                testID="home-menu-button"
               >
                 <Ionicons name="menu" size={20} color="white" />
               </Pressable>
@@ -311,6 +314,9 @@ export default function HomeScreen() {
                   pressed && styles.menuButtonPressed,
                 ]}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Open menu"
+                accessibilityRole="button"
+                testID="home-menu-button"
               >
                 <Ionicons name="menu" size={22} color="white" />
               </Pressable>

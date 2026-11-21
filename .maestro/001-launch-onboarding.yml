@@ -1,0 +1,33 @@
+# Cold launch through first-run onboarding into the Home tab.
+# Run on a fresh simulator install (no AsyncStorage data).
+appId: com.hamstico.miraclemeter
+name: 001 - Launch and onboarding
+tags:
+  - launch
+  - onboarding
+---
+- launchApp
+- assertVisible: "How should we call you?"
+- screenshot: onboarding_start
+
+# Fill the profile step
+- tapOn:
+    id: "onboarding-name-input"
+- inputText: "Test Midwife"
+- tapOn: "Next"
+
+# Page through the remaining onboarding steps
+- repeat:
+    while:
+      visible: "Next"
+    commands:
+      - tapOn: "Next"
+
+- assertVisible: "Let's Go!"
+- screenshot: onboarding_final
+- tapOn: "Let's Go!"
+
+# Lands on Home with the menu button
+- assertVisible:
+    id: "home-menu-button"
+- screenshot: home_first_launch

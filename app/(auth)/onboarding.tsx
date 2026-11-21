@@ -283,6 +283,7 @@ export default function OnboardingScreen() {
               value={name}
               onChangeText={setName}
               leftIcon="person-outline"
+              testID="onboarding-name-input"
             />
             
             <TextInput
