@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, type ViewInstance, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemedText } from './ThemedText';
@@ -18,7 +18,7 @@ const CATEGORY_GRADIENTS: Record<Achievement['category'], [string, string]> = {
   streak: ['#EF4444', '#FCA5A5'],    // Red gradient
 };
 
-export const AchievementShareCard = forwardRef<View, AchievementShareCardProps>(
+export const AchievementShareCard = forwardRef<ViewInstance, AchievementShareCardProps>(
   ({ achievement, unlockedAt }, ref) => {
     const gradient = CATEGORY_GRADIENTS[achievement.category] || CATEGORY_GRADIENTS.milestone;
     

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { ScrollView, StyleSheet, View, Platform, Pressable, Dimensions, Modal, Alert } from 'react-native';
+import { ScrollView, StyleSheet, View, type ViewInstance, Platform, Pressable, Dimensions, Modal, Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,7 +30,7 @@ export default function AchievementsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const shareCardRef = useRef<View>(null!);
+  const shareCardRef = useRef<ViewInstance>(null!);
 
   const loadAchievements = useCallback(async () => {
     try {

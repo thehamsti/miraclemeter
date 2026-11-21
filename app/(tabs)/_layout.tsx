@@ -57,7 +57,7 @@ export default function TabLayout() {
           options={{
             title: 'Home',
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+              <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color as string} />
             ),
           }}
         />
@@ -92,7 +92,7 @@ export default function TabLayout() {
           options={{
             title: 'History',
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? 'time' : 'time-outline'} color={color} />
+              <TabBarIcon name={focused ? 'time' : 'time-outline'} color={color as string} />
             ),
           }}
         />

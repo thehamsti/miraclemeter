@@ -4,6 +4,7 @@ import {
   Dimensions,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   StyleSheet,
   Text,
   View,
@@ -99,7 +100,7 @@ function FadeInView({ delay = 0, duration = 600, children, style }: {
 
 export default function RecapScreen() {
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const confettiRef = useRef<ConfettiCannon>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState<{ [key: number]: boolean }>({});

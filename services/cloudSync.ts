@@ -4,7 +4,6 @@ import {
   NativeEventEmitter,
   NativeModules,
   Platform,
-  type NativeModule,
 } from 'react-native';
 import type { BirthRecord } from '@/types';
 
@@ -304,7 +303,9 @@ function ensureChangeSubscription(): void {
   if (!nativePresent() || onChangeSub) return;
   // RCTEventEmitter subclasses expose addListener/removeListeners at runtime;
   // cast to the NativeModule shape NativeEventEmitter expects.
-  eventEmitter = new NativeEventEmitter(ICloudSyncBridge as unknown as NativeModule);
+  eventEmitter = new NativeEventEmitter(
+    ICloudSyncBridge as unknown as ConstructorParameters<typeof NativeEventEmitter>[0],
+  );
   onChangeSub = eventEmitter.addListener('onChange', () => {
     void pullAndMerge();
   });

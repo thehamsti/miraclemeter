@@ -20,26 +20,26 @@ describe('BabyDetailsForm', () => {
     jest.clearAllMocks();
   });
 
-  it('should render without crashing', () => {
-    const { getByText } = render(
+  it('should render without crashing', async () => {
+    const { getByText } = await render(
       <BabyDetailsForm baby={defaultBaby} onUpdate={mockOnUpdate} />
     );
 
     expect(getByText('Baby 1')).toBeTruthy();
   });
 
-  it('should display the correct birth order', () => {
+  it('should display the correct birth order', async () => {
     const baby: Baby = { gender: 'girl', birthOrder: 3 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
     expect(getByText('Baby 3')).toBeTruthy();
   });
 
-  it('should render all three gender buttons', () => {
-    const { getByText } = render(
+  it('should render all three gender buttons', async () => {
+    const { getByText } = await render(
       <BabyDetailsForm baby={defaultBaby} onUpdate={mockOnUpdate} />
     );
 
@@ -48,14 +48,14 @@ describe('BabyDetailsForm', () => {
     expect(getByText('Angel')).toBeTruthy();
   });
 
-  it('should call onUpdate with boy gender when Boy button is pressed', () => {
+  it('should call onUpdate with boy gender when Boy button is pressed', async () => {
     const baby: Baby = { gender: 'girl', birthOrder: 1 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Boy'));
+    await fireEvent.press(getByText('Boy'));
 
     expect(mockOnUpdate).toHaveBeenCalledWith({
       gender: 'boy',
@@ -63,14 +63,14 @@ describe('BabyDetailsForm', () => {
     });
   });
 
-  it('should call onUpdate with girl gender when Girl button is pressed', () => {
+  it('should call onUpdate with girl gender when Girl button is pressed', async () => {
     const baby: Baby = { gender: 'boy', birthOrder: 1 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Girl'));
+    await fireEvent.press(getByText('Girl'));
 
     expect(mockOnUpdate).toHaveBeenCalledWith({
       gender: 'girl',
@@ -78,14 +78,14 @@ describe('BabyDetailsForm', () => {
     });
   });
 
-  it('should call onUpdate with angel gender when Angel button is pressed', () => {
+  it('should call onUpdate with angel gender when Angel button is pressed', async () => {
     const baby: Baby = { gender: 'boy', birthOrder: 1 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Angel'));
+    await fireEvent.press(getByText('Angel'));
 
     expect(mockOnUpdate).toHaveBeenCalledWith({
       gender: 'angel',
@@ -93,14 +93,14 @@ describe('BabyDetailsForm', () => {
     });
   });
 
-  it('should preserve birth order when updating gender', () => {
+  it('should preserve birth order when updating gender', async () => {
     const baby: Baby = { gender: 'boy', birthOrder: 5 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Girl'));
+    await fireEvent.press(getByText('Girl'));
 
     expect(mockOnUpdate).toHaveBeenCalledWith({
       gender: 'girl',
@@ -108,38 +108,38 @@ describe('BabyDetailsForm', () => {
     });
   });
 
-  it('should handle different birth orders', () => {
+  it('should handle different birth orders', async () => {
     const birthOrders = [1, 2, 3, 4, 5];
 
-    birthOrders.forEach((birthOrder) => {
+    for (const birthOrder of birthOrders) {
       const baby: Baby = { gender: 'boy', birthOrder };
 
-      const { getByText } = render(
+      const { getByText } = await render(
         <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
       );
 
       expect(getByText(`Baby ${birthOrder}`)).toBeTruthy();
-    });
+    }
   });
 
-  it('should call onUpdate exactly once per button press', () => {
-    const { getByText } = render(
+  it('should call onUpdate exactly once per button press', async () => {
+    const { getByText } = await render(
       <BabyDetailsForm baby={defaultBaby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Girl'));
+    await fireEvent.press(getByText('Girl'));
 
     expect(mockOnUpdate).toHaveBeenCalledTimes(1);
   });
 
-  it('should allow pressing the same gender button that is already selected', () => {
+  it('should allow pressing the same gender button that is already selected', async () => {
     const baby: Baby = { gender: 'boy', birthOrder: 1 };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <BabyDetailsForm baby={baby} onUpdate={mockOnUpdate} />
     );
 
-    fireEvent.press(getByText('Boy'));
+    await fireEvent.press(getByText('Boy'));
 
     expect(mockOnUpdate).toHaveBeenCalledWith({
       gender: 'boy',

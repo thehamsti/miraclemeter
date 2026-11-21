@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
+  type ViewInstance,
   StyleSheet,
   ScrollView,
   Platform,
@@ -80,7 +81,7 @@ export default function StreaksScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const shareCardRef = useRef<View>(null!);
+  const shareCardRef = useRef<ViewInstance>(null!);
 
   const loadData = useCallback(async () => {
     try {

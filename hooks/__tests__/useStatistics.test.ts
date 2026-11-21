@@ -43,7 +43,7 @@ describe('useStatistics', () => {
     it('should have zero counts when no records exist', async () => {
       mockGetBirthRecords.mockResolvedValue([]);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -65,7 +65,7 @@ describe('useStatistics', () => {
       const records = [createMockRecord(), createMockRecord(), createMockRecord()];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -90,7 +90,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -113,7 +113,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -129,7 +129,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -154,7 +154,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -179,7 +179,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -204,7 +204,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -224,7 +224,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -241,7 +241,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -264,7 +264,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -285,7 +285,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -302,7 +302,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -321,7 +321,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -340,7 +340,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -359,7 +359,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -379,7 +379,7 @@ describe('useStatistics', () => {
       });
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -402,7 +402,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -417,7 +417,7 @@ describe('useStatistics', () => {
       const records = [createMockRecord(), createMockRecord()];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -431,7 +431,7 @@ describe('useStatistics', () => {
     it('should reload data when refresh is called', async () => {
       mockGetBirthRecords.mockResolvedValue([createMockRecord()]);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -458,7 +458,7 @@ describe('useStatistics', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockGetBirthRecords.mockRejectedValue(new Error('Storage error'));
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -490,7 +490,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -519,7 +519,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -551,7 +551,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -576,7 +576,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -597,7 +597,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -626,7 +626,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -640,7 +640,7 @@ describe('useStatistics', () => {
     it('should return empty array when no records exist', async () => {
       mockGetBirthRecords.mockResolvedValue([]);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -659,7 +659,7 @@ describe('useStatistics', () => {
       ];
       mockGetBirthRecords.mockResolvedValue(records);
 
-      const { result } = renderHook(() => useStatistics());
+      const { result } = await renderHook(() => useStatistics());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

@@ -14,16 +14,16 @@ describe('DeliveryTypeSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('should render without crashing', () => {
-    const { getByText } = render(
+  it('should render without crashing', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
     expect(getByText('Delivery Type')).toBeTruthy();
   });
 
-  it('should render all three delivery type buttons', () => {
-    const { getByText } = render(
+  it('should render all three delivery type buttons', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
@@ -32,58 +32,58 @@ describe('DeliveryTypeSelector', () => {
     expect(getByText('Unknown')).toBeTruthy();
   });
 
-  it('should call onChange with vaginal when Vaginal button is pressed', () => {
-    const { getByText } = render(
+  it('should call onChange with vaginal when Vaginal button is pressed', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="c-section" onChange={mockOnChange} />
     );
 
-    fireEvent.press(getByText('Vaginal'));
+    await fireEvent.press(getByText('Vaginal'));
 
     expect(mockOnChange).toHaveBeenCalledWith('vaginal');
   });
 
-  it('should call onChange with c-section when C-Section button is pressed', () => {
-    const { getByText } = render(
+  it('should call onChange with c-section when C-Section button is pressed', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
-    fireEvent.press(getByText('C-Section'));
+    await fireEvent.press(getByText('C-Section'));
 
     expect(mockOnChange).toHaveBeenCalledWith('c-section');
   });
 
-  it('should call onChange with unknown when Unknown button is pressed', () => {
-    const { getByText } = render(
+  it('should call onChange with unknown when Unknown button is pressed', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
-    fireEvent.press(getByText('Unknown'));
+    await fireEvent.press(getByText('Unknown'));
 
     expect(mockOnChange).toHaveBeenCalledWith('unknown');
   });
 
-  it('should call onChange exactly once per button press', () => {
-    const { getByText } = render(
+  it('should call onChange exactly once per button press', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
-    fireEvent.press(getByText('C-Section'));
+    await fireEvent.press(getByText('C-Section'));
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should allow pressing the same type button that is already selected', () => {
-    const { getByText } = render(
+  it('should allow pressing the same type button that is already selected', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
-    fireEvent.press(getByText('Vaginal'));
+    await fireEvent.press(getByText('Vaginal'));
 
     expect(mockOnChange).toHaveBeenCalledWith('vaginal');
   });
 
-  it('should render with vaginal as initial value', () => {
-    const { getByText } = render(
+  it('should render with vaginal as initial value', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 
@@ -91,8 +91,8 @@ describe('DeliveryTypeSelector', () => {
     expect(getByText('Vaginal')).toBeTruthy();
   });
 
-  it('should render with c-section as initial value', () => {
-    const { getByText } = render(
+  it('should render with c-section as initial value', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="c-section" onChange={mockOnChange} />
     );
 
@@ -100,8 +100,8 @@ describe('DeliveryTypeSelector', () => {
     expect(getByText('C-Section')).toBeTruthy();
   });
 
-  it('should render with unknown as initial value', () => {
-    const { getByText } = render(
+  it('should render with unknown as initial value', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="unknown" onChange={mockOnChange} />
     );
 
@@ -109,8 +109,8 @@ describe('DeliveryTypeSelector', () => {
     expect(getByText('Unknown')).toBeTruthy();
   });
 
-  it('should display the header icon and text', () => {
-    const { getByText } = render(
+  it('should display the header icon and text', async () => {
+    const { getByText } = await render(
       <DeliveryTypeSelector value="vaginal" onChange={mockOnChange} />
     );
 

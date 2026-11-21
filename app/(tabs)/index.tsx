@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
 import { Animated } from "react-native";
-import { Platform, Pressable, RefreshControl, StyleSheet, View, Modal, Alert } from "react-native";
+import { Platform, Pressable, RefreshControl, StyleSheet, View, type ViewInstance, Modal, Alert } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { BlurView } from "expo-blur";
 import { Link, useFocusEffect, useRouter } from "expo-router";
@@ -48,7 +48,7 @@ export default function HomeScreen() {
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [currentMilestone, setCurrentMilestone] = useState<number | null>(null);
   const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
-  const statsShareCardRef = useRef<View>(null!);
+  const statsShareCardRef = useRef<ViewInstance>(null!);
   
   // Animated values for smooth header transition
   const scrollY = useRef(new Animated.Value(0)).current;

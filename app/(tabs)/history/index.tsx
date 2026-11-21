@@ -333,7 +333,7 @@ export default function HistoryScreen() {
                 tintColor={primaryColor}
               />
             }
-            ListEmptyComponent={searchQuery ? renderEmptyState : null}
+            ListEmptyComponent={searchQuery ? renderEmptyState : undefined}
           />
         </>
       ) : (

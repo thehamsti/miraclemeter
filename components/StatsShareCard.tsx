@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, type ViewInstance, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemedText } from './ThemedText';
@@ -39,7 +39,7 @@ const PERIOD_CONFIG: Record<StatsPeriod, {
   },
 };
 
-export const StatsShareCard = forwardRef<View, StatsShareCardProps>(
+export const StatsShareCard = forwardRef<ViewInstance, StatsShareCardProps>(
   ({ count, period }, ref) => {
     const config = PERIOD_CONFIG[period];
     const babyWord = count === 1 ? 'baby' : 'babies';

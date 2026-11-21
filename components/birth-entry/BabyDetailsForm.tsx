@@ -34,27 +34,21 @@ export function BabyDetailsForm({ baby, onUpdate }: BabyDetailsFormProps) {
           title="Boy"
           onPress={() => updateGender('boy')}
           icon={<Ionicons name="male" size={20} color={baby.gender === 'boy' ? primaryButtonTextColor : secondaryButtonTextColor} />}
-          style={StyleSheet.flatten([
-            styles.button,
-          ])}
+          style={styles.button}
           variant={baby.gender === 'boy' ? 'primary' : 'secondary'}
         />
         <Button
           title="Girl"
           onPress={() => updateGender('girl')}
           icon={<Ionicons name="female" size={20} color={baby.gender === 'girl' ? primaryButtonTextColor : secondaryButtonTextColor} />}
-          style={StyleSheet.flatten([
-            styles.button,
-          ])}
+          style={styles.button}
           variant={baby.gender === 'girl' ? 'primary' : 'secondary'}
         />
         <Button
           title="Angel"
           onPress={() => updateGender('angel')}
           icon={<Ionicons name="star" size={20} color={baby.gender === 'angel' ? primaryButtonTextColor : secondaryButtonTextColor} />}
-          style={StyleSheet.flatten([
-            styles.button,
-          ])}
+          style={styles.button}
           variant={baby.gender === 'angel' ? 'primary' : 'secondary'}
         />
       </ThemedView>

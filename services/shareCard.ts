@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-import { View } from 'react-native';
+import type { ViewInstance } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
@@ -14,7 +14,7 @@ export class ShareError extends Error {
 }
 
 export async function captureAndShareAchievement(
-  viewRef: RefObject<View>,
+  viewRef: RefObject<ViewInstance>,
   achievement: Achievement
 ): Promise<void> {
   try {
@@ -76,7 +76,7 @@ const PERIOD_LABELS: Record<StatsPeriod, string> = {
 };
 
 export async function captureAndShareStats(
-  viewRef: RefObject<View>,
+  viewRef: RefObject<ViewInstance>,
   period: StatsPeriod
 ): Promise<void> {
   try {
